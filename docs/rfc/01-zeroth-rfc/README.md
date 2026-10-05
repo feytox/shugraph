@@ -64,3 +64,6 @@ block-beta
 - [frontend.md](frontend.md) - стек и архитектура фронтенда
 - [ci.md](ci.md) - сборка и развёртывание на тестовую и продовую площадки
 - [team.md](team.md) - командные процессы
+- [../../definitions.md](../../definitions.md) - общий словарь проекта
+- [../../features.md](../../features.md) - фичи продукта
+- [../../schemes.md](../../schemes.md) - мошеннические схемы и правила их обнаружения (SRD)
