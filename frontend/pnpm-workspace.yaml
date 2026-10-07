@@ -1,0 +1,4 @@
+packages:
+  - 'graph-frontapp'
+  - 'graph-admin-frontapp'
+  - 'packages/*'

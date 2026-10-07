@@ -1,0 +1,27 @@
+{
+  "name": "@shugraph/frontend-root",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter graph-frontapp dev",
+    "dev:admin": "pnpm --filter graph-admin-frontapp dev",
+    "dev:all": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "gen:api": "openapi-typescript ./api-spec/openapi.yaml -o ./graph-frontapp/src/api/v1.d.ts"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "eslint": "^9.20.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.19",
+    "openapi-typescript": "^7.6.1",
+    "prettier": "^3.5.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.0"
+  }
+}

@@ -1,0 +1,101 @@
+openapi: 3.1.0
+info:
+  title: Graph API
+  version: 1.0.0
+  description: API для выявления мошеннических групп (GSD-3 / GSD-5)
+paths:
+  /healthz:
+    get:
+      summary: Healthcheck
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            text/plain:
+              schema:
+                type: string
+  /readyz:
+    get:
+      summary: Readiness probe
+      responses:
+        '200':
+          description: DB connection is ready
+          content:
+            text/plain:
+              schema:
+                type: string
+        '503':
+          description: Service unavailable
+  /api/v1/notes:
+    get:
+      summary: Получить список записей
+      operationId: listNotes
+      responses:
+        '200':
+          description: Успешный ответ со списком записей
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+        '500':
+          description: Ошибка сервера
+    post:
+      summary: Создать запись
+      operationId: createNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNoteRequest'
+      responses:
+        '201':
+          description: Запись успешно создана
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+        '422':
+          description: Ошибка валидации
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Note:
+      type: object
+      required:
+        - id
+        - text
+        - created_at
+      properties:
+        id:
+          type: string
+          description: Идентификатор записи
+        text:
+          type: string
+          description: Текст записи
+        created_at:
+          type: string
+          format: date-time
+          description: Дата и время создания в формате ISO-8601 (UTC)
+    CreateNoteRequest:
+      type: object
+      required:
+        - text
+      properties:
+        text:
+          type: string
+          minLength: 1
+          description: Текст новой записи
+    ErrorResponse:
+      type: object
+      required:
+        - detail
+      properties:
+        detail:
+          type: string
+          description: Описание ошибки
