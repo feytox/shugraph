@@ -28,7 +28,6 @@ export function NotesApp() {
   const [formError, setFormError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // Запрос списка записей (GET /api/v1/notes)
   const {
     data: notes,
     isLoading,
@@ -47,7 +46,6 @@ export function NotesApp() {
     },
   });
 
-  // Мутация создания записи (POST /api/v1/notes)
   const createMutation = useMutation({
     mutationFn: async (text: string) => {
       const response = await apiClient.POST('/api/v1/notes', {
@@ -92,7 +90,6 @@ export function NotesApp() {
           </Text>
         </Box>
 
-        {/* Форма создания записи */}
         <Paper withBorder p="md" radius="md">
           <form onSubmit={handleSubmit}>
             <Stack gap="sm">
@@ -118,7 +115,6 @@ export function NotesApp() {
           </form>
         </Paper>
 
-        {/* Секция списка записей */}
         <Paper withBorder p="md" radius="md">
           <Stack gap="md">
             <Group justify="space-between">
