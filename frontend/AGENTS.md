@@ -1,38 +1,13 @@
-# AGENTS.md: Frontend Workspace
+context: frontend_monorepo
+cwd: frontend
 
-Монорепозиторий фронтенда (`pnpm workspace`): `graph-frontapp` (рабочее место аналитика) и `graph-admin-frontapp` (админка сценариев).
+commands:
+  pre_commit: pnpm typecheck && pnpm lint && pnpm test
+  test_single: pnpm --filter graph-frontapp test <path_to_test>
 
-## Команды разработки
-
-Запуск из директории `frontend/`:
-
-- Установка зависимостей: `pnpm install`
-- Запуск dev-сервера аналитика: `pnpm dev` (порт 5173)
-- Запуск dev-сервера админки: `pnpm dev:admin` (порт 5174)
-- Запуск обоих dev-серверов: `pnpm dev:all`
-- Проверка типов: `pnpm typecheck`
-- Тесты: `pnpm test`
-- Линтер и форматирование: `pnpm lint` / `pnpm lint:fix` / `pnpm format`
-- Сборка: `pnpm build`
-- Генерация типов API из схемы: `pnpm gen:api`
-
-## Стек и структура
-
-- **Стек**: Vite + React 19 + TypeScript + Mantine v7 + TanStack Query + openapi-fetch + Vitest + MSW.
-- **Пакеты**:
-  - `graph-frontapp/` — рабочее место аналитика.
-  - `graph-admin-frontapp/` — служебная админка генератора.
-  - `api-spec/openapi.yaml` — контракт OpenAPI для генерации клиентов.
-- **Пути импортов**: использовать алиас `@/*` для внутренних путей из `src/`. Относительный `./` только для соседних файлов в той же папке.
-
-## Критические правила для агента
-
-1. **Типизация API**: руками типы запросов/ответов не писать. Всегда обновлять через `pnpm gen:api` из `api-spec/openapi.yaml` и использовать клиент из `@/api/client`.
-2. **Бизнес-логика**: фронтенд ничего не вычисляет (риски, ключевые пути, доступные действия приходят из API). Фронтенд только отображает данные.
-3. **Даты и время**: только в UTC с явным указанием пояса через `dayjs.utc()`.
-4. **Ошибки API**: пользователю показывать понятный текст причины (`detail`), а не HTTP-код.
-5. **Автономность и моки**: при отсутствии запущенного бэкенда использовать моки MSW (`VITE_USE_MOCKS=true`).
-6. **Проксирование**: локальный dev-сервер проксирует `/api` на `http://localhost:8080`. Переопределяется через переменную окружения `VITE_API_PROXY_TARGET`.
-7. **Ветки и коммиты**:
-   - Ветка: `GSD-<номер>[-<slug>]` (например, `GSD-5`).
-   - Коммиты: `[GSD-<номер>] <type>: <summary in English>` (типы: `feat`, `fix`, `docs`, `refactor`, `test`, `ci`, `chore`).
+rules:
+  stack_ui: "Mantine v7 only. Tabler icons (@tabler/icons-react). No custom CSS/inline styles unless necessary."
+  stack_data: "TanStack Query + @/api/client. Never use raw useEffect/fetch/axios for server state."
+  business_logic: "Frontend is strictly a view layer. No client-side risk/graph calculations."
+  dates: "Strict UTC via dayjs.utc()"
+  dev_env: "Proxy /api -> :8080 (override: VITE_API_PROXY_TARGET) or MSW (VITE_USE_MOCKS=true)"
