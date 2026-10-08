@@ -2,26 +2,32 @@
   "name": "@shugraph/frontend-root",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=10.0.0"
+  },
   "scripts": {
-    "dev": "pnpm --filter graph-frontapp dev",
+    "dev": "pnpm -r --parallel dev",
+    "dev:app": "pnpm --filter graph-frontapp dev",
     "dev:admin": "pnpm --filter graph-admin-frontapp dev",
-    "dev:all": "pnpm -r --parallel dev",
     "build": "pnpm -r build",
-    "lint": "eslint .",
+    "lint": "eslint . && pnpm format:check",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "gen:api": "openapi-typescript ./api-spec/openapi.yaml -o ./graph-frontapp/src/api/v1.d.ts"
   },
   "devDependencies": {
-    "@eslint/js": "^9.20.0",
-    "eslint": "^9.20.0",
-    "eslint-plugin-react-hooks": "^5.1.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
     "openapi-typescript": "^7.6.1",
     "prettier": "^3.5.0",
-    "typescript": "^5.7.3",
+    "typescript": "~5.9.3",
     "typescript-eslint": "^8.24.0"
   }
 }

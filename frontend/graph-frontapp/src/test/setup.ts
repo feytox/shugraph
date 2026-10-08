@@ -1,4 +1,4 @@
-import '@testing-library/jest-dom';
+import '@testing-library/jest-dom/vitest';
 import { beforeAll, afterEach, afterAll } from 'vitest';
 import { server } from '@/mocks/server';
 import { resetMockNotes } from '@/mocks/handlers';
@@ -24,7 +24,7 @@ global.ResizeObserver = class ResizeObserver {
 };
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: 'error' });
+  server.listen({ onUnhandledFrame: 'error' });
 });
 afterEach(() => {
   server.resetHandlers();

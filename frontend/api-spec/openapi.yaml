@@ -1,3 +1,8 @@
+# ВРЕМЕННЫЙ ФАЙЛ СПЕЦИФИКАЦИИ (GSD-5):
+# Контракт сформирован до завершения задачи GSD-3 на бэкенде.
+# После реализации GSD-3 спека будет браться напрямую из Huma / Swagger бэкенда,
+# а данный временный файл будет удален.
+
 openapi: 3.1.0
 info:
   title: Graph API
@@ -41,6 +46,10 @@ paths:
                   $ref: '#/components/schemas/Note'
         '500':
           description: Ошибка сервера
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetails'
     post:
       summary: Создать запись
       operationId: createNote
@@ -60,9 +69,9 @@ paths:
         '422':
           description: Ошибка валидации
           content:
-            application/json:
+            application/problem+json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: '#/components/schemas/ProblemDetails'
 components:
   schemas:
     Note:
@@ -91,11 +100,31 @@ components:
           type: string
           minLength: 1
           description: Текст новой записи
-    ErrorResponse:
+    ProblemErrorItem:
+      type: object
+      properties:
+        message:
+          type: string
+        location:
+          type: string
+        value: {}
+    ProblemDetails:
       type: object
       required:
-        - detail
+        - title
+        - status
       properties:
+        title:
+          type: string
+          description: Краткое описание типа проблемы (RFC 9457 / Huma)
+        status:
+          type: integer
+          description: HTTP статус код
         detail:
           type: string
-          description: Описание ошибки
+          description: Подробное описание ошибки
+        errors:
+          type: array
+          description: Ошибки валидации полей (Huma)
+          items:
+            $ref: '#/components/schemas/ProblemErrorItem'

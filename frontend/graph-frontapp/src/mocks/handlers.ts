@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import type { Note } from '../api/client';
+import type { Note, ProblemDetails } from '../api/client';
 
 let inMemoryNotes: Note[] = [
   {
@@ -38,9 +38,14 @@ export const handlers = [
     const body = (await request.json()) as { text?: string };
 
     if (!body || !body.text || body.text.trim() === '') {
-      return HttpResponse.json(
-        { detail: 'Поле text обязательно для заполнения' },
-        { status: 422 }
+      return HttpResponse.json<ProblemDetails>(
+        {
+          title: 'Unprocessable Entity',
+          status: 422,
+          detail: 'Поле text обязательно для заполнения',
+          errors: [{ message: 'expected length >= 1', location: 'body.text', value: body?.text }],
+        },
+        { status: 422, headers: { 'Content-Type': 'application/problem+json' } }
       );
     }
 
