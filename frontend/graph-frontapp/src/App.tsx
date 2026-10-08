@@ -39,7 +39,7 @@ export function NotesApp() {
     queryKey: ['notes'],
     queryFn: async () => {
       const response = await apiClient.GET('/api/v1/notes');
-      if (response.error || !response.data) {
+      if (!response.response.ok || response.error !== undefined || !response.data) {
         throw new Error('Не удалось загрузить список записей с сервера');
       }
       return response.data;
@@ -48,17 +48,14 @@ export function NotesApp() {
 
   const createMutation = useMutation({
     mutationFn: async (text: string) => {
-      const response = await apiClient.POST('/api/v1/notes', {
+      const { data, error, response } = await apiClient.POST('/api/v1/notes', {
         body: { text },
       });
-      if (response.error) {
-        const errorDetail =
-          typeof response.error === 'object' && 'detail' in response.error
-            ? (response.error as { detail?: string }).detail
-            : 'Ошибка при создании записи';
-        throw new Error(errorDetail || 'Ошибка при создании записи');
+      if (!response.ok) {
+        const detail = typeof error === 'object' ? error?.detail : undefined;
+        throw new Error(detail || `Ошибка при создании записи (HTTP ${response.status})`);
       }
-      return response.data;
+      return data;
     },
     onSuccess: () => {
       setInputText('');
@@ -139,7 +136,8 @@ export function NotesApp() {
                 color="red"
                 variant="light"
               >
-                {error?.message || 'Сервис бэкенда недоступен. Проверьте запуск бэкенда или используйте моки.'}
+                {error?.message ||
+                  'Сервис бэкенда недоступен. Проверьте запуск бэкенда или используйте моки.'}
               </Alert>
             )}
 
@@ -168,7 +166,8 @@ export function NotesApp() {
                           {note.text}
                         </Text>
                         <Text size="xs" c="dimmed">
-                          UTC: {dayjs.utc(note.created_at).format('YYYY-MM-DD HH:mm:ss')} (id: {note.id})
+                          UTC: {dayjs.utc(note.created_at).format('YYYY-MM-DD HH:mm:ss')} (id:{' '}
+                          {note.id})
                         </Text>
                       </Stack>
                       <IconCheck size={16} color="green" />

@@ -39,7 +39,9 @@ describe('NotesApp (GSD-5)', () => {
     renderWithClient();
 
     await waitFor(() => {
-      expect(screen.getByText('Тестовая операция: перевод со счета 123 на 456')).toBeInTheDocument();
+      expect(
+        screen.getByText('Тестовая операция: перевод со счета 123 на 456')
+      ).toBeInTheDocument();
     });
 
     const input = screen.getByLabelText('Текст записи');
@@ -64,9 +66,42 @@ describe('NotesApp (GSD-5)', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Ошибка подключения')).toBeInTheDocument();
-      expect(
-        screen.getByText('Не удалось загрузить список записей с сервера')
-      ).toBeInTheDocument();
+      expect(screen.getByText('Не удалось загрузить список записей с сервера')).toBeInTheDocument();
     });
+  });
+
+  it('показывает detail из problem+json, если бэкенд отклонил запись', async () => {
+    server.use(
+      http.post('*/api/v1/notes', () =>
+        HttpResponse.json(
+          { title: 'Unprocessable Entity', status: 422, detail: 'Текст слишком длинный' },
+          { status: 422, headers: { 'Content-Type': 'application/problem+json' } }
+        )
+      )
+    );
+
+    renderWithClient();
+
+    fireEvent.change(screen.getByLabelText('Текст записи'), { target: { value: 'Запись' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Текст слишком длинный')).toBeInTheDocument();
+    });
+  });
+
+  it('не считает создание успешным, если бэкенд вернул 500 с пустым телом', async () => {
+    server.use(http.post('*/api/v1/notes', () => new HttpResponse(null, { status: 500 })));
+
+    renderWithClient();
+
+    const input = screen.getByLabelText('Текст записи');
+    fireEvent.change(input, { target: { value: 'Запись' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Создать' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Ошибка при создании записи (HTTP 500)')).toBeInTheDocument();
+    });
+    expect(input).toHaveValue('Запись');
   });
 });

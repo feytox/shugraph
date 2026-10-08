@@ -120,9 +120,20 @@ export interface components {
             /** @description Текст новой записи */
             text: string;
         };
-        ErrorResponse: {
-            /** @description Описание ошибки */
-            detail: string;
+        ProblemErrorItem: {
+            message?: string;
+            location?: string;
+            value?: unknown;
+        };
+        ProblemDetails: {
+            /** @description Краткое описание типа проблемы (RFC 9457 / Huma) */
+            title: string;
+            /** @description HTTP статус код */
+            status: number;
+            /** @description Подробное описание ошибки */
+            detail?: string;
+            /** @description Ошибки валидации полей (Huma) */
+            errors?: components["schemas"]["ProblemErrorItem"][];
         };
     };
     responses: never;
@@ -156,7 +167,9 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
             };
         };
     };
@@ -188,7 +201,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ErrorResponse"];
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };

@@ -3,3 +3,4 @@ dist
 coverage
 *.d.ts
 pnpm-lock.yaml
+**/mockServiceWorker.js
