@@ -9,13 +9,11 @@ import (
 )
 
 type PgNoteRepository struct {
-	pool    *pgxpool.Pool
 	queries *db.Queries
 }
 
 func NewPgNoteRepository(pool *pgxpool.Pool) *PgNoteRepository {
 	return &PgNoteRepository{
-		pool:    pool,
 		queries: db.New(pool),
 	}
 }
