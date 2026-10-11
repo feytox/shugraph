@@ -21,7 +21,7 @@ func NewServer(service *service.NoteService, pool *pgxpool.Pool) *Server {
 	healthHandler.Registry(api)
 
 	noteHandler := NewNoteHandler(service)
-	noteHandler.Registry(api)
+	noteHandler.Register(api)
 
 	server := &Server{
 		Router: router,

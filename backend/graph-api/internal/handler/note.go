@@ -17,12 +17,13 @@ func NewNoteHandler(service *service.NoteService) *NoteHandler {
 	return &NoteHandler{service: service}
 }
 
-func (h *NoteHandler) Registry(api huma.API) {
+func (h *NoteHandler) Register(api huma.API) {
 	huma.Register(api, huma.Operation{
-		OperationID: "create-note",
-		Summary:     "Create a new note",
-		Method:      http.MethodPost,
-		Path:        "/api/v1/notes",
+		OperationID:   "create-note",
+		Summary:       "Create a new note",
+		Method:        http.MethodPost,
+		Path:          "/api/v1/notes",
+		DefaultStatus: http.StatusCreated,
 	}, h.CreateNote)
 
 	huma.Register(api, huma.Operation{
@@ -46,8 +47,7 @@ type CreateNoteInput struct {
 }
 
 type CreateNoteOutput struct {
-	Status int `json:"status"`
-	Body   Note
+	Body Note
 }
 
 func (h *NoteHandler) CreateNote(ctx context.Context, request *CreateNoteInput) (*CreateNoteOutput, error) {
@@ -56,7 +56,6 @@ func (h *NoteHandler) CreateNote(ctx context.Context, request *CreateNoteInput) 
 		return nil, huma.Error503ServiceUnavailable(err.Error(), err)
 	}
 	response := CreateNoteOutput{}
-	response.Status = http.StatusCreated
 	response.Body = Note{
 		Id:        note.ID.String(),
 		Text:      note.Text,

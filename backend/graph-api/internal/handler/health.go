@@ -5,15 +5,18 @@ import (
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type HealthHandler struct {
-	pool *pgxpool.Pool
+type pinger interface {
+	Ping(ctx context.Context) error
 }
 
-func NewHealthHandler(repo *pgxpool.Pool) *HealthHandler {
-	return &HealthHandler{pool: repo}
+type HealthHandler struct {
+	pinger pinger
+}
+
+func NewHealthHandler(pinger pinger) *HealthHandler {
+	return &HealthHandler{pinger: pinger}
 }
 
 func (h *HealthHandler) Registry(api huma.API) {
@@ -51,7 +54,7 @@ type ReadyCheckOutput struct {
 }
 
 func (h *HealthHandler) Readyz(ctx context.Context, _ *struct{}) (*ReadyCheckOutput, error) {
-	if err := h.pool.Ping(ctx); err != nil {
+	if err := h.pinger.Ping(ctx); err != nil {
 		return nil, huma.Error503ServiceUnavailable("database is unavailable", err)
 	}
 	response := &ReadyCheckOutput{}
