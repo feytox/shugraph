@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"os"
 	"os/signal"
@@ -11,39 +12,35 @@ import (
 )
 
 func main() {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, nil)))
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	if err := run(ctx, os.Args[1:]); err != nil {
+		slog.Error("command failed", "error", err)
+		os.Exit(1)
+	}
+}
+
+func run(ctx context.Context, args []string) error {
 	command := "serve"
-	args := os.Args[1:]
 	if len(args) > 0 {
 		command = args[0]
 	}
-	cnf, err := app.LoadCnf()
+	cnf, err := app.LoadConfig()
 	if err != nil {
-		slog.Error("failed load", "error", err)
-		stop()
-		os.Exit(1)
+		return fmt.Errorf("load config: %w", err)
 	}
 	switch command {
 	case "serve":
 		if err := app.Serve(ctx, cnf); err != nil {
-			slog.Error("command failed", "error", err)
-			stop()
-			os.Exit(1)
+			return fmt.Errorf("serve: %w", err)
 		}
 	case "migrate":
 		slog.Info("migrate started")
-		err := app.Migrate(ctx, cnf)
-		if err != nil {
-			slog.Error("migration failed", "error", err)
-			stop()
-			os.Exit(1)
+		if err := app.Migrate(ctx, cnf); err != nil {
+			return fmt.Errorf("migrate: %w", err)
 		}
-		os.Exit(0)
 	default:
-		slog.Error("unknown command expected serve or migrate", "command", command)
-		stop()
-		os.Exit(1)
+		return fmt.Errorf("unknown command: %s", command)
 	}
+	return nil
 }
