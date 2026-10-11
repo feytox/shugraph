@@ -2,9 +2,10 @@ package handler
 
 import (
 	"context"
-	"graph-api/internal/service"
 	"net/http"
 	"time"
+
+	"github.com/feytox/shugraph/backend/graph-api/internal/service"
 
 	"github.com/danielgtaylor/huma/v2"
 )

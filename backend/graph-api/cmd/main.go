@@ -8,7 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"graph-api/internal/app"
+	"github.com/feytox/shugraph/backend/graph-api/internal/app"
 )
 
 func main() {

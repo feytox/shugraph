@@ -4,12 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"graph-api/db/migrations"
-	"graph-api/internal/handler"
-	"graph-api/internal/repository"
-	"graph-api/internal/service"
 	"log/slog"
 	"net/http"
+
+	"github.com/feytox/shugraph/backend/graph-api/db/migrations"
+	"github.com/feytox/shugraph/backend/graph-api/internal/handler"
+	"github.com/feytox/shugraph/backend/graph-api/internal/repository"
+	"github.com/feytox/shugraph/backend/graph-api/internal/service"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"

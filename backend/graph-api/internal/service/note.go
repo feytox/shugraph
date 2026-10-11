@@ -2,7 +2,8 @@ package service
 
 import (
 	"context"
-	"graph-api/internal/domain"
+
+	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
 
 	"github.com/google/uuid"
 )

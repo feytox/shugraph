@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"graph-api/internal/service"
+	"github.com/feytox/shugraph/backend/graph-api/internal/service"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
