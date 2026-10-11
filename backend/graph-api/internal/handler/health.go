@@ -4,9 +4,12 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 )
+
+const readinessTimeout = 2 * time.Second
 
 type pinger interface {
 	Ping(ctx context.Context) error
@@ -55,7 +58,9 @@ type ReadyCheckOutput struct {
 }
 
 func (h *HealthHandler) Readyz(ctx context.Context, _ *struct{}) (*ReadyCheckOutput, error) {
-	if err := h.pinger.Ping(ctx); err != nil {
+	ctxWithTimeout, cancel := context.WithTimeout(ctx, readinessTimeout)
+	defer cancel()
+	if err := h.pinger.Ping(ctxWithTimeout); err != nil {
 		slog.Error("database is unavailable", err)
 		return nil, huma.Error503ServiceUnavailable("database is unavailable")
 	}

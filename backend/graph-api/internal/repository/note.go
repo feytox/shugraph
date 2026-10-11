@@ -5,15 +5,13 @@ import (
 
 	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository/db"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type PgNoteRepository struct {
 	queries *db.Queries
 }
 
-func NewPgNoteRepository(pool *pgxpool.Pool) *PgNoteRepository {
+func NewPgNoteRepository(pool db.DBTX) *PgNoteRepository {
 	return &PgNoteRepository{
 		queries: db.New(pool),
 	}

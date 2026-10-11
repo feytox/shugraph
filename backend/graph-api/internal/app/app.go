@@ -15,10 +15,11 @@ import (
 	"github.com/feytox/shugraph/backend/graph-api/internal/service"
 	"github.com/go-chi/chi/v5"
 
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 )
+
+const readinessTimeout = 2 * time.Second
 
 func Serve(ctx context.Context, cfg *Config) error {
 	pool, err := ConnectToPg(ctx, cfg)
@@ -31,10 +32,6 @@ func Serve(ctx context.Context, cfg *Config) error {
 	noteService := service.NewNoteService(repo)
 	router := chi.NewMux()
 	_ = handler.NewAPI(router, noteService, pool)
-
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), router); err != nil {
-		return err
-	}
 
 	srv := &http.Server{
 		Addr:              fmt.Sprintf(":%d", cfg.Port),
@@ -78,7 +75,6 @@ func Migrate(ctx context.Context, cfg *Config) error {
 	}(gooseDB)
 
 	if err := goose.UpContext(ctx, gooseDB, "."); err != nil {
-
 		return err
 	}
 
@@ -97,13 +93,4 @@ func GenerateOpenAPI() error {
 		return fmt.Errorf("error stdout write api: %w", err)
 	}
 	return nil
-}
-
-func ConnectToPg(ctx context.Context, cfg *Config) (*pgxpool.Pool, error) {
-	pool, err := pgxpool.New(ctx, cfg.DB.URL)
-	if err != nil {
-		return nil, err
-	}
-
-	return pool, nil
 }
