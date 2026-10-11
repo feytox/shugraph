@@ -15,7 +15,7 @@ type DBConfig struct {
 	URL string `env:"DATABASE_URL,required"`
 }
 
-func LoadCnf() (*Config, error) {
+func LoadConfig() (*Config, error) {
 	cfg := &Config{}
 	if err := env.Parse(cfg); err != nil {
 		return nil,

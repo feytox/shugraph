@@ -1,0 +1,13 @@
+version: "2"
+linters:
+  enable:
+    - revive
+    - staticcheck
+    - gosec
+    - errorlint
+    - bodyclose
+    - noctx
+formatters:
+  enable:
+    - gofmt
+    - goimports

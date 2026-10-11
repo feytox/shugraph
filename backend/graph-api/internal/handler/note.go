@@ -58,7 +58,7 @@ func (h *NoteHandler) CreateNote(ctx context.Context, request *CreateNoteInput) 
 	response := CreateNoteOutput{}
 	response.Status = http.StatusCreated
 	response.Body = Note{
-		Id:        note.Id.String(),
+		Id:        note.ID.String(),
 		Text:      note.Text,
 		CreatedAt: note.CreatedAt,
 	}
@@ -80,7 +80,7 @@ func (h *NoteHandler) GetAllNote(ctx context.Context, _ *struct{}) (*AllNoteOutp
 	response.Body.Notes = make([]Note, 0, len(notes))
 	for _, note := range notes {
 		response.Body.Notes = append(response.Body.Notes, Note{
-			Id:        note.Id.String(),
+			Id:        note.ID.String(),
 			Text:      note.Text,
 			CreatedAt: note.CreatedAt.UTC(),
 		})
