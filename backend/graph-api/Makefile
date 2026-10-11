@@ -1,4 +1,4 @@
-.PHONY: sql-gen init up down test lint migrate new-migrate openapi
+.PHONY: sql-gen new-migrate up migrate down test lint openapi
 sql-gen:
 	cd db && go tool sqlc generate
 
