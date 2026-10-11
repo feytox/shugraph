@@ -7,25 +7,26 @@ package db
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/uuid"
 )
 
-const createNote = `-- name: CreateNote :exec
-INSERT INTO notes (id, text, created_at)
-VALUES ($1, $2, $3)
+const createNote = `-- name: CreateNote :one
+INSERT INTO notes (id, text)
+VALUES ($1, $2)
+RETURNING id, text, created_at
 `
 
 type CreateNoteParams struct {
-	ID        uuid.UUID `json:"id"`
-	Text      string    `json:"text"`
-	CreatedAt time.Time `json:"created_at"`
+	ID   uuid.UUID
+	Text string
 }
 
-func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) error {
-	_, err := q.db.Exec(ctx, createNote, arg.ID, arg.Text, arg.CreatedAt)
-	return err
+func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) (Note, error) {
+	row := q.db.QueryRow(ctx, createNote, arg.ID, arg.Text)
+	var i Note
+	err := row.Scan(&i.ID, &i.Text, &i.CreatedAt)
+	return i, err
 }
 
 const getNotes = `-- name: GetNotes :many

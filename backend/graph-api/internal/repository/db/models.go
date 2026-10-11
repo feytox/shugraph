@@ -11,7 +11,7 @@ import (
 )
 
 type Note struct {
-	ID        uuid.UUID `json:"id"`
-	Text      string    `json:"text"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        uuid.UUID
+	Text      string
+	CreatedAt time.Time
 }

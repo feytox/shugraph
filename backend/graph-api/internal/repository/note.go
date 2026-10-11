@@ -8,11 +8,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type NoteRepository interface {
-	Create(ctx context.Context, product *domain.Note) error
-	GetAll(ctx context.Context) ([]domain.Note, error)
-}
-
 type PgNoteRepository struct {
 	pool    *pgxpool.Pool
 	queries *db.Queries
@@ -25,17 +20,23 @@ func NewPgNoteRepository(pool *pgxpool.Pool) *PgNoteRepository {
 	}
 }
 
-func (p PgNoteRepository) Create(ctx context.Context, note *domain.Note) error {
+func (p *PgNoteRepository) Create(ctx context.Context, note domain.Note) (domain.Note, error) {
 	record := db.CreateNoteParams{
-		ID:        note.Id,
-		Text:      note.Text,
-		CreatedAt: note.CreatedAt,
+		ID:   note.ID,
+		Text: note.Text,
 	}
-	err := p.queries.CreateNote(ctx, record)
-	return err
+	noteDb, err := p.queries.CreateNote(ctx, record)
+	if err != nil {
+		return domain.Note{}, err
+	}
+	return domain.Note{
+		ID:        noteDb.ID,
+		Text:      noteDb.Text,
+		CreatedAt: noteDb.CreatedAt,
+	}, err
 }
 
-func (p PgNoteRepository) GetAll(ctx context.Context) ([]domain.Note, error) {
+func (p *PgNoteRepository) List(ctx context.Context) ([]domain.Note, error) {
 	noteRecords, err := p.queries.GetNotes(ctx)
 	if err != nil {
 		return nil, err
@@ -43,7 +44,7 @@ func (p PgNoteRepository) GetAll(ctx context.Context) ([]domain.Note, error) {
 	notes := make([]domain.Note, 0, len(noteRecords))
 	for _, record := range noteRecords {
 		note := domain.Note{
-			Id:        record.ID,
+			ID:        record.ID,
 			Text:      record.Text,
 			CreatedAt: record.CreatedAt,
 		}

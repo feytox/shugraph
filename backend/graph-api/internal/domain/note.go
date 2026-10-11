@@ -7,7 +7,7 @@ import (
 )
 
 type Note struct {
-	Id        uuid.UUID
+	ID        uuid.UUID
 	Text      string
 	CreatedAt time.Time
 }
