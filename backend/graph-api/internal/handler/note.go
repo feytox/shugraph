@@ -5,16 +5,21 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/feytox/shugraph/backend/graph-api/internal/service"
+	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
 
 	"github.com/danielgtaylor/huma/v2"
 )
 
-type NoteHandler struct {
-	service *service.NoteService
+type noteService interface {
+	CreateNote(ctx context.Context, text string) (domain.Note, error)
+	List(ctx context.Context) ([]domain.Note, error)
 }
 
-func NewNoteHandler(service *service.NoteService) *NoteHandler {
+type NoteHandler struct {
+	service noteService
+}
+
+func NewNoteHandler(service noteService) *NoteHandler {
 	return &NoteHandler{service: service}
 }
 
@@ -72,7 +77,7 @@ type AllNoteOutput struct {
 }
 
 func (h *NoteHandler) GetAllNote(ctx context.Context, _ *struct{}) (*AllNoteOutput, error) {
-	notes, err := h.service.GetAllNote(ctx)
+	notes, err := h.service.List(ctx)
 	if err != nil {
 		return nil, huma.Error503ServiceUnavailable(err.Error(), err)
 	}

@@ -34,7 +34,7 @@ func (s *NoteService) CreateNote(ctx context.Context, text string) (domain.Note,
 	return noteDb, nil
 }
 
-func (s *NoteService) GetAllNote(ctx context.Context) ([]domain.Note, error) {
+func (s *NoteService) List(ctx context.Context) ([]domain.Note, error) {
 	notes, err := s.noteRepository.List(ctx)
 	if err != nil {
 		return nil, err

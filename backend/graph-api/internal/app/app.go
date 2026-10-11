@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/feytox/shugraph/backend/graph-api/db/migrations"
 	"github.com/feytox/shugraph/backend/graph-api/internal/handler"
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository"
 	"github.com/feytox/shugraph/backend/graph-api/internal/service"
+	"github.com/go-chi/chi/v5"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
@@ -26,13 +29,31 @@ func Serve(ctx context.Context, cfg *Config) error {
 
 	repo := repository.NewPgNoteRepository(pool)
 	noteService := service.NewNoteService(repo)
-	server := handler.NewServer(noteService, pool)
+	router := chi.NewMux()
+	_ = handler.NewAPI(router, noteService, pool)
 
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), server.Router); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", cfg.Port), router); err != nil {
 		return err
 	}
 
-	return nil
+	srv := &http.Server{
+		Addr:              fmt.Sprintf(":%d", cfg.Port),
+		Handler:           router,
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+
+	errCh := make(chan error, 1)
+	go func() { errCh <- srv.ListenAndServe() }()
+
+	select {
+	case err := <-errCh:
+		return fmt.Errorf("listen: %w", err)
+	case <-ctx.Done():
+	}
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	return srv.Shutdown(shutdownCtx)
 }
 
 func Migrate(ctx context.Context, cfg *Config) error {
@@ -61,6 +82,20 @@ func Migrate(ctx context.Context, cfg *Config) error {
 		return err
 	}
 
+	return nil
+}
+
+func GenerateOpenAPI() error {
+	r := chi.NewRouter()
+	api := handler.NewAPI(r, nil, nil)
+	b, err := api.OpenAPI().YAML()
+	if err != nil {
+		return fmt.Errorf("error generating open api: %w", err)
+	}
+	_, err = os.Stdout.Write(b)
+	if err != nil {
+		return fmt.Errorf("error stdout write api: %w", err)
+	}
 	return nil
 }
 

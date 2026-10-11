@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -55,7 +56,8 @@ type ReadyCheckOutput struct {
 
 func (h *HealthHandler) Readyz(ctx context.Context, _ *struct{}) (*ReadyCheckOutput, error) {
 	if err := h.pinger.Ping(ctx); err != nil {
-		return nil, huma.Error503ServiceUnavailable("database is unavailable", err)
+		slog.Error("database is unavailable", err)
+		return nil, huma.Error503ServiceUnavailable("database is unavailable")
 	}
 	response := &ReadyCheckOutput{}
 	response.Body.Status = "ok"

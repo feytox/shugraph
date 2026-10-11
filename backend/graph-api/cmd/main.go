@@ -25,19 +25,27 @@ func run(ctx context.Context, args []string) error {
 	if len(args) > 0 {
 		command = args[0]
 	}
-	cnf, err := app.LoadConfig()
-	if err != nil {
-		return fmt.Errorf("load config: %w", err)
-	}
 	switch command {
 	case "serve":
+		cnf, err := app.LoadConfig()
+		if err != nil {
+			return fmt.Errorf("load config: %w", err)
+		}
 		if err := app.Serve(ctx, cnf); err != nil {
 			return fmt.Errorf("serve: %w", err)
 		}
 	case "migrate":
+		cnf, err := app.LoadConfig()
+		if err != nil {
+			return fmt.Errorf("load config: %w", err)
+		}
 		slog.Info("migrate started")
 		if err := app.Migrate(ctx, cnf); err != nil {
 			return fmt.Errorf("migrate: %w", err)
+		}
+	case "openapi":
+		if err := app.GenerateOpenAPI(); err != nil {
+			return fmt.Errorf("openapi: %w", err)
 		}
 	default:
 		return fmt.Errorf("unknown command: %s", command)

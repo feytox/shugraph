@@ -1,4 +1,4 @@
-.PHONY: sql-gen load-spec init up down test lint migrate new-migrate
+.PHONY: sql-gen load-spec init up down test lint migrate new-migrate openapi
 
 WEB_PORT=8080
 
@@ -28,3 +28,6 @@ test :
 
 lint:
 	golangci-lint run ./...
+
+openapi:
+	go run ./cmd openapi > openapi.yaml
