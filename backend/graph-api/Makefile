@@ -1,7 +1,4 @@
-.PHONY: sql-gen load-spec init up down test lint migrate new-migrate openapi
-
-WEB_PORT=8080
-
+.PHONY: sql-gen init up down test lint migrate new-migrate openapi
 sql-gen:
 	cd db && go tool sqlc generate
 
@@ -11,8 +8,6 @@ new-migrate:
 			exit 1; \
 		fi
 		cd db/migrations && go tool goose create $(name) sql
-load-spec:
-	curl http://localhost:${WEB_PORT}/openapi.json -o openapi.json
 
 up:
 	 docker compose up -d --build
