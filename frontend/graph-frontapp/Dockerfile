@@ -7,9 +7,8 @@ COPY graph-frontapp/package.json ./graph-frontapp/
 COPY graph-admin-frontapp/package.json ./graph-admin-frontapp/
 RUN pnpm install --frozen-lockfile
 
-COPY api-spec/ ./api-spec/
 COPY graph-frontapp/ ./graph-frontapp/
-RUN pnpm gen:api && pnpm --filter graph-frontapp build
+RUN pnpm --filter graph-frontapp build
 
 FROM nginx:alpine AS runner
 

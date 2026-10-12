@@ -42,7 +42,7 @@ export function NotesApp() {
       if (!response.response.ok || response.error !== undefined || !response.data) {
         throw new Error('Не удалось загрузить список записей с сервера');
       }
-      return response.data;
+      return response.data.notes ?? [];
     },
   });
 

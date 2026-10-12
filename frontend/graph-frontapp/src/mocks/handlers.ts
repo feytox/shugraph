@@ -1,5 +1,5 @@
 import { http, HttpResponse } from 'msw';
-import type { Note, ProblemDetails } from '../api/client';
+import type { Note, ProblemDetails } from '@/api/client';
 
 let inMemoryNotes: Note[] = [
   {
@@ -31,7 +31,7 @@ export const resetMockNotes = () => {
 
 export const handlers = [
   http.get('*/api/v1/notes', () => {
-    return HttpResponse.json(inMemoryNotes, { status: 200 });
+    return HttpResponse.json({ notes: inMemoryNotes, Notes: inMemoryNotes }, { status: 200 });
   }),
 
   http.post('*/api/v1/notes', async ({ request }) => {
@@ -43,6 +43,7 @@ export const handlers = [
           title: 'Unprocessable Entity',
           status: 422,
           detail: 'Поле text обязательно для заполнения',
+          type: 'about:blank',
           errors: [{ message: 'expected length >= 1', location: 'body.text', value: body?.text }],
         },
         { status: 422, headers: { 'Content-Type': 'application/problem+json' } }
@@ -56,6 +57,6 @@ export const handlers = [
     };
 
     inMemoryNotes.push(newNote);
-    return HttpResponse.json(newNote, { status: 201 });
+    return HttpResponse.json(newNote, { status: 200 });
   }),
 ];
