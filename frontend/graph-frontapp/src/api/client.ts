@@ -14,5 +14,7 @@ export const apiClient = createClient<paths>({
 });
 
 export type Note = components['schemas']['Note'];
-export type CreateNoteRequest = components['schemas']['CreateNoteRequest'];
-export type ProblemDetails = components['schemas']['ProblemDetails'];
+export type CreateNoteInputBody = components['schemas']['CreateNoteInputBody'];
+export type CreateNoteRequest = CreateNoteInputBody;
+export type ErrorModel = components['schemas']['ErrorModel'];
+export type ProblemDetails = ErrorModel;
