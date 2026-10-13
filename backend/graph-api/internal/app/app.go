@@ -60,13 +60,12 @@ func Migrate(ctx context.Context, cfg *config.Config) error {
 		return err
 	}
 	defer pool.Close()
-
-	if err := goose.SetDialect("postgres"); err != nil {
-		return err
+	gooseDB := stdlib.OpenDBFromPool(pool)
+	provider, err := goose.NewProvider(goose.DialectPostgres, gooseDB, migrations.FS)
+	if err != nil {
+		return fmt.Errorf("goose.NewProvider: %w", err)
 	}
 
-	goose.SetBaseFS(migrations.FS)
-	gooseDB := stdlib.OpenDBFromPool(pool)
 	defer func(gooseDB *sql.DB) {
 		err := gooseDB.Close()
 		if err != nil {
@@ -75,8 +74,13 @@ func Migrate(ctx context.Context, cfg *config.Config) error {
 		}
 	}(gooseDB)
 
-	if err := goose.UpContext(ctx, gooseDB, "."); err != nil {
-		return err
+	up, err := provider.Up(ctx)
+	if err != nil {
+		return fmt.Errorf("provider.Up: %w", err)
+	}
+
+	for _, migrateRes := range up {
+		slog.Info("migration up", "up", migrateRes)
 	}
 
 	return nil
