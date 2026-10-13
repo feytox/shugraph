@@ -42,7 +42,7 @@ func (h *NoteHandler) Register(api huma.API) {
 }
 
 type Note struct {
-	Id        string    `json:"id"`
+	ID        string    `json:"id"`
 	Text      string    `json:"text"`
 	CreatedAt time.Time `json:"created_at"`
 }
@@ -65,7 +65,7 @@ func (h *NoteHandler) CreateNote(ctx context.Context, request *CreateNoteInput) 
 	}
 	response := CreateNoteOutput{}
 	response.Body = Note{
-		Id:        note.ID.String(),
+		ID:        note.ID.String(),
 		Text:      note.Text,
 		CreatedAt: note.CreatedAt,
 	}
@@ -88,7 +88,7 @@ func (h *NoteHandler) GetAllNote(ctx context.Context, _ *struct{}) (*AllNoteOutp
 	response.Body.Notes = make([]Note, 0, len(notes))
 	for _, note := range notes {
 		response.Body.Notes = append(response.Body.Notes, Note{
-			Id:        note.ID.String(),
+			ID:        note.ID.String(),
 			Text:      note.Text,
 			CreatedAt: note.CreatedAt.UTC(),
 		})
