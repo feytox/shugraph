@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/feytox/shugraph/backend/graph-api/db/migrations"
+	"github.com/feytox/shugraph/backend/graph-api/internal/config"
 	"github.com/feytox/shugraph/backend/graph-api/internal/handler"
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository"
 	"github.com/feytox/shugraph/backend/graph-api/internal/service"
@@ -21,7 +22,7 @@ import (
 
 const readinessTimeout = 2 * time.Second
 
-func Serve(ctx context.Context, cfg *Config) error {
+func Serve(ctx context.Context, cfg *config.Config) error {
 	pool, err := ConnectToPg(ctx, cfg)
 	if err != nil {
 		return err
@@ -53,7 +54,7 @@ func Serve(ctx context.Context, cfg *Config) error {
 	return srv.Shutdown(shutdownCtx)
 }
 
-func Migrate(ctx context.Context, cfg *Config) error {
+func Migrate(ctx context.Context, cfg *config.Config) error {
 	pool, err := ConnectToPg(ctx, cfg)
 	if err != nil {
 		return err

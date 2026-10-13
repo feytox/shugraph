@@ -61,7 +61,7 @@ func (h *HealthHandler) Readyz(ctx context.Context, _ *struct{}) (*ReadyCheckOut
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, readinessTimeout)
 	defer cancel()
 	if err := h.pinger.Ping(ctxWithTimeout); err != nil {
-		slog.Error("database is unavailable", err)
+		slog.Error("database is unavailable", "err", err)
 		return nil, huma.Error503ServiceUnavailable("database is unavailable")
 	}
 	response := &ReadyCheckOutput{}

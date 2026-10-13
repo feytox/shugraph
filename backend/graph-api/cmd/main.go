@@ -9,13 +9,15 @@ import (
 	"syscall"
 
 	"github.com/feytox/shugraph/backend/graph-api/internal/app"
+	"github.com/feytox/shugraph/backend/graph-api/internal/config"
 )
 
 func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+
 	defer stop()
 	if err := run(ctx, os.Args[1:]); err != nil {
-		slog.Error("command failed", "error", err)
+		fmt.Println("command failed", "error", err)
 		os.Exit(1)
 	}
 }
@@ -25,22 +27,23 @@ func run(ctx context.Context, args []string) error {
 	if len(args) > 0 {
 		command = args[0]
 	}
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+	logger, err := app.NewLogger(cfg.Log)
+	if err != nil {
+		return fmt.Errorf("init default logger: %w", err)
+	}
+	slog.SetDefault(logger)
 	switch command {
 	case "serve":
-		cnf, err := app.LoadConfig()
-		if err != nil {
-			return fmt.Errorf("load config: %w", err)
-		}
-		if err := app.Serve(ctx, cnf); err != nil {
+		if err := app.Serve(ctx, cfg); err != nil {
 			return fmt.Errorf("serve: %w", err)
 		}
 	case "migrate":
-		cnf, err := app.LoadConfig()
-		if err != nil {
-			return fmt.Errorf("load config: %w", err)
-		}
 		slog.Info("migrate started")
-		if err := app.Migrate(ctx, cnf); err != nil {
+		if err := app.Migrate(ctx, cfg); err != nil {
 			return fmt.Errorf("migrate: %w", err)
 		}
 	case "openapi":

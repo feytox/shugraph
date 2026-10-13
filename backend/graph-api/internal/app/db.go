@@ -4,10 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/feytox/shugraph/backend/graph-api/internal/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func ConnectToPg(ctx context.Context, cfg *Config) (*pgxpool.Pool, error) {
+func ConnectToPg(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, error) {
 	pool, err := pgxpool.New(ctx, cfg.DB.URL)
 	if err != nil {
 		return nil, err

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -59,7 +60,8 @@ type CreateNoteOutput struct {
 func (h *NoteHandler) CreateNote(ctx context.Context, request *CreateNoteInput) (*CreateNoteOutput, error) {
 	note, err := h.service.CreateNote(ctx, request.Body.Text)
 	if err != nil {
-		return nil, huma.Error503ServiceUnavailable(err.Error(), err)
+		slog.Error("database is unavailable", "err", err)
+		return nil, huma.Error503ServiceUnavailable("database is unavailable")
 	}
 	response := CreateNoteOutput{}
 	response.Body = Note{
@@ -79,7 +81,8 @@ type AllNoteOutput struct {
 func (h *NoteHandler) GetAllNote(ctx context.Context, _ *struct{}) (*AllNoteOutput, error) {
 	notes, err := h.service.List(ctx)
 	if err != nil {
-		return nil, huma.Error503ServiceUnavailable(err.Error(), err)
+		slog.Error("database is unavailable", "err", err)
+		return nil, huma.Error503ServiceUnavailable("database is unavailable")
 	}
 	response := AllNoteOutput{}
 	response.Body.Notes = make([]Note, 0, len(notes))
