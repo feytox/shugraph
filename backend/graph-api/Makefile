@@ -1,4 +1,4 @@
-.PHONY: sql-gen new-migrate up migrate down test lint openapi
+.PHONY: sql-gen new-migrate up migrate down test integration-test lint openapi
 sql-gen:
 	cd db && go tool sqlc generate
 
@@ -20,6 +20,9 @@ down:
 
 test :
 	go test ./...
+
+integration-test:
+	go test -tags=integration ./...
 
 lint:
 	golangci-lint run ./...

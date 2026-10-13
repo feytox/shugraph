@@ -1,17 +1,24 @@
-package test
+//go:build integration
+
+package app
 
 import (
 	"context"
 	"fmt"
-	"graph-api/internal/app"
 	"io"
 	"log/slog"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/feytox/shugraph/backend/graph-api/internal/config"
+	"github.com/feytox/shugraph/backend/graph-api/internal/handler"
+	"github.com/feytox/shugraph/backend/graph-api/internal/repository"
+	"github.com/feytox/shugraph/backend/graph-api/internal/service"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
@@ -50,21 +57,33 @@ func run(m *testing.M) int {
 	}
 
 	port := 12103
-	cnf := &app.Config{
+	cfg := &config.Config{
 		Port: port,
-		DB: app.DBConfig{
+		DB: config.DBConfig{
 			URL: dbURL,
 		},
 	}
+	pool, err := ConnectToPg(ctx, cfg)
+	if err != nil {
+		slog.Error("Could not connect to postgres", "err", err)
+		return 1
+	}
+	defer pool.Close()
 
-	errMigrate := app.Migrate(ctx, cnf)
+	repo := repository.NewPgNoteRepository(pool)
+	noteService := service.NewNoteService(repo)
+
+	errMigrate := Migrate(ctx, cfg)
 	if errMigrate != nil {
 		slog.Error("could not migrate", "err", errMigrate)
 		return 1
 	}
-
+	r := chi.NewRouter()
+	handler.NewAPI(chi.NewRouter(), noteService, pool)
+	server := httptest.NewServer(r)
+	defer server.Close()
 	go func() {
-		if err := app.Serve(ctx, cnf); err != nil {
+		if err := Serve(ctx, cfg); err != nil {
 			slog.Error("Ошибка запуска сервера", "err", err)
 		}
 	}()
