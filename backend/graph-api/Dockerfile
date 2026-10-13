@@ -7,13 +7,13 @@ RUN go mod download
 
 COPY . .
 
-RUN go build  -o "/build/graph-api" "./cmd"
+RUN CGO_ENABLED=0 go build -ldflags="-s -w" -o "/build/graph-api" "./cmd"
 
-FROM alpine:3.21
+FROM gcr.io/distroless/static
 
 WORKDIR /app
 
 COPY --from=builder /build/graph-api /app/graph-api
 EXPOSE 8080
-
+USER nonroot:nonroot
 ENTRYPOINT ["/app/graph-api"]
