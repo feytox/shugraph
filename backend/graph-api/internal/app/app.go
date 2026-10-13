@@ -74,13 +74,16 @@ func Migrate(ctx context.Context, cfg *config.Config) error {
 		}
 	}(gooseDB)
 
-	up, err := provider.Up(ctx)
+	upResult, err := provider.Up(ctx)
 	if err != nil {
 		return fmt.Errorf("provider.Up: %w", err)
 	}
 
-	for _, migrateRes := range up {
+	for _, migrateRes := range upResult {
 		slog.Info("migration up", "up", migrateRes)
+	}
+	if len(upResult) == 0 {
+		slog.Info("database schema is up to date")
 	}
 
 	return nil
