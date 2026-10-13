@@ -1,5 +1,81 @@
 # Сущности
 
+Общая табличка:
+
+```mermaid
+erDiagram
+    CLIENTS {
+        string id PK
+    }
+    ACCOUNTS {
+        string id PK
+        string client_id FK
+    }
+    DEVICES {
+        string device_id PK
+    }
+    NETWORK_ADDRESSES {
+        string address_id PK
+    }
+    EVENTS {
+        string event_id PK
+        enum type
+        timestamp occurred_at
+    }
+    TRANSFERS {
+        string event_id PK, FK
+        string from_account_id FK
+        string to_account_id FK
+        money amount
+    }
+    LOGIN_EVENTS {
+        string event_id PK, FK
+        string account_id FK
+        string client_id FK
+        string device_id FK
+        string address_id FK
+    }
+    GROUPS {
+        uuid id PK
+        enum scheme
+        enum status
+        integer risk_score
+        json risk_parts
+        timestamp first_event_at
+        timestamp last_event_at
+        boolean is_frozen
+        string decision_comment
+        timestamp? decided_at
+    }
+    GROUP_MEMBERS {
+        uuid group_id PK, FK
+        string account_id PK, FK
+    }
+    GROUP_EVENTS {
+        uuid group_id PK, FK
+        string event_id PK, FK
+    }
+    GROUP_FEATURES {
+        uuid group_id PK, FK
+        integer accounts_count
+        integer span_minutes
+        money total_amount
+    }
+    CLIENTS ||--o{ ACCOUNTS : " "
+    ACCOUNTS ||--o{ TRANSFERS : " "
+    EVENTS ||--|| TRANSFERS : " "
+    EVENTS ||--|| LOGIN_EVENTS : " "
+    ACCOUNTS ||--o{ LOGIN_EVENTS : " "
+    CLIENTS ||--o{ LOGIN_EVENTS : " "
+    DEVICES ||--o{ LOGIN_EVENTS : " "
+    NETWORK_ADDRESSES ||--o{ LOGIN_EVENTS : " "
+    GROUPS ||--o{ GROUP_MEMBERS : " "
+    ACCOUNTS ||--o{ GROUP_MEMBERS : " "
+    GROUPS ||--o{ GROUP_EVENTS : " "
+    EVENTS ||--o{ GROUP_EVENTS : " "
+    GROUPS ||--|| GROUP_FEATURES : " "
+```
+
 ## Клиенты (`clients`)
 
 | Поле | Тип | Откуда берётся | Пример |
