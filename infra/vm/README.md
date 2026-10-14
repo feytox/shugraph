@@ -29,9 +29,9 @@
    ```bash
    ssh-keygen -t ed25519 -C <ник> -f ~/.ssh/shugraph
    ```
-2. Ключи дописываются в `authorized_keys` на ВМ (`keys.pub` - присланные ключи, по одному на строку):
+2. Ответственный вписывает ключ в `authorized_keys` на ВМ:
    ```bash
-   ssh -i ~/.ssh/shugraph-ci shugraph@<ip> 'cat >> ~/.ssh/authorized_keys' < keys.pub
+   ssh -i ~/.ssh/shugraph-ci shugraph@<ip> 'cat >> ~/.ssh/authorized_keys' < shugraph.pub
    ```
 3. Вход: `ssh -i ~/.ssh/shugraph shugraph@<ip>`, IP в summary последнего запуска `up`.
 
