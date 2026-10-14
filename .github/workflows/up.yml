@@ -1,0 +1,31 @@
+name: up
+
+on: workflow_dispatch
+
+concurrency: vm
+
+jobs:
+  up:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install yc
+        run: |
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i /opt/yc -n
+          echo /opt/yc/bin >> "$GITHUB_PATH"
+
+      - name: Auth yc
+        env:
+          YC_SA_KEY: ${{ secrets.YC_SA_KEY }}
+        run: |
+          printf '%s' "$YC_SA_KEY" > "$RUNNER_TEMP/yc-key.json"
+          yc config set service-account-key "$RUNNER_TEMP/yc-key.json"
+
+      - name: Up
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          install -m 600 /dev/null "$RUNNER_TEMP/ssh-key"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/ssh-key"
+          SSH_KEY="$RUNNER_TEMP/ssh-key" infra/vm/vm.sh up
