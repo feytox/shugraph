@@ -1,11 +1,6 @@
 name: down
 
-on:
-  workflow_dispatch:
-  # TODO: временно для тестов до мержа, убрать
-  push:
-    branches: [GSD-7]
-    paths: [.github/workflows/down.yml]
+on: workflow_dispatch
 
 concurrency: vm
 
