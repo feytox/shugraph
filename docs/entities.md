@@ -26,7 +26,7 @@ erDiagram
         string event_id PK, FK
         string from_account_id FK
         string to_account_id FK
-        money amount
+        bigint amount
     }
     LOGIN_EVENTS {
         string event_id PK, FK
@@ -59,7 +59,7 @@ erDiagram
         uuid group_id PK, FK
         integer accounts_count
         integer span_minutes
-        money total_amount
+        bigint total_amount
     }
     CLIENTS ||--o{ ACCOUNTS : " "
     ACCOUNTS ||--o{ TRANSFERS : " "
@@ -106,7 +106,7 @@ erDiagram
 | Поле | Тип | Откуда берётся | Пример |
 |---|---|---|---|
 | `event_id` | string | из события (номер от источника, задаётся в сценарии) | `evt-0001` |
-| `type` | enum: перевод / вход | из события | `перевод` |
+| `type` | enum: `transfer` / `login` | из события | `transfer` |
 | `occurred_at` | timestamp | из события (время события) | `2026-10-12T18:03:00Z` |
 
 ## Переводы (`transfers`)
@@ -116,7 +116,7 @@ erDiagram
 | `event_id` | string | из события (тот же id) | `evt-0001` |
 | `from_account_id` | string | из события (счёт отправителя) | `acc-6742` |
 | `to_account_id` | string | из события (счёт получателя) | `acc-6801` |
-| `amount` | money | из события (сумма) | `83500.00` |
+| `amount` | bigint | из события (сумма в копейках) | `8350000` |
 
 ## События входа (`login_events`)
 
@@ -169,6 +169,8 @@ erDiagram
 {"scheme": 65, "speed": 10, "rounds": 0, "accounts": 0, "preserved": 10}
 ```
 
+Примечание: сущности "Гипотеза" нет, есть только подозрительная группа которая выявлена на основе правил.
+
 ## Участник группы (`group_members`)
 
 | Поле | Тип | Откуда берётся | Пример |
@@ -190,8 +192,8 @@ erDiagram
 | `group_id` | uuid | вычисление | `b5f2a1c4-3d6e-4f7a-8b9c-0d1e2f3a4b5c` |
 | `accounts_count` | integer | вычисление | `5` |
 | `span_minutes` | integer | вычисление | `11` |
-| `total_amount` | money | вычисление | `324500.00` |
+| `total_amount` | bigint | вычисление (сумма в копейках) | `32450000` |
 
-Примечание по `total_amount`: это оборот т.е. сумма всех переводов группы по `group_events` (повторы кругов суммируются)
+Примечание по `total_amount`: это оборот в копейках, т.е. сумма всех переводов группы по `group_events` (повторы кругов суммируются).
 
 Схемо-зависимые признаки отдельно не хранятся: разбор риска по слагаемым лежит в `groups.risk_parts`, сырьё для него - события группы (`group_events`)
