@@ -4,7 +4,6 @@ package app
 
 import (
 	"context"
-	"io"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -12,7 +11,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/feytox/shugraph/backend/graph-api/internal/config"
 	"github.com/feytox/shugraph/backend/graph-api/internal/handler"
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository"
 	"github.com/feytox/shugraph/backend/graph-api/internal/service"
@@ -53,13 +51,11 @@ func run(m *testing.M) int {
 		slog.Error("Could not get connection string to postgres", "err", err)
 		return 1
 	}
-
-	cfg := &config.Config{
-		DB: config.DBConfig{
-			URL: dbURL,
-		},
+	if err := os.Setenv("DATABASE_URL", dbURL); err != nil {
+		slog.Error("could not set DATABASE_URL", "err", err)
+		return 1
 	}
-	pool, err := ConnectToPg(ctx, cfg)
+	pool, err := ConnectToPg(ctx, dbURL)
 	if err != nil {
 		slog.Error("Could not connect to postgres", "err", err)
 		return 1
@@ -69,7 +65,7 @@ func run(m *testing.M) int {
 	repo := repository.NewPgNoteRepository(pool)
 	noteService := service.NewNoteService(repo)
 
-	errMigrate := Migrate(ctx, cfg)
+	errMigrate := Migrate(ctx)
 	if errMigrate != nil {
 		slog.Error("could not migrate", "err", errMigrate)
 		return 1
@@ -95,20 +91,18 @@ func TestEndpoints_Health(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			resp, err := http.Get(serverURL + tc.path)
-
+			req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, serverURL+tc.path, nil)
 			require.NoError(t, err)
-			defer closeBody(resp.Body)
 
+			resp, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
 			require.Equal(t, tc.expectedStatus, resp.StatusCode)
-		})
-	}
-}
 
-func closeBody(Body io.ReadCloser) {
-	err := Body.Close()
-	if err != nil {
-		slog.Error("Can not close response body", "err", err)
+			errBody := resp.Body.Close()
+			if errBody != nil {
+				slog.Error("Can not close response body", "err", errBody)
+			}
+		})
 	}
 }
 
@@ -127,24 +121,39 @@ func TestEndpoint_Notes(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			postNote, err := http.Post(
+			req, err := http.NewRequestWithContext(
+				t.Context(),
+				http.MethodPost,
 				serverURL+"/api/v1/notes",
-				"application/json",
-				strings.NewReader(tc.request))
-
+				strings.NewReader(tc.request),
+			)
 			require.NoError(t, err)
-			defer closeBody(postNote.Body)
+			req.Header.Set("Content-Type", "application/json")
+
+			postNote, err := http.DefaultClient.Do(req)
+			require.NoError(t, err)
 
 			require.Equal(t, tc.expectedStatus, postNote.StatusCode)
+
+			errBody := postNote.Body.Close()
+			if errBody != nil {
+				slog.Error("Can not close response body", "err", errBody)
+			}
 		})
 	}
 
 	t.Run("Success_GetAll", func(t *testing.T) {
-		resp, err := http.Get(serverURL + "/api/v1/notes")
-
+		req, err := http.NewRequestWithContext(t.Context(), http.MethodGet, serverURL+"/api/v1/notes", nil)
 		require.NoError(t, err)
-		defer closeBody(resp.Body)
+
+		resp, err := http.DefaultClient.Do(req)
+		require.NoError(t, err)
 
 		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		errBody := resp.Body.Close()
+		if errBody != nil {
+			slog.Error("Can not close response body", "err", errBody)
+		}
 	})
 }
