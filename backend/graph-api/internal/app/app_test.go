@@ -4,7 +4,6 @@ package app
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
@@ -12,7 +11,6 @@ import (
 	"os"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/feytox/shugraph/backend/graph-api/internal/config"
 	"github.com/feytox/shugraph/backend/graph-api/internal/handler"
@@ -56,9 +54,7 @@ func run(m *testing.M) int {
 		return 1
 	}
 
-	port := 12103
 	cfg := &config.Config{
-		Port: port,
 		DB: config.DBConfig{
 			URL: dbURL,
 		},
@@ -79,17 +75,11 @@ func run(m *testing.M) int {
 		return 1
 	}
 	r := chi.NewRouter()
-	handler.NewAPI(chi.NewRouter(), noteService, pool)
+	handler.NewAPI(r, noteService, pool)
 	server := httptest.NewServer(r)
 	defer server.Close()
-	go func() {
-		if err := Serve(ctx, cfg); err != nil {
-			slog.Error("Ошибка запуска сервера", "err", err)
-		}
-	}()
-	time.Sleep(100 * time.Millisecond)
 
-	serverURL = fmt.Sprintf("http://localhost:%d", port)
+	serverURL = server.URL
 	return m.Run()
 }
 
