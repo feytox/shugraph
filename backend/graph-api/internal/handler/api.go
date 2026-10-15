@@ -17,7 +17,7 @@ func NewAPI(router chi.Router, service noteService, pinger pinger) huma.API {
 
 	api := humachi.New(router, huma.DefaultConfig("Graph API", "1.0.0"))
 	healthHandler := NewHealthHandler(pinger)
-	healthHandler.Registry(api)
+	healthHandler.Register(api)
 
 	noteHandler := NewNoteHandler(service)
 	noteHandler.Register(api)

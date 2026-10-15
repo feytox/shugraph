@@ -23,7 +23,7 @@ func NewHealthHandler(pinger pinger) *HealthHandler {
 	return &HealthHandler{pinger: pinger}
 }
 
-func (h *HealthHandler) Registry(api huma.API) {
+func (h *HealthHandler) Register(api huma.API) {
 	huma.Register(api, huma.Operation{
 		OperationID: "health",
 		Summary:     "Checks the application's availability",
