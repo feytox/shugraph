@@ -11,7 +11,7 @@ import (
 func ConnectToPg(ctx context.Context, cfg *config.Config) (*pgxpool.Pool, error) {
 	pool, err := pgxpool.New(ctx, cfg.DB.URL)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("create pool: %w", err)
 	}
 	pingCtx, cancel := context.WithTimeout(ctx, readinessTimeout)
 	defer cancel()

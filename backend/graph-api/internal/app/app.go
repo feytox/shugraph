@@ -25,7 +25,7 @@ const readinessTimeout = 2 * time.Second
 func Serve(ctx context.Context, cfg *config.Config) error {
 	pool, err := ConnectToPg(ctx, cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("connect to db: %w", err)
 	}
 	defer pool.Close()
 
@@ -57,7 +57,7 @@ func Serve(ctx context.Context, cfg *config.Config) error {
 func Migrate(ctx context.Context, cfg *config.Config) error {
 	pool, err := ConnectToPg(ctx, cfg)
 	if err != nil {
-		return err
+		return fmt.Errorf("connect to db: %w", err)
 	}
 	defer pool.Close()
 	gooseDB := stdlib.OpenDBFromPool(pool)
