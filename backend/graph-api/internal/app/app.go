@@ -24,6 +24,9 @@ const readinessTimeout = 2 * time.Second
 
 func Serve(ctx context.Context) error {
 	cfg, err := config.Load[config.Serve]()
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
 	pool, err := ConnectToPg(ctx, cfg.DB.URL)
 	if err != nil {
 		return fmt.Errorf("connect to db: %w", err)
