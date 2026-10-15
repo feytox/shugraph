@@ -30,9 +30,15 @@ type HTTP struct {
 	ShutdownTimeout   time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"15s"`
 }
 
+type GraphAPI struct {
+	URL     string        `env:"GRAPH_API_URL,required,notEmpty"`
+	Timeout time.Duration `env:"GRAPH_API_TIMEOUT" envDefault:"5s"`
+}
+
 type Serve struct {
 	Database Database
 	HTTP     HTTP
+	GraphAPI GraphAPI
 }
 
 type Migrate struct {

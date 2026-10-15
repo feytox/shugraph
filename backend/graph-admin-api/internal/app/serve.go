@@ -13,8 +13,11 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/config"
+	"github.com/feytox/shugraph/backend/graph-admin-api/internal/graphapi"
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/handler"
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/logattr"
+	"github.com/feytox/shugraph/backend/graph-admin-api/internal/repository"
+	"github.com/feytox/shugraph/backend/graph-admin-api/internal/service"
 )
 
 func Serve(ctx context.Context, log *slog.Logger) error {
@@ -45,9 +48,18 @@ func newServer(ctx context.Context, cfg config.Serve, log *slog.Logger) (*server
 		return nil, err
 	}
 
+	graph, err := graphapi.New(cfg.GraphAPI.URL, &http.Client{Timeout: cfg.GraphAPI.Timeout})
+	if err != nil {
+		pool.Close()
+		return nil, err
+	}
+
+	notes := service.NewNoteService(graph, repository.NewPgNoteRepository(pool))
+
 	httpServer := &http.Server{
 		Addr: net.JoinHostPort("", strconv.Itoa(cfg.HTTP.Port)),
 		Handler: handler.New(handler.Deps{
+			Notes:    notes,
 			Database: pool,
 			Log:      log,
 		}),

@@ -1,4 +1,9 @@
-.PHONY: openapi test lint new-migration
+.PHONY: gen openapi test lint new-migration
+
+gen:
+	cd db && go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1 generate
+	go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.8.0 -config oapi-codegen.yaml ../graph-api/openapi.yaml
+	$(MAKE) openapi
 
 openapi:
 	go run ./cmd openapi > openapi.yaml
