@@ -22,8 +22,9 @@ import (
 
 const readinessTimeout = 2 * time.Second
 
-func Serve(ctx context.Context, cfg *config.Config) error {
-	pool, err := ConnectToPg(ctx, cfg)
+func Serve(ctx context.Context) error {
+	cfg, err := config.Load[config.Serve]()
+	pool, err := ConnectToPg(ctx, cfg.DB.URL)
 	if err != nil {
 		return fmt.Errorf("connect to db: %w", err)
 	}
@@ -54,8 +55,12 @@ func Serve(ctx context.Context, cfg *config.Config) error {
 	return srv.Shutdown(shutdownCtx)
 }
 
-func Migrate(ctx context.Context, cfg *config.Config) error {
-	pool, err := ConnectToPg(ctx, cfg)
+func Migrate(ctx context.Context) error {
+	cfg, err := config.Load[config.DBConfig]()
+	if err != nil {
+		return fmt.Errorf("load config: %w", err)
+	}
+	pool, err := ConnectToPg(ctx, cfg.URL)
 	if err != nil {
 		return fmt.Errorf("connect to db: %w", err)
 	}

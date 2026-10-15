@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"log/slog"
 	"os"
 
@@ -9,16 +10,19 @@ import (
 
 const timestampLayout = "2006-01-02T15:04:05.000Z"
 
-func NewLogger(cfg config.Log) (*slog.Logger, error) {
-
+func NewLogger() (*slog.Logger, error) {
+	logCfg, err := config.Load[config.Log]()
+	if err != nil {
+		return nil, fmt.Errorf("load config: %w", err)
+	}
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level:       cfg.Level,
+		Level:       logCfg.Level,
 		ReplaceAttr: renameStandardKeys,
 	})
 
 	return slog.New(handler).With(
-		slog.String("service.name", cfg.ServiceName),
-		slog.String("deployment.environment.name", cfg.Environment),
+		slog.String("service.name", logCfg.ServiceName),
+		slog.String("deployment.environment.name", logCfg.Environment),
 	), nil
 }
 

@@ -9,7 +9,6 @@ import (
 	"syscall"
 
 	"github.com/feytox/shugraph/backend/graph-api/internal/app"
-	"github.com/feytox/shugraph/backend/graph-api/internal/config"
 )
 
 func main() {
@@ -27,23 +26,20 @@ func run(ctx context.Context, args []string) error {
 	if len(args) > 0 {
 		command = args[0]
 	}
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		return fmt.Errorf("load config: %w", err)
-	}
-	logger, err := app.NewLogger(cfg.Log)
+
+	logger, err := app.NewLogger()
 	if err != nil {
 		return fmt.Errorf("init default logger: %w", err)
 	}
 	slog.SetDefault(logger)
 	switch command {
 	case "serve":
-		if err := app.Serve(ctx, cfg); err != nil {
+		if err := app.Serve(ctx); err != nil {
 			return fmt.Errorf("serve: %w", err)
 		}
 	case "migrate":
 		slog.Info("migrate started")
-		if err := app.Migrate(ctx, cfg); err != nil {
+		if err := app.Migrate(ctx); err != nil {
 			return fmt.Errorf("migrate: %w", err)
 		}
 	case "openapi":
