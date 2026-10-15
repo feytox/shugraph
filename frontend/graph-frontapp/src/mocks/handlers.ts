@@ -1,5 +1,26 @@
 import { http, HttpResponse } from 'msw';
-import type { Note, ProblemDetails } from '@/api/client';
+import type { Note } from '@/api/client';
+import type { operations } from '@/api/v1';
+
+type ListNotesResponse =
+  operations['get-all-notes']['responses'][200]['content']['application/json'];
+type CreateNoteBody = operations['create-note']['requestBody']['content']['application/json'];
+type CreateNoteResponse =
+  operations['create-note']['responses'][201]['content']['application/json'];
+type CreateNoteError =
+  operations['create-note']['responses']['default']['content']['application/problem+json'];
+
+const validationError = (message: string, location: string, value: unknown) =>
+  HttpResponse.json<CreateNoteError>(
+    {
+      type: 'about:blank',
+      title: 'Unprocessable Entity',
+      status: 422,
+      detail: 'validation failed',
+      errors: [{ message, location, value }],
+    },
+    { status: 422, headers: { 'Content-Type': 'application/problem+json' } }
+  );
 
 let inMemoryNotes: Note[] = [
   {
@@ -30,33 +51,35 @@ export const resetMockNotes = () => {
 };
 
 export const handlers = [
-  http.get('*/api/v1/notes', () => {
-    return HttpResponse.json({ notes: inMemoryNotes, Notes: inMemoryNotes }, { status: 200 });
+  http.get<never, never, ListNotesResponse>('*/api/v1/notes', () => {
+    return HttpResponse.json<ListNotesResponse>({ notes: inMemoryNotes }, { status: 200 });
   }),
 
-  http.post('*/api/v1/notes', async ({ request }) => {
-    const body = (await request.json()) as { text?: string };
+  http.post<never, CreateNoteBody, CreateNoteResponse | CreateNoteError>(
+    '*/api/v1/notes',
+    async ({ request }) => {
+      let body: Partial<CreateNoteBody> | null;
+      try {
+        body = (await request.json()) as Partial<CreateNoteBody> | null;
+      } catch {
+        return validationError('request body is required', 'body', null);
+      }
 
-    if (!body || !body.text || body.text.trim() === '') {
-      return HttpResponse.json<ProblemDetails>(
-        {
-          title: 'Unprocessable Entity',
-          status: 422,
-          detail: 'Поле text обязательно для заполнения',
-          type: 'about:blank',
-          errors: [{ message: 'expected length >= 1', location: 'body.text', value: body?.text }],
-        },
-        { status: 422, headers: { 'Content-Type': 'application/problem+json' } }
-      );
+      if (typeof body?.text !== 'string') {
+        return validationError('expected required property text to be present', 'body', body);
+      }
+      if (body.text.length < 1) {
+        return validationError('expected length >= 1', 'body.text', body.text);
+      }
+
+      const newNote: Note = {
+        id: crypto.randomUUID(),
+        text: body.text,
+        created_at: new Date().toISOString(),
+      };
+
+      inMemoryNotes.push(newNote);
+      return HttpResponse.json<CreateNoteResponse>(newNote, { status: 201 });
     }
-
-    const newNote: Note = {
-      id: `note-${Date.now()}`,
-      text: body.text.trim(),
-      created_at: new Date().toISOString(),
-    };
-
-    inMemoryNotes.push(newNote);
-    return HttpResponse.json(newNote, { status: 200 });
-  }),
+  ),
 ];

@@ -4,7 +4,7 @@
   "type": "module",
   "packageManager": "pnpm@10.33.0",
   "engines": {
-    "node": ">=20.0.0",
+    "node": ">=22.19.0",
     "pnpm": ">=10.0.0"
   },
   "scripts": {
@@ -18,7 +18,7 @@
     "format:check": "prettier --check .",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
-    "gen:api": "openapi-typescript ../backend/graph-api/openapi.json -o ./graph-frontapp/src/api/v1.d.ts"
+    "gen:api": "openapi-typescript ../backend/graph-api/openapi.yaml -o ./graph-frontapp/src/api/v1.d.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
