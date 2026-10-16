@@ -1,3 +1,2 @@
 .idea
-
-/backend/graph-api/.env
+.env
