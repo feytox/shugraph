@@ -1,4 +1,4 @@
-.PHONY: gen openapi test lint new-migration
+.PHONY: gen openapi test integration-test lint new-migration
 
 gen:
 	cd db && go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1 generate
@@ -10,6 +10,9 @@ openapi:
 
 test:
 	go vet ./... && go test -race ./...
+
+integration-test:
+	go test -race -tags=integration ./...
 
 lint:
 	golangci-lint run ./...
