@@ -80,17 +80,26 @@ sequenceDiagram
     ADM->>API: evt-0004 ещё раз (повторный запуск)
     API-->>ADM: дубль, ничего не меняем
 
-    rect rgba(60, 120, 220, 0.15)
-    alt аналитик подтвердил
-        FR->>API: подтвердить: "транзит за 11 минут, подтверждаю"
-        API->>DB: status = подтверждена, is_frozen = true,<br/>decided_at, decision_comment
-    else аналитик отклонил
-        FR->>API: отклонить: "расчёты внутри одной компании"
-        API->>DB: status = отклонена, is_frozen = true,<br/>decided_at, decision_comment
-    end
-    end
+    FR->>API: решение аналитика по группе
+    API->>DB: новый статус группы
 ```
 
 Риск 80 = 55 (цепочка) + 20 (8 мин) + 0 (3 перевода) + 5 (дошло 95%). После четвёртого перевода: 55 + 15 + 10 + 5 = 85.
+
+## Решение аналитика
+
+Что graph-api меняет в `groups` после нажатия кнопки:
+
+```mermaid
+flowchart LR
+    G["группа<br/><b>новая</b>"]
+    G -- "подтвердить<br/>+ комментарий" --> C["<b>подтверждена</b><br/>is_frozen = true<br/>decided_at<br/>decision_comment"]
+    G -- "отклонить<br/>+ комментарий" --> R["<b>отклонена</b><br/>is_frozen = true<br/>decided_at<br/>decision_comment"]
+
+    classDef red fill:#f8d7d7,stroke:#c0392b,color:#222
+    classDef green fill:#d5f0dc,stroke:#27ae60,color:#222
+    class C red
+    class R green
+```
 
 После решения ничего не удаляется: группа остаётся в БД, просто меняет статус, отклонённую можно найти фильтром. Жизненный цикл группы описан в [schemes-simple.md](schemes-simple.md#жизнь-группы).
