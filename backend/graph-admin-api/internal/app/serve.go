@@ -82,6 +82,7 @@ func (s *server) run(ctx context.Context) error {
 
 	go func() {
 		s.log.Info("http server listening", "addr", s.httpServer.Addr)
+
 		serveErr <- s.httpServer.ListenAndServe()
 	}()
 

@@ -13,5 +13,6 @@ func WriteOpenAPI(w io.Writer) error {
 	}
 
 	_, err = w.Write(spec)
+
 	return err
 }

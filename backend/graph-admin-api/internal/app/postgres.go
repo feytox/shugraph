@@ -63,6 +63,7 @@ func migrate(ctx context.Context, pool *pgxpool.Pool, log *slog.Logger) error {
 	}
 
 	sqlDB := stdlib.OpenDBFromPool(pool)
+
 	provider, err := goose.NewProvider(goose.DialectPostgres, sqlDB, migrations.FS, goose.WithSessionLocker(locker))
 	if err != nil {
 		_ = sqlDB.Close()

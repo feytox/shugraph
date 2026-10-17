@@ -18,6 +18,7 @@ func main() {
 	log, err := app.NewLogger(version)
 	if err != nil {
 		_, _ = fmt.Fprintln(os.Stderr, err)
+
 		os.Exit(1)
 	}
 
