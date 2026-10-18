@@ -70,3 +70,4 @@ block-beta
 - [../../definitions.md](../../definitions.md) - общий словарь проекта
 - [../../features.md](../../features.md) - фичи продукта
 - [../../schemes.md](../../schemes.md) - мошеннические схемы и правила их обнаружения (SRD)
+- [../../data-flow.md](../../data-flow.md) - поток данных: путь события от сценария до решения аналитика
