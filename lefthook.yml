@@ -1,4 +1,4 @@
-prepare-commit-msg:
+commit-msg:
   scripts:
     "branch-prefix.sh":
       runner: sh
