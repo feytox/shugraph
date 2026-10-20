@@ -16,7 +16,7 @@ const timestampLayout = "2006-01-02T15:04:05.000Z"
 func NewLogger(version string) (*slog.Logger, error) {
 	cfg, err := config.Load[config.Log]()
 	if err != nil {
-		return nil, fmt.Errorf("load log config: %w", err)
+		return nil, fmt.Errorf("load config: %w", err)
 	}
 
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
