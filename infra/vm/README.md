@@ -41,11 +41,16 @@
 
 Нужны `yc` (профиль с правами на каталог), `jq` и `gh`. Команды запускаются из `infra/vm/`.
 
+В каталоге должна быть сеть `default` с подсетью `default-ru-central1-d`. Если подсети нет:
+```bash
+yc vpc subnet create --name default-ru-central1-d --zone ru-central1-d --network-name default --range 10.130.0.0/24
+```
+
 1. Создать SSH-ключ и вставить публичную часть в `cloud-init.yaml` вместо текущей:
    ```bash
    ssh-keygen -t ed25519 -N "" -C shugraph-ci -f ~/.ssh/shugraph-ci
    ```
-2. Создать группу безопасности и ВМ, k3s поставит cloud-init:
+2. Создать группу безопасности и ВМ. ВМ сразу запускается и начинает тратить деньги, k3s поставит cloud-init при первом запуске:
    ```bash
    ./create-vm.sh
    ```
@@ -64,7 +69,16 @@
    gh secret set YC_SA_KEY < key.json && rm key.json
    gh secret set SSH_PRIVATE_KEY < ~/.ssh/shugraph-ci
    ```
-6. Проверить: `./vm.sh up` должен вывести ноду в статусе `Ready` и IP.
+6. Проверить: `./vm.sh up` должен вывести ноду в статусе `Ready` и IP. После проверки выключить ВМ: `./vm.sh down`.
+
+## Удалить
+
+Если `create-vm.sh` упал на середине или ВМ нужно пересоздать, удалить созданное (диск удаляется вместе с ВМ, сервисный аккаунт есть, только если дошли до шага 4):
+```bash
+yc compute instance delete shucluster-vm
+yc vpc security-group delete shucluster-group
+yc iam service-account delete shugraph-ci
+```
 
 ## Стоимость
 
