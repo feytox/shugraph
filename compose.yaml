@@ -4,6 +4,8 @@ x-graph-api-image: &graph-api-image
   image: shugraph-graph-api:local
   build:
     context: ./backend/graph-api
+    args:
+      VERSION: ${VERSION:-dev}
 
 x-graph-admin-api-image: &graph-admin-api-image
   image: shugraph-graph-admin-api:local
@@ -53,7 +55,6 @@ services:
         condition: service_healthy
     restart: "no"
 
-  # Healthcheck нет: образ distroless, а подкоманды healthcheck в graph-api пока нет.
   graph-api:
     <<: *graph-api-image
     command: [serve]
@@ -66,6 +67,13 @@ services:
     depends_on:
       graph-api-migrate:
         condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, /usr/local/bin/graph-api, healthcheck]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    stop_grace_period: 20s
     restart: unless-stopped
 
   graph-admin-api-migrate:

@@ -6,7 +6,7 @@ export VERSION ?= $(shell git describe --tags --always --dirty)
 	cp .env.example .env
 
 up: .env
-	docker compose up -d --build
+	docker compose up -d --build --wait
 
 down:
 	docker compose down
