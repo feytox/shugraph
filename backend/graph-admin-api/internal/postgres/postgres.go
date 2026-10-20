@@ -1,4 +1,4 @@
-package app
+package postgres
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/config"
 )
 
-func connectPostgres(ctx context.Context, cfg config.Database) (*pgxpool.Pool, error) {
+func Connect(ctx context.Context, cfg config.Database) (*pgxpool.Pool, error) {
 	poolConfig, err := pgxpool.ParseConfig(cfg.URL)
 	if err != nil {
 		return nil, fmt.Errorf("parse database url: %w", err)
@@ -41,22 +41,7 @@ func connectPostgres(ctx context.Context, cfg config.Database) (*pgxpool.Pool, e
 	return pool, nil
 }
 
-func Migrate(ctx context.Context, log *slog.Logger) error {
-	cfg, err := config.Load[config.Migrate]()
-	if err != nil {
-		return fmt.Errorf("load config: %w", err)
-	}
-
-	pool, err := connectPostgres(ctx, cfg.Database)
-	if err != nil {
-		return err
-	}
-	defer pool.Close()
-
-	return migrate(ctx, pool, log)
-}
-
-func migrate(ctx context.Context, pool *pgxpool.Pool, log *slog.Logger) error {
+func Migrate(ctx context.Context, pool *pgxpool.Pool, log *slog.Logger) error {
 	locker, err := lock.NewPostgresSessionLocker()
 	if err != nil {
 		return fmt.Errorf("create migration lock: %w", err)
