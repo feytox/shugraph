@@ -47,7 +47,7 @@ func registerNotes(api huma.API, h *noteHandlers) {
 		Path:          "/api/v1/notes/proxy",
 		Tags:          []string{notesTag},
 		DefaultStatus: http.StatusCreated,
-		Errors:        []int{http.StatusUnprocessableEntity, http.StatusInternalServerError, http.StatusBadGateway},
+		Errors:        []int{http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusInternalServerError, http.StatusBadGateway},
 	}, h.proxy)
 }
 
