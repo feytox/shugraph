@@ -15,6 +15,7 @@ func NewLogger() (*slog.Logger, error) {
 	if err != nil {
 		return nil, fmt.Errorf("load config: %w", err)
 	}
+
 	handler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
 		Level:       logCfg.Level,
 		ReplaceAttr: renameStandardKeys,

@@ -15,6 +15,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 
 	defer stop()
+
 	if err := run(ctx, os.Args[1:]); err != nil {
 		fmt.Println("command failed", "error", err)
 		os.Exit(1)
@@ -31,7 +32,9 @@ func run(ctx context.Context, args []string) error {
 	if err != nil {
 		return fmt.Errorf("init default logger: %w", err)
 	}
+
 	slog.SetDefault(logger)
+
 	switch command {
 	case "serve":
 		if err := app.Serve(ctx); err != nil {
@@ -39,6 +42,7 @@ func run(ctx context.Context, args []string) error {
 		}
 	case "migrate":
 		slog.Info("migrate started")
+
 		if err := app.Migrate(ctx); err != nil {
 			return fmt.Errorf("migrate: %w", err)
 		}
@@ -49,5 +53,6 @@ func run(ctx context.Context, args []string) error {
 	default:
 		return fmt.Errorf("unknown command: %s", command)
 	}
+
 	return nil
 }

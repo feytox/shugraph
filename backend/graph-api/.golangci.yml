@@ -1,5 +1,6 @@
 version: "2"
 run:
+  relative-path-mode: wd
   build-tags:
     - integration
 linters:
@@ -10,6 +11,7 @@ linters:
     - errorlint
     - bodyclose
     - noctx
+    - wsl_v5
   settings:
     revive:
       rules:

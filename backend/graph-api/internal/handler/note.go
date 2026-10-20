@@ -63,12 +63,14 @@ func (h *NoteHandler) CreateNote(ctx context.Context, request *CreateNoteInput) 
 		slog.Error("database is unavailable", "err", err)
 		return nil, huma.Error503ServiceUnavailable("database is unavailable")
 	}
+
 	response := CreateNoteOutput{}
 	response.Body = Note{
 		ID:        note.ID.String(),
 		Text:      note.Text,
 		CreatedAt: note.CreatedAt,
 	}
+
 	return &response, nil
 }
 
@@ -84,7 +86,9 @@ func (h *NoteHandler) GetAllNote(ctx context.Context, _ *struct{}) (*AllNoteOutp
 		slog.Error("database is unavailable", "err", err)
 		return nil, huma.Error503ServiceUnavailable("database is unavailable")
 	}
+
 	response := AllNoteOutput{}
+
 	response.Body.Notes = make([]Note, 0, len(notes))
 	for _, note := range notes {
 		response.Body.Notes = append(response.Body.Notes, Note{
@@ -93,5 +97,6 @@ func (h *NoteHandler) GetAllNote(ctx context.Context, _ *struct{}) (*AllNoteOutp
 			CreatedAt: note.CreatedAt.UTC(),
 		})
 	}
+
 	return &response, nil
 }

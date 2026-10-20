@@ -27,6 +27,7 @@ func Serve(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
+
 	pool, err := ConnectToPg(ctx, cfg.DB.URL)
 	if err != nil {
 		return fmt.Errorf("connect to db: %w", err)
@@ -55,6 +56,7 @@ func Serve(ctx context.Context) error {
 
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
+
 	return srv.Shutdown(shutdownCtx)
 }
 
@@ -63,12 +65,15 @@ func Migrate(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)
 	}
+
 	pool, err := ConnectToPg(ctx, cfg.URL)
 	if err != nil {
 		return fmt.Errorf("connect to db: %w", err)
 	}
 	defer pool.Close()
+
 	gooseDB := stdlib.OpenDBFromPool(pool)
+
 	provider, err := goose.NewProvider(goose.DialectPostgres, gooseDB, migrations.FS)
 	if err != nil {
 		return fmt.Errorf("goose.NewProvider: %w", err)
@@ -90,6 +95,7 @@ func Migrate(ctx context.Context) error {
 	for _, migrateRes := range upResult {
 		slog.Info("migration up", "up", migrateRes)
 	}
+
 	if len(upResult) == 0 {
 		slog.Info("database schema is up to date")
 	}
@@ -100,13 +106,16 @@ func Migrate(ctx context.Context) error {
 func GenerateOpenAPI() error {
 	r := chi.NewRouter()
 	api := handler.NewAPI(r, nil, nil)
+
 	b, err := api.OpenAPI().YAML()
 	if err != nil {
 		return fmt.Errorf("error generating open api: %w", err)
 	}
+
 	_, err = os.Stdout.Write(b)
 	if err != nil {
 		return fmt.Errorf("error stdout write api: %w", err)
 	}
+
 	return nil
 }

@@ -48,6 +48,7 @@ type HealthCheckOutput struct {
 func (h *HealthHandler) Healthz(_ context.Context, _ *struct{}) (*HealthCheckOutput, error) {
 	response := &HealthCheckOutput{}
 	response.Body.Status = "ok"
+
 	return response, nil
 }
 
@@ -60,11 +61,14 @@ type ReadyCheckOutput struct {
 func (h *HealthHandler) Readyz(ctx context.Context, _ *struct{}) (*ReadyCheckOutput, error) {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, readinessTimeout)
 	defer cancel()
+
 	if err := h.pinger.Ping(ctxWithTimeout); err != nil {
 		slog.Error("database is unavailable", "err", err)
 		return nil, huma.Error503ServiceUnavailable("database is unavailable")
 	}
+
 	response := &ReadyCheckOutput{}
 	response.Body.Status = "ok"
+
 	return response, nil
 }

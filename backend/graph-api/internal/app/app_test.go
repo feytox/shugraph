@@ -27,6 +27,7 @@ func TestMain(m *testing.M) {
 
 func run(m *testing.M) int {
 	ctx := context.Background()
+
 	pgContainer, err := postgres.Run(ctx,
 		"postgres:18-alpine",
 		postgres.WithDatabase("users"),
@@ -51,10 +52,12 @@ func run(m *testing.M) int {
 		slog.Error("Could not get connection string to postgres", "err", err)
 		return 1
 	}
+
 	if err := os.Setenv("DATABASE_URL", dbURL); err != nil {
 		slog.Error("could not set DATABASE_URL", "err", err)
 		return 1
 	}
+
 	pool, err := ConnectToPg(ctx, dbURL)
 	if err != nil {
 		slog.Error("Could not connect to postgres", "err", err)
@@ -70,12 +73,15 @@ func run(m *testing.M) int {
 		slog.Error("could not migrate", "err", errMigrate)
 		return 1
 	}
+
 	r := chi.NewRouter()
 	handler.NewAPI(r, noteService, pool)
+
 	server := httptest.NewServer(r)
 	defer server.Close()
 
 	serverURL = server.URL
+
 	return m.Run()
 }
 
