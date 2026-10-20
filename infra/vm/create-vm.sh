@@ -1,9 +1,15 @@
 #!/usr/bin/env bash
-# Создаёт прерываемую ВМ с k3s в каталоге из текущего профиля yc. Запускается один раз вручную.
+# Создаёт и запускает прерываемую ВМ с k3s в каталоге из текущего профиля yc. Запускается один раз вручную.
+# Нужны yc и jq, в каталоге сеть default с подсетью default-<зона>.
 set -euo pipefail
 cd "$(dirname "$0")"
 
 ZONE=ru-central1-d
+
+for cmd in yc jq; do
+  command -v "$cmd" > /dev/null || { echo "Не найден $cmd" >&2; exit 1; }
+done
+yc vpc subnet get "default-$ZONE" > /dev/null
 
 SG_ID=$(yc vpc security-group create \
   --name shucluster-group \
