@@ -7,68 +7,64 @@ import (
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
+
+	"github.com/feytox/shugraph/backend/graph-api/internal/logattr"
 )
 
-const readinessTimeout = 2 * time.Second
+const (
+	healthTag        = "Health"
+	readinessTimeout = 2 * time.Second
+)
 
-type pinger interface {
-	Ping(ctx context.Context) error
+type StatusOutput struct {
+	Body struct {
+		Status string `json:"status" example:"ok"`
+	}
 }
 
-type HealthHandler struct {
-	pinger pinger
+type healthHandlers struct {
+	database Pinger
+	log      *slog.Logger
 }
 
-func NewHealthHandler(pinger pinger) *HealthHandler {
-	return &HealthHandler{pinger: pinger}
-}
-
-func (h *HealthHandler) Register(api huma.API) {
+func registerHealth(api huma.API, h *healthHandlers) {
 	huma.Register(api, huma.Operation{
 		OperationID: "health",
-		Summary:     "Checks the application's availability",
+		Summary:     "Check that the process is alive",
 		Method:      http.MethodGet,
 		Path:        "/healthz",
-	}, h.Healthz)
+		Tags:        []string{healthTag},
+	}, h.healthz)
 
 	huma.Register(api, huma.Operation{
 		OperationID: "ready",
-		Summary:     "Checks the application's readiness for operation",
+		Summary:     "Check that the service can handle requests",
 		Method:      http.MethodGet,
 		Path:        "/readyz",
-	}, h.Readyz)
+		Tags:        []string{healthTag},
+		Errors:      []int{http.StatusServiceUnavailable},
+	}, h.readyz)
 }
 
-type HealthCheckOutput struct {
-	Body struct {
-		Status string `json:"status" example:"ok" doc:"Operational status"`
-	}
+func (h *healthHandlers) healthz(_ context.Context, _ *struct{}) (*StatusOutput, error) {
+	return statusOK(), nil
 }
 
-func (h *HealthHandler) Healthz(_ context.Context, _ *struct{}) (*HealthCheckOutput, error) {
-	response := &HealthCheckOutput{}
-	response.Body.Status = "ok"
-
-	return response, nil
-}
-
-type ReadyCheckOutput struct {
-	Body struct {
-		Status string `json:"status" example:"ok" doc:"Availability status"`
-	}
-}
-
-func (h *HealthHandler) Readyz(ctx context.Context, _ *struct{}) (*ReadyCheckOutput, error) {
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, readinessTimeout)
+func (h *healthHandlers) readyz(ctx context.Context, _ *struct{}) (*StatusOutput, error) {
+	ctx, cancel := context.WithTimeout(ctx, readinessTimeout)
 	defer cancel()
 
-	if err := h.pinger.Ping(ctxWithTimeout); err != nil {
-		slog.Error("database is unavailable", "err", err)
+	if err := h.database.Ping(ctx); err != nil {
+		h.log.WarnContext(ctx, "database is unavailable", logattr.Error(err))
 		return nil, huma.Error503ServiceUnavailable("database is unavailable")
 	}
 
-	response := &ReadyCheckOutput{}
-	response.Body.Status = "ok"
+	return statusOK(), nil
+}
 
-	return response, nil
+func statusOK() *StatusOutput {
+	out := &StatusOutput{}
+	out.Body.Status = "ok"
+
+	return out
 }

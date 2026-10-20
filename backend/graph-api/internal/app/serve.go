@@ -10,7 +10,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/feytox/shugraph/backend/graph-api/internal/config"
@@ -51,12 +50,13 @@ func newServer(ctx context.Context, cfg config.Serve, log *slog.Logger) (*server
 
 	notes := service.NewNoteService(repository.NewPgNoteRepository(pool))
 
-	router := chi.NewRouter()
-	handler.NewAPI(router, notes, pool)
-
 	httpServer := &http.Server{
-		Addr:              net.JoinHostPort("", strconv.Itoa(cfg.HTTP.Port)),
-		Handler:           router,
+		Addr: net.JoinHostPort("", strconv.Itoa(cfg.HTTP.Port)),
+		Handler: handler.New(handler.Deps{
+			Notes:    notes,
+			Database: pool,
+			Log:      log,
+		}),
 		ReadHeaderTimeout: cfg.HTTP.ReadHeaderTimeout,
 		ReadTimeout:       cfg.HTTP.ReadTimeout,
 		WriteTimeout:      cfg.HTTP.WriteTimeout,

@@ -17,7 +17,6 @@ import (
 	pgdb "github.com/feytox/shugraph/backend/graph-api/internal/postgres"
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository"
 	"github.com/feytox/shugraph/backend/graph-api/internal/service"
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
@@ -80,10 +79,11 @@ func run(m *testing.M) int {
 		return 1
 	}
 
-	r := chi.NewRouter()
-	handler.NewAPI(r, noteService, pool)
-
-	server := httptest.NewServer(r)
+	server := httptest.NewServer(handler.New(handler.Deps{
+		Notes:    noteService,
+		Database: pool,
+		Log:      slog.Default(),
+	}))
 	defer server.Close()
 
 	serverURL = server.URL
