@@ -39,6 +39,8 @@
 
 ## Поднять с нуля
 
+Раздел нужен, только чтобы пересоздать ВМ проекта. Шаг 5 заменяет секреты, с которыми работают `up` и `down`, поэтому, если проверяешь инструкцию в своём облаке, делай это в своём форке, а у `gh secret set` укажи `-R <ник>/shugraph`.
+
 Нужны `yc` (профиль с правами на каталог), `jq` и `gh`. Команды запускаются из `infra/vm/`.
 
 В каталоге должна быть сеть `default` с подсетью `default-ru-central1-d`. Если подсети нет:
@@ -64,10 +66,11 @@ yc vpc subnet create --name default-ru-central1-d --zone ru-central1-d --network
    yc compute instance add-access-binding --name shucluster-vm --role compute.operator --service-account-name shugraph-ci
    yc iam key create --service-account-name shugraph-ci --output key.json > /dev/null
    ```
-5. Положить ключи в GitHub Secrets и удалить `key.json`:
+5. Положить ключи в секреты окружения `vm` и удалить `key.json`. Это может сделать только владелец репозитория, секреты обычным коллабораторам недоступны:
    ```bash
-   gh secret set YC_SA_KEY < key.json && rm key.json
-   gh secret set SSH_PRIVATE_KEY < ~/.ssh/shugraph-ci
+   gh api -X PUT 'repos/{owner}/{repo}/environments/vm' > /dev/null
+   gh secret set YC_SA_KEY --env vm < key.json && rm key.json
+   gh secret set SSH_PRIVATE_KEY --env vm < ~/.ssh/shugraph-ci
    ```
 6. Проверить: `./vm.sh up` должен вывести ноду в статусе `Ready` и IP. После проверки выключить ВМ: `./vm.sh down`.
 

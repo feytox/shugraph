@@ -7,6 +7,7 @@ concurrency: vm
 jobs:
   down:
     runs-on: ubuntu-latest
+    environment: vm
     steps:
       - uses: actions/checkout@v7
 
@@ -22,6 +23,7 @@ jobs:
         run: |
           printf '%s' "$YC_SA_KEY" > "$RUNNER_TEMP/yc-key.json"
           yc config set service-account-key "$RUNNER_TEMP/yc-key.json"
+          yc iam create-token > /dev/null
 
       - name: Down
         run: infra/vm/vm.sh down
