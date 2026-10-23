@@ -50,5 +50,11 @@ func registerAPI(router chi.Router, deps Deps) huma.API {
 	registerEvents(api, &eventHandlers{})
 	registerGroups(api, &groupHandlers{})
 
+	eventHandler := &EventHandler{}
+	eventHandler.Register(api)
+
+	groupHandler := &GroupHandler{}
+	groupHandler.Register(api)
+
 	return api
 }
