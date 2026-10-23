@@ -22,5 +22,11 @@ func NewAPI(router chi.Router, service noteService, pinger pinger) huma.API {
 	noteHandler := NewNoteHandler(service)
 	noteHandler.Register(api)
 
+	eventHandler := &EventHandler{}
+	eventHandler.Register(api)
+
+	groupHandler := &GroupHandler{}
+	groupHandler.Register(api)
+
 	return api
 }

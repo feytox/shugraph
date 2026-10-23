@@ -95,6 +95,105 @@ components:
           format: uri
           type: string
       type: object
+    GetByIDOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/GetByIDOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+      type: object
+    GetGraphOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/GetGraphOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+      type: object
+    GroupItem:
+      additionalProperties: false
+      properties:
+        ID:
+          type: string
+        RiskScore:
+          format: int64
+          type: integer
+        Scheme:
+          type: string
+      required:
+        - ID
+        - Scheme
+        - RiskScore
+      type: object
+    GroupListOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/GroupListOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        Items:
+          items:
+            $ref: "#/components/schemas/GroupItem"
+          type:
+            - array
+            - "null"
+      required:
+        - Items
+      type: object
+    GroupSolutionInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/GroupSolutionInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        Approved:
+          type:
+            - boolean
+            - "null"
+        DecisionComment:
+          type:
+            - string
+            - "null"
+      required:
+        - Approved
+        - DecisionComment
+      type: object
+    GroupSolutionOutputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/GroupSolutionOutputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        DecisionComment:
+          type: string
+        IsFrozen:
+          type: boolean
+        Status:
+          type: string
+      required:
+        - Status
+        - IsFrozen
+        - DecisionComment
+      type: object
     HealthCheckOutputBody:
       additionalProperties: false
       properties:
@@ -112,6 +211,34 @@ components:
           type: string
       required:
         - status
+      type: object
+    LoginInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/LoginInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        AccountID:
+          type: string
+        AddressID:
+          type: string
+        ClientID:
+          type: string
+        DeviceID:
+          type: string
+        OccurredAt:
+          format: date-time
+          type: string
+      required:
+        - OccurredAt
+        - AccountID
+        - ClientID
+        - DeviceID
+        - AddressID
       type: object
     Note:
       additionalProperties: false
@@ -153,11 +280,205 @@ components:
       required:
         - status
       type: object
+    TransferInputBody:
+      additionalProperties: false
+      properties:
+        $schema:
+          description: A URL to the JSON Schema for this object.
+          examples:
+            - https://example.com/schemas/TransferInputBody.json
+          format: uri
+          readOnly: true
+          type: string
+        Amount:
+          format: int64
+          type: integer
+        FromAccountID:
+          type: string
+        FromClientID:
+          type: string
+        OccurredAt:
+          format: date-time
+          type: string
+        ToAccountID:
+          type: string
+        ToClientID:
+          type: string
+      required:
+        - OccurredAt
+        - FromAccountID
+        - FromClientID
+        - ToAccountID
+        - ToClientID
+        - Amount
+      type: object
 info:
   title: Graph API
   version: 1.0.0
 openapi: 3.1.0
 paths:
+  /api/v1/events/logins/{event_id}:
+    put:
+      operationId: login-event
+      parameters:
+        - in: path
+          name: event_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInputBody"
+        required: true
+      responses:
+        "201":
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Create an login event
+  /api/v1/events/transfers/{event_id}:
+    put:
+      operationId: transfer-event
+      parameters:
+        - in: path
+          name: event_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransferInputBody"
+        required: true
+      responses:
+        "201":
+          description: Created
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Create an transfer event
+  /api/v1/groups:
+    get:
+      operationId: list-groups
+      parameters:
+        - in: path
+          name: group_id
+          required: true
+          schema:
+            type: string
+        - explode: false
+          in: query
+          name: limit
+          schema:
+            default: 10
+            format: int64
+            type: integer
+        - explode: false
+          in: query
+          name: cursor
+          schema:
+            default: 0
+            format: int64
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupListOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns list of groups
+  /api/v1/groups/{group_id}:
+    get:
+      operationId: get-group
+      parameters:
+        - in: path
+          name: group_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetByIDOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Return a group
+  /api/v1/groups/{group_id}/graph:
+    get:
+      operationId: get-group-graph
+      parameters:
+        - in: path
+          name: group_id
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetGraphOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Returns the vertices and edges of the group graph
+  /api/v1/groups/{group_id}/solution:
+    patch:
+      operationId: resolve-group
+      parameters:
+        - in: path
+          name: group_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GroupSolutionInputBody"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupSolutionOutputBody"
+          description: OK
+        default:
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Error
+      summary: Makes decisions for the group
   /api/v1/notes:
     get:
       operationId: get-all-notes
