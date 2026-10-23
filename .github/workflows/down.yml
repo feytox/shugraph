@@ -1,0 +1,29 @@
+name: down
+
+on: workflow_dispatch
+
+concurrency: vm
+
+jobs:
+  down:
+    runs-on: ubuntu-24.04
+    environment: vm
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install yc
+        timeout-minutes: 3
+        run: |
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i /opt/yc -n
+          echo /opt/yc/bin >> "$GITHUB_PATH"
+
+      - name: Auth yc
+        env:
+          YC_SA_KEY: ${{ secrets.YC_SA_KEY }}
+        run: |
+          printf '%s' "$YC_SA_KEY" > "$RUNNER_TEMP/yc-key.json"
+          yc config set service-account-key "$RUNNER_TEMP/yc-key.json"
+          yc iam create-token > /dev/null
+
+      - name: Down
+        run: infra/vm/vm.sh down
