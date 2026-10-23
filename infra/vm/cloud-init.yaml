@@ -10,4 +10,4 @@ users:
     ssh_authorized_keys:
       - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGSvaf3n2qvdZoNIzkg9KSJHlfmEf2RYzPws/pNb8NhW shugraph-ci
 runcmd:
-  - curl -sfL https://get.k3s.io | sh -
+  - curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=v1.36.5+k3s1 sh -

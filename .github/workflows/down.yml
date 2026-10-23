@@ -6,7 +6,7 @@ concurrency: vm
 
 jobs:
   down:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: vm
     steps:
       - uses: actions/checkout@v7
