@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "scripts": {
+    "mock": "npx --yes @stoplight/prism-cli@5.15.11 mock ../backend/graph-api/openapi.yaml"
+  }
+}

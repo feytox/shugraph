@@ -1,5 +1,18 @@
 components:
   schemas:
+    Account:
+      additionalProperties: false
+      properties:
+        client_id:
+          minLength: 1
+          type: string
+        id:
+          minLength: 1
+          type: string
+      required:
+        - id
+        - client_id
+      type: object
     AllNoteOutputBody:
       additionalProperties: false
       properties:
@@ -74,88 +87,364 @@ components:
           format: uri
           type: string
       type: object
+    Feature:
+      additionalProperties: false
+      properties:
+        accounts_count:
+          format: int64
+          minimum: 0
+          type: integer
+        span_minutes:
+          description: Elapsed whole minutes between first and last evidence events.
+          format: int64
+          minimum: 0
+          type: integer
+        total_amount:
+          description: "Turnover in kopecks: sum of all evidence transfers, including repeated rounds."
+          format: int64
+          minimum: 0
+          type: integer
+      required:
+        - accounts_count
+        - span_minutes
+        - total_amount
+      type: object
     GetByIDOutputBody:
       additionalProperties: false
+      properties:
+        group:
+          $ref: "#/components/schemas/Group"
+      required:
+        - group
       type: object
-    GetGraphOutputBody:
+    GraphEdge:
       additionalProperties: false
+      properties:
+        data:
+          oneOf:
+            - $ref: "#/components/schemas/OwnershipEdge"
+            - $ref: "#/components/schemas/LoginEdge"
+            - $ref: "#/components/schemas/TransferEdge"
+      required:
+        - data
+      type: object
+    GraphNode:
+      additionalProperties: false
+      properties:
+        data:
+          $ref: "#/components/schemas/GraphNodeData"
+      required:
+        - data
+      type: object
+    GraphNodeData:
+      additionalProperties: false
+      properties:
+        entity_id:
+          description: Original source identifier.
+          minLength: 1
+          type: string
+        id:
+          description: Type-prefixed ID, e.g. account:acc-1.
+          minLength: 1
+          type: string
+        type:
+          enum:
+            - client
+            - account
+            - device
+            - network_address
+          type: string
+      required:
+        - id
+        - type
+        - entity_id
+      type: object
+    Group:
+      additionalProperties: false
+      properties:
+        decided_at:
+          description: Null while status is новая.
+          format: date-time
+          type:
+            - string
+            - "null"
+        decision_comment:
+          description: Empty until a decision is made.
+          type: string
+        events:
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/LoginEvent"
+              - $ref: "#/components/schemas/TransferEvent"
+          type: array
+        features:
+          $ref: "#/components/schemas/Feature"
+        first_event_at:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        is_frozen:
+          type: boolean
+        last_event_at:
+          format: date-time
+          type: string
+        members:
+          items:
+            $ref: "#/components/schemas/Account"
+          type: array
+        risk_parts:
+          additionalProperties:
+            format: int64
+            type: integer
+          description: Scheme-specific contributions; their sum equals risk_score. Used to explain the finding.
+          type: object
+        risk_score:
+          format: int64
+          maximum: 100
+          minimum: 0
+          type: integer
+        scheme:
+          enum:
+            - ферма
+            - адрес
+            - цепочка
+            - кольцо
+          type: string
+        status:
+          enum:
+            - новая
+            - подтверждена
+            - отклонена
+          type: string
+      required:
+        - is_frozen
+        - decision_comment
+        - decided_at
+        - members
+        - events
+        - id
+        - scheme
+        - status
+        - risk_score
+        - risk_parts
+        - first_event_at
+        - last_event_at
+        - features
+      type: object
+    GroupGraph:
+      additionalProperties: false
+      properties:
+        edges:
+          items:
+            $ref: "#/components/schemas/GraphEdge"
+          type: array
+        group_id:
+          format: uuid
+          type: string
+        nodes:
+          items:
+            $ref: "#/components/schemas/GraphNode"
+          type: array
+      required:
+        - group_id
+        - nodes
+        - edges
       type: object
     GroupItem:
       additionalProperties: false
       properties:
-        ID:
+        features:
+          $ref: "#/components/schemas/Feature"
+        first_event_at:
+          format: date-time
           type: string
-        RiskScore:
+        id:
+          format: uuid
+          type: string
+        last_event_at:
+          format: date-time
+          type: string
+        risk_parts:
+          additionalProperties:
+            format: int64
+            type: integer
+          description: Scheme-specific contributions; their sum equals risk_score. Used to explain the finding.
+          type: object
+        risk_score:
           format: int64
+          maximum: 100
+          minimum: 0
           type: integer
-        Scheme:
+        scheme:
+          enum:
+            - ферма
+            - адрес
+            - цепочка
+            - кольцо
+          type: string
+        status:
+          enum:
+            - новая
+            - подтверждена
+            - отклонена
           type: string
       required:
-        - ID
-        - Scheme
-        - RiskScore
+        - id
+        - scheme
+        - status
+        - risk_score
+        - risk_parts
+        - first_event_at
+        - last_event_at
+        - features
       type: object
     GroupListOutputBody:
       additionalProperties: false
       properties:
-        Items:
+        items:
           items:
             $ref: "#/components/schemas/GroupItem"
-          type:
-            - array
-            - "null"
-      required:
-        - Items
-      type: object
-    GroupSolutionInputBody:
-      additionalProperties: false
-      properties:
-        Approved:
-          type:
-            - boolean
-            - "null"
-        DecisionComment:
+          type: array
+        next_cursor:
+          description: Pass unchanged as cursor; null on the last page.
           type:
             - string
             - "null"
       required:
-        - Approved
-        - DecisionComment
+        - items
+        - next_cursor
+      type: object
+    GroupSolutionInputBody:
+      additionalProperties: false
+      properties:
+        approved:
+          type: boolean
+        decision_comment:
+          minLength: 1
+          pattern: \S
+          type: string
+      required:
+        - approved
+        - decision_comment
       type: object
     GroupSolutionOutputBody:
       additionalProperties: false
       properties:
-        DecisionComment:
+        decided_at:
+          format: date-time
           type: string
-        IsFrozen:
+        decision_comment:
+          minLength: 1
+          pattern: \S
+          type: string
+        is_frozen:
+          enum:
+            - true
           type: boolean
-        Status:
+        status:
+          enum:
+            - подтверждена
+            - отклонена
           type: string
       required:
-        - Status
-        - IsFrozen
-        - DecisionComment
+        - status
+        - is_frozen
+        - decision_comment
+        - decided_at
       type: object
-    LoginInputBody:
+    LoginEdge:
       additionalProperties: false
       properties:
-        AccountID:
+        event_id:
+          minLength: 1
           type: string
-        AddressID:
+        id:
+          description: Unique type-prefixed edge ID. Login IDs additionally include device/address suffix.
+          minLength: 1
           type: string
-        ClientID:
+        occurred_at:
+          format: date-time
           type: string
-        DeviceID:
+        source:
+          minLength: 1
           type: string
-        OccurredAt:
+        target:
+          minLength: 1
+          type: string
+        type:
+          enum:
+            - login
+          type: string
+      required:
+        - type
+        - event_id
+        - occurred_at
+        - id
+        - source
+        - target
+      type: object
+    LoginEvent:
+      additionalProperties: false
+      properties:
+        account_id:
+          minLength: 1
+          type: string
+        address_id:
+          description: Source IP/network address; retained as a source identifier.
+          minLength: 1
+          type: string
+        client_id:
+          minLength: 1
+          type: string
+        device_id:
+          minLength: 1
+          type: string
+        event_id:
+          minLength: 1
+          type: string
+        occurred_at:
+          format: date-time
+          type: string
+        type:
+          enum:
+            - login
+          type: string
+      required:
+        - event_id
+        - type
+        - occurred_at
+        - account_id
+        - client_id
+        - device_id
+        - address_id
+      type: object
+    LoginPayload:
+      additionalProperties: false
+      properties:
+        account_id:
+          minLength: 1
+          type: string
+        address_id:
+          description: Source IP/network address; retained as a source identifier.
+          minLength: 1
+          type: string
+        client_id:
+          minLength: 1
+          type: string
+        device_id:
+          minLength: 1
+          type: string
+        occurred_at:
           format: date-time
           type: string
       required:
-        - OccurredAt
-        - AccountID
-        - ClientID
-        - DeviceID
-        - AddressID
+        - occurred_at
+        - account_id
+        - client_id
+        - device_id
+        - address_id
       type: object
     Note:
       additionalProperties: false
@@ -172,6 +461,29 @@ components:
         - text
         - created_at
       type: object
+    OwnershipEdge:
+      additionalProperties: false
+      properties:
+        id:
+          description: Unique type-prefixed edge ID. Login IDs additionally include device/address suffix.
+          minLength: 1
+          type: string
+        source:
+          minLength: 1
+          type: string
+        target:
+          minLength: 1
+          type: string
+        type:
+          enum:
+            - ownership
+          type: string
+      required:
+        - type
+        - id
+        - source
+        - target
+      type: object
     StatusOutputBody:
       additionalProperties: false
       properties:
@@ -182,30 +494,113 @@ components:
       required:
         - status
       type: object
-    TransferInputBody:
+    TransferEdge:
       additionalProperties: false
       properties:
-        Amount:
+        amount:
+          description: Amount in kopecks.
           format: int64
+          minimum: 1
           type: integer
-        FromAccountID:
+        event_id:
+          minLength: 1
           type: string
-        FromClientID:
+        id:
+          description: Unique type-prefixed edge ID. Login IDs additionally include device/address suffix.
+          minLength: 1
           type: string
-        OccurredAt:
+        occurred_at:
           format: date-time
           type: string
-        ToAccountID:
+        source:
+          minLength: 1
           type: string
-        ToClientID:
+        target:
+          minLength: 1
+          type: string
+        type:
+          enum:
+            - transfer
           type: string
       required:
-        - OccurredAt
-        - FromAccountID
-        - FromClientID
-        - ToAccountID
-        - ToClientID
-        - Amount
+        - type
+        - event_id
+        - occurred_at
+        - amount
+        - id
+        - source
+        - target
+      type: object
+    TransferEvent:
+      additionalProperties: false
+      properties:
+        amount:
+          description: Amount in kopecks.
+          format: int64
+          minimum: 1
+          type: integer
+        event_id:
+          minLength: 1
+          type: string
+        from_account_id:
+          minLength: 1
+          type: string
+        from_client_id:
+          minLength: 1
+          type: string
+        occurred_at:
+          format: date-time
+          type: string
+        to_account_id:
+          minLength: 1
+          type: string
+        to_client_id:
+          minLength: 1
+          type: string
+        type:
+          enum:
+            - transfer
+          type: string
+      required:
+        - event_id
+        - type
+        - occurred_at
+        - from_account_id
+        - from_client_id
+        - to_account_id
+        - to_client_id
+        - amount
+      type: object
+    TransferPayload:
+      additionalProperties: false
+      properties:
+        amount:
+          description: Amount in kopecks.
+          format: int64
+          minimum: 1
+          type: integer
+        from_account_id:
+          minLength: 1
+          type: string
+        from_client_id:
+          minLength: 1
+          type: string
+        occurred_at:
+          format: date-time
+          type: string
+        to_account_id:
+          minLength: 1
+          type: string
+        to_client_id:
+          minLength: 1
+          type: string
+      required:
+        - occurred_at
+        - from_account_id
+        - from_client_id
+        - to_account_id
+        - to_client_id
+        - amount
       type: object
 info:
   title: Graph API
@@ -214,63 +609,115 @@ openapi: 3.1.0
 paths:
   /api/v1/events/logins/{event_id}:
     put:
+      description: Event IDs are globally unique across both event types. New events return 201 with no body. An identical retry returns 204 without recomputing groups; an existing ID with different type or payload returns 409. Compare parsed values, not JSON formatting. Persistence/deduplication are implemented separately. Amounts are integer kopecks.
       operationId: login-event
       parameters:
         - in: path
           name: event_id
           required: true
           schema:
+            minLength: 1
             type: string
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginInputBody"
+              $ref: "#/components/schemas/LoginPayload"
         required: true
       responses:
         "201":
           description: Created
-        default:
+        "204":
+          description: Identical event already accepted; no changes
+        "400":
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
-          description: Error
-      summary: Create an login event
+          description: Bad Request
+        "409":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Conflict
+        "422":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Internal Server Error
+        "501":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Not Implemented
+      summary: Accept a login event
   /api/v1/events/transfers/{event_id}:
     put:
+      description: Event IDs are globally unique across both event types. New events return 201 with no body. An identical retry returns 204 without recomputing groups; an existing ID with different type or payload returns 409. Compare parsed values, not JSON formatting. Persistence/deduplication are implemented separately. Amounts are integer kopecks.
       operationId: transfer-event
       parameters:
         - in: path
           name: event_id
           required: true
           schema:
+            minLength: 1
             type: string
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/TransferInputBody"
+              $ref: "#/components/schemas/TransferPayload"
         required: true
       responses:
         "201":
           description: Created
-        default:
+        "204":
+          description: Identical event already accepted; no changes
+        "400":
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
-          description: Error
-      summary: Create an transfer event
+          description: Bad Request
+        "409":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Conflict
+        "422":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Internal Server Error
+        "501":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Not Implemented
+      summary: Accept a transfer event
   /api/v1/groups:
     get:
+      description: "Ordered by first_event_at DESC, id DESC. cursor is an opaque continuation token bound to this order. Poll the first page to discover new groups. Invalid cursors return 400. An empty list has items: [] and next_cursor: null."
       operationId: list-groups
       parameters:
-        - in: path
-          name: group_id
-          required: true
-          schema:
-            type: string
         - explode: false
           in: query
           name: limit
@@ -278,14 +725,15 @@ paths:
             default: 10
             format: int64
             maximum: 100
+            minimum: 1
             type: integer
-        - explode: false
+        - description: Opaque continuation token. Omit for the first page.
+          explode: false
           in: query
           name: cursor
           schema:
-            default: 0
-            format: int64
-            type: integer
+            description: Opaque continuation token. Omit for the first page.
+            type: string
       responses:
         "200":
           content:
@@ -293,13 +741,31 @@ paths:
               schema:
                 $ref: "#/components/schemas/GroupListOutputBody"
           description: OK
-        default:
+        "400":
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
-          description: Error
-      summary: Returns list of groups
+          description: Bad Request
+        "422":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Internal Server Error
+        "501":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Not Implemented
+      summary: List suspicious groups
   /api/v1/groups/{group_id}:
     get:
       operationId: get-group
@@ -308,6 +774,7 @@ paths:
           name: group_id
           required: true
           schema:
+            format: uuid
             type: string
       responses:
         "200":
@@ -316,44 +783,84 @@ paths:
               schema:
                 $ref: "#/components/schemas/GetByIDOutputBody"
           description: OK
-        default:
+        "404":
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
-          description: Error
-      summary: Return a group
+          description: Not Found
+        "422":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Internal Server Error
+        "501":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Not Implemented
+      summary: Get a suspicious group
   /api/v1/groups/{group_id}/graph:
     get:
+      description: "Only the selected group's evidence subgraph. IDs are prefixed by entity/edge type. Parallel transfers remain separate edges. Each login produces two edges sharing event_id: account to device and account to network address. Ownership is client to account. Layout and presentation are client concerns."
       operationId: get-group-graph
       parameters:
         - in: path
           name: group_id
           required: true
           schema:
+            format: uuid
             type: string
       responses:
         "200":
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GetGraphOutputBody"
+                $ref: "#/components/schemas/GroupGraph"
           description: OK
-        default:
+        "404":
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
-          description: Error
-      summary: Returns the vertices and edges of the group graph
+          description: Not Found
+        "422":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Internal Server Error
+        "501":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Not Implemented
+      summary: Get a group's Cytoscape elements
   /api/v1/groups/{group_id}/solution:
     patch:
+      description: approved=true confirms, false declines. A non-whitespace comment is required. Both decisions freeze the group and set decided_at. Only status новая may be decided, including a group frozen by expiry. Any subsequent decision returns 409; undo/history are outside this contract.
       operationId: resolve-group
       parameters:
         - in: path
           name: group_id
           required: true
           schema:
+            format: uuid
             type: string
       requestBody:
         content:
@@ -368,13 +875,43 @@ paths:
               schema:
                 $ref: "#/components/schemas/GroupSolutionOutputBody"
           description: OK
-        default:
+        "400":
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
-          description: Error
-      summary: Makes decisions for the group
+          description: Bad Request
+        "404":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Not Found
+        "409":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Conflict
+        "422":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Internal Server Error
+        "501":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Not Implemented
+      summary: Confirm or decline a new group
   /api/v1/notes:
     get:
       operationId: get-all-notes
