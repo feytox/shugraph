@@ -8,28 +8,60 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
-type GroupHandler struct{}
+type groupHandlers struct{}
 
-func (h *GroupHandler) Register(api huma.API) {
+func registerGroups(api huma.API, h *groupHandlers) {
 	huma.Register(api, huma.Operation{
-		OperationID: "list-groups", Summary: "List suspicious groups", Method: http.MethodGet,
-		Path: "/api/v1/groups", Errors: []int{400, 422, 501},
-		Description: "Ordered by first_event_at DESC, id DESC. cursor is an opaque continuation token bound to this order. Poll the first page to discover new groups. Invalid cursors return 400. An empty list has items: [] and next_cursor: null.",
-	}, h.List)
+		OperationID: "list-groups",
+		Summary:     "List suspicious groups",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/groups",
+		Errors:      []int{http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusNotImplemented},
+		Description: `Ordered by first_event_at DESC, id DESC.
+cursor is an opaque continuation token bound to this order.
+Poll the first page to discover new groups. Invalid cursors return 400.
+An empty list has items: [] and next_cursor: null.`,
+	}, h.list)
+
 	huma.Register(api, huma.Operation{
-		OperationID: "get-group", Summary: "Get a suspicious group", Method: http.MethodGet,
-		Path: "/api/v1/groups/{group_id}", Errors: []int{404, 422, 501},
-	}, h.GetByID)
+		OperationID: "get-group",
+		Summary:     "Get a suspicious group",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/groups/{group_id}",
+		Errors:      []int{http.StatusNotFound, http.StatusUnprocessableEntity, http.StatusNotImplemented},
+	}, h.getByID)
+
 	huma.Register(api, huma.Operation{
-		OperationID: "get-group-graph", Summary: "Get a group's Cytoscape elements", Method: http.MethodGet,
-		Path: "/api/v1/groups/{group_id}/graph", Errors: []int{404, 422, 501},
-		Description: "Only the selected group's evidence subgraph. IDs are prefixed by entity/edge type. Parallel transfers remain separate edges. Each login produces two edges sharing event_id: account to device and account to network address. Ownership is client to account. Layout and presentation are client concerns.",
-	}, h.GetGraph)
+		OperationID: "get-group-graph",
+		Summary:     "Get a group's Cytoscape elements",
+		Method:      http.MethodGet,
+		Path:        "/api/v1/groups/{group_id}/graph",
+		Errors:      []int{http.StatusNotFound, http.StatusUnprocessableEntity, http.StatusNotImplemented},
+		Description: `Only the selected group's evidence subgraph.
+IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
+Each login produces two edges sharing event_id:
+account to device and account to network address.
+Ownership is client to account. Layout and presentation are client concerns.`,
+	}, h.getGraph)
+
 	huma.Register(api, huma.Operation{
-		OperationID: "resolve-group", Summary: "Confirm or decline a new group", Method: http.MethodPatch,
-		Path: "/api/v1/groups/{group_id}/solution", Errors: []int{400, 404, 409, 422, 501},
-		Description: "approved=true confirms, false declines. A non-whitespace comment is required. Both decisions freeze the group and set decided_at. Only status новая may be decided, including a group frozen by expiry. Any subsequent decision returns 409; undo/history are outside this contract.",
-	}, h.ApplySolution)
+		OperationID: "resolve-group",
+		Summary:     "Confirm or decline a new group",
+		Method:      http.MethodPatch,
+		Path:        "/api/v1/groups/{group_id}/solution",
+		Errors: []int{
+			http.StatusBadRequest,
+			http.StatusNotFound,
+			http.StatusConflict,
+			http.StatusUnprocessableEntity,
+			http.StatusNotImplemented,
+		},
+		Description: `approved=true confirms, false declines.
+A non-whitespace comment is required.
+Both decisions freeze the group and set decided_at.
+Only status новая may be decided, including a group frozen by expiry.
+Any subsequent decision returns 409; undo/history are outside this contract.`,
+	}, h.applySolution)
 }
 
 type GroupSchemeType string
@@ -116,15 +148,15 @@ type GroupSolutionOutput struct {
 	}
 }
 
-func (h *GroupHandler) List(context.Context, *ListGroupInput) (*GroupListOutput, error) {
+func (h *groupHandlers) list(context.Context, *ListGroupInput) (*GroupListOutput, error) {
 	return nil, huma.Error501NotImplemented("Group listing is not implemented yet.")
 }
-func (h *GroupHandler) GetByID(context.Context, *GroupIDInput) (*GetByIDOutput, error) {
+func (h *groupHandlers) getByID(context.Context, *GroupIDInput) (*GetByIDOutput, error) {
 	return nil, huma.Error501NotImplemented("Group retrieval is not implemented yet.")
 }
-func (h *GroupHandler) GetGraph(context.Context, *GroupIDInput) (*GetGraphOutput, error) {
+func (h *groupHandlers) getGraph(context.Context, *GroupIDInput) (*GetGraphOutput, error) {
 	return nil, huma.Error501NotImplemented("Group graph retrieval is not implemented yet.")
 }
-func (h *GroupHandler) ApplySolution(context.Context, *GroupSolutionInput) (*GroupSolutionOutput, error) {
+func (h *groupHandlers) applySolution(context.Context, *GroupSolutionInput) (*GroupSolutionOutput, error) {
 	return nil, huma.Error501NotImplemented("Group decisions are not implemented yet.")
 }

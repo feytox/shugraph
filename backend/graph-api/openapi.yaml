@@ -609,7 +609,14 @@ openapi: 3.1.0
 paths:
   /api/v1/events/logins/{event_id}:
     put:
-      description: Event IDs are globally unique across both event types. New events return 201 with no body. An identical retry returns 204 without recomputing groups; an existing ID with different type or payload returns 409. Compare parsed values, not JSON formatting. Persistence/deduplication are implemented separately. Amounts are integer kopecks.
+      description: |-
+        Event IDs are globally unique across both event types.
+        New events return 201 with no body.
+        An identical retry returns 204 without recomputing groups;
+        an existing ID with different type or payload returns 409.
+        Compare parsed values, not JSON formatting.
+        Persistence/deduplication are implemented separately.
+        Amounts are integer kopecks.
       operationId: login-event
       parameters:
         - in: path
@@ -662,7 +669,14 @@ paths:
       summary: Accept a login event
   /api/v1/events/transfers/{event_id}:
     put:
-      description: Event IDs are globally unique across both event types. New events return 201 with no body. An identical retry returns 204 without recomputing groups; an existing ID with different type or payload returns 409. Compare parsed values, not JSON formatting. Persistence/deduplication are implemented separately. Amounts are integer kopecks.
+      description: |-
+        Event IDs are globally unique across both event types.
+        New events return 201 with no body.
+        An identical retry returns 204 without recomputing groups;
+        an existing ID with different type or payload returns 409.
+        Compare parsed values, not JSON formatting.
+        Persistence/deduplication are implemented separately.
+        Amounts are integer kopecks.
       operationId: transfer-event
       parameters:
         - in: path
@@ -715,7 +729,11 @@ paths:
       summary: Accept a transfer event
   /api/v1/groups:
     get:
-      description: "Ordered by first_event_at DESC, id DESC. cursor is an opaque continuation token bound to this order. Poll the first page to discover new groups. Invalid cursors return 400. An empty list has items: [] and next_cursor: null."
+      description: |-
+        Ordered by first_event_at DESC, id DESC.
+        cursor is an opaque continuation token bound to this order.
+        Poll the first page to discover new groups. Invalid cursors return 400.
+        An empty list has items: [] and next_cursor: null.
       operationId: list-groups
       parameters:
         - explode: false
@@ -810,7 +828,12 @@ paths:
       summary: Get a suspicious group
   /api/v1/groups/{group_id}/graph:
     get:
-      description: "Only the selected group's evidence subgraph. IDs are prefixed by entity/edge type. Parallel transfers remain separate edges. Each login produces two edges sharing event_id: account to device and account to network address. Ownership is client to account. Layout and presentation are client concerns."
+      description: |-
+        Only the selected group's evidence subgraph.
+        IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
+        Each login produces two edges sharing event_id:
+        account to device and account to network address.
+        Ownership is client to account. Layout and presentation are client concerns.
       operationId: get-group-graph
       parameters:
         - in: path
@@ -853,7 +876,12 @@ paths:
       summary: Get a group's Cytoscape elements
   /api/v1/groups/{group_id}/solution:
     patch:
-      description: approved=true confirms, false declines. A non-whitespace comment is required. Both decisions freeze the group and set decided_at. Only status новая may be decided, including a group frozen by expiry. Any subsequent decision returns 409; undo/history are outside this contract.
+      description: |-
+        approved=true confirms, false declines.
+        A non-whitespace comment is required.
+        Both decisions freeze the group and set decided_at.
+        Only status новая may be decided, including a group frozen by expiry.
+        Any subsequent decision returns 409; undo/history are outside this contract.
       operationId: resolve-group
       parameters:
         - in: path

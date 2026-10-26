@@ -11,27 +11,52 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
-type EventHandler struct{}
+type eventHandlers struct{}
 
-func (h *EventHandler) Register(api huma.API) {
-	const ingest = "Event IDs are globally unique across both event types. New events return 201 with no body. An identical retry returns 204 without recomputing groups; an existing ID with different type or payload returns 409. Compare parsed values, not JSON formatting. Persistence/deduplication are implemented separately. Amounts are integer kopecks."
-	for _, op := range []struct {
-		id, path, summary string
-		login             bool
-	}{
-		{"login-event", "/api/v1/events/logins/{event_id}", "Accept a login event", true},
-		{"transfer-event", "/api/v1/events/transfers/{event_id}", "Accept a transfer event", false},
-	} {
-		operation := huma.Operation{OperationID: op.id, Summary: op.summary, Method: http.MethodPut,
-			Path: op.path, DefaultStatus: http.StatusCreated, Description: ingest,
-			Errors: []int{400, 409, 422, 501}, Responses: map[string]*huma.Response{"204": {Description: "Identical event already accepted; no changes"}},
-		}
-		if op.login {
-			huma.Register(api, operation, h.Login)
-		} else {
-			huma.Register(api, operation, h.Transfer)
-		}
-	}
+func registerEvents(api huma.API, h *eventHandlers) {
+	const ingestDescription = `Event IDs are globally unique across both event types.
+New events return 201 with no body.
+An identical retry returns 204 without recomputing groups;
+an existing ID with different type or payload returns 409.
+Compare parsed values, not JSON formatting.
+Persistence/deduplication are implemented separately.
+Amounts are integer kopecks.`
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "login-event",
+		Summary:       "Accept a login event",
+		Method:        http.MethodPut,
+		Path:          "/api/v1/events/logins/{event_id}",
+		DefaultStatus: http.StatusCreated,
+		Description:   ingestDescription,
+		Errors: []int{
+			http.StatusBadRequest,
+			http.StatusConflict,
+			http.StatusUnprocessableEntity,
+			http.StatusNotImplemented,
+		},
+		Responses: map[string]*huma.Response{
+			"204": {Description: "Identical event already accepted; no changes"},
+		},
+	}, h.login)
+
+	huma.Register(api, huma.Operation{
+		OperationID:   "transfer-event",
+		Summary:       "Accept a transfer event",
+		Method:        http.MethodPut,
+		Path:          "/api/v1/events/transfers/{event_id}",
+		DefaultStatus: http.StatusCreated,
+		Description:   ingestDescription,
+		Errors: []int{
+			http.StatusBadRequest,
+			http.StatusConflict,
+			http.StatusUnprocessableEntity,
+			http.StatusNotImplemented,
+		},
+		Responses: map[string]*huma.Response{
+			"204": {Description: "Identical event already accepted; no changes"},
+		},
+	}, h.transfer)
 }
 
 type Account struct {
@@ -89,14 +114,16 @@ func (e Event) MarshalJSON() ([]byte, error) {
 	if (e.Login == nil) == (e.Transfer == nil) {
 		return nil, fmt.Errorf("event requires exactly one payload")
 	}
+
 	if e.Login != nil {
 		return json.Marshal(e.Login)
 	}
+
 	return json.Marshal(e.Transfer)
 }
-func (h *EventHandler) Login(context.Context, *LoginInput) (*struct{}, error) {
+func (h *eventHandlers) login(context.Context, *LoginInput) (*struct{}, error) {
 	return nil, huma.Error501NotImplemented("Event ingestion is not implemented yet.")
 }
-func (h *EventHandler) Transfer(context.Context, *TransferInput) (*struct{}, error) {
+func (h *eventHandlers) transfer(context.Context, *TransferInput) (*struct{}, error) {
 	return nil, huma.Error501NotImplemented("Event ingestion is not implemented yet.")
 }

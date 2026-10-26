@@ -13,7 +13,238 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/oapi-codegen/runtime"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 )
+
+// Defines values for GraphNodeDataType.
+const (
+	GraphNodeDataTypeAccount        GraphNodeDataType = "account"
+	GraphNodeDataTypeClient         GraphNodeDataType = "client"
+	GraphNodeDataTypeDevice         GraphNodeDataType = "device"
+	GraphNodeDataTypeNetworkAddress GraphNodeDataType = "network_address"
+)
+
+// Valid indicates whether the value is a known member of the GraphNodeDataType enum.
+func (e GraphNodeDataType) Valid() bool {
+	switch e {
+	case GraphNodeDataTypeAccount:
+		return true
+	case GraphNodeDataTypeClient:
+		return true
+	case GraphNodeDataTypeDevice:
+		return true
+	case GraphNodeDataTypeNetworkAddress:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GroupScheme.
+const (
+	GroupSchemeАдрес   GroupScheme = "адрес"
+	GroupSchemeКольцо  GroupScheme = "кольцо"
+	GroupSchemeФерма   GroupScheme = "ферма"
+	GroupSchemeЦепочка GroupScheme = "цепочка"
+)
+
+// Valid indicates whether the value is a known member of the GroupScheme enum.
+func (e GroupScheme) Valid() bool {
+	switch e {
+	case GroupSchemeАдрес:
+		return true
+	case GroupSchemeКольцо:
+		return true
+	case GroupSchemeФерма:
+		return true
+	case GroupSchemeЦепочка:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GroupStatus.
+const (
+	GroupStatusНовая        GroupStatus = "новая"
+	GroupStatusОтклонена    GroupStatus = "отклонена"
+	GroupStatusПодтверждена GroupStatus = "подтверждена"
+)
+
+// Valid indicates whether the value is a known member of the GroupStatus enum.
+func (e GroupStatus) Valid() bool {
+	switch e {
+	case GroupStatusНовая:
+		return true
+	case GroupStatusОтклонена:
+		return true
+	case GroupStatusПодтверждена:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GroupItemScheme.
+const (
+	GroupItemSchemeАдрес   GroupItemScheme = "адрес"
+	GroupItemSchemeКольцо  GroupItemScheme = "кольцо"
+	GroupItemSchemeФерма   GroupItemScheme = "ферма"
+	GroupItemSchemeЦепочка GroupItemScheme = "цепочка"
+)
+
+// Valid indicates whether the value is a known member of the GroupItemScheme enum.
+func (e GroupItemScheme) Valid() bool {
+	switch e {
+	case GroupItemSchemeАдрес:
+		return true
+	case GroupItemSchemeКольцо:
+		return true
+	case GroupItemSchemeФерма:
+		return true
+	case GroupItemSchemeЦепочка:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GroupItemStatus.
+const (
+	GroupItemStatusНовая        GroupItemStatus = "новая"
+	GroupItemStatusОтклонена    GroupItemStatus = "отклонена"
+	GroupItemStatusПодтверждена GroupItemStatus = "подтверждена"
+)
+
+// Valid indicates whether the value is a known member of the GroupItemStatus enum.
+func (e GroupItemStatus) Valid() bool {
+	switch e {
+	case GroupItemStatusНовая:
+		return true
+	case GroupItemStatusОтклонена:
+		return true
+	case GroupItemStatusПодтверждена:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GroupSolutionOutputBodyIsFrozen.
+const (
+	True GroupSolutionOutputBodyIsFrozen = true
+)
+
+// Valid indicates whether the value is a known member of the GroupSolutionOutputBodyIsFrozen enum.
+func (e GroupSolutionOutputBodyIsFrozen) Valid() bool {
+	switch e {
+	case True:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GroupSolutionOutputBodyStatus.
+const (
+	GroupSolutionOutputBodyStatusОтклонена    GroupSolutionOutputBodyStatus = "отклонена"
+	GroupSolutionOutputBodyStatusПодтверждена GroupSolutionOutputBodyStatus = "подтверждена"
+)
+
+// Valid indicates whether the value is a known member of the GroupSolutionOutputBodyStatus enum.
+func (e GroupSolutionOutputBodyStatus) Valid() bool {
+	switch e {
+	case GroupSolutionOutputBodyStatusОтклонена:
+		return true
+	case GroupSolutionOutputBodyStatusПодтверждена:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for LoginEdgeType.
+const (
+	LoginEdgeTypeLogin LoginEdgeType = "login"
+)
+
+// Valid indicates whether the value is a known member of the LoginEdgeType enum.
+func (e LoginEdgeType) Valid() bool {
+	switch e {
+	case LoginEdgeTypeLogin:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for LoginEventType.
+const (
+	LoginEventTypeLogin LoginEventType = "login"
+)
+
+// Valid indicates whether the value is a known member of the LoginEventType enum.
+func (e LoginEventType) Valid() bool {
+	switch e {
+	case LoginEventTypeLogin:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for OwnershipEdgeType.
+const (
+	Ownership OwnershipEdgeType = "ownership"
+)
+
+// Valid indicates whether the value is a known member of the OwnershipEdgeType enum.
+func (e OwnershipEdgeType) Valid() bool {
+	switch e {
+	case Ownership:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TransferEdgeType.
+const (
+	TransferEdgeTypeTransfer TransferEdgeType = "transfer"
+)
+
+// Valid indicates whether the value is a known member of the TransferEdgeType enum.
+func (e TransferEdgeType) Valid() bool {
+	switch e {
+	case TransferEdgeTypeTransfer:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TransferEventType.
+const (
+	TransferEventTypeTransfer TransferEventType = "transfer"
+)
+
+// Valid indicates whether the value is a known member of the TransferEventType enum.
+func (e TransferEventType) Valid() bool {
+	switch e {
+	case TransferEventTypeTransfer:
+		return true
+	default:
+		return false
+	}
+}
+
+// Account defines model for Account.
+type Account struct {
+	ClientId string `json:"client_id"`
+	Id       string `json:"id"`
+}
 
 // AllNoteOutputBody defines model for AllNoteOutputBody.
 type AllNoteOutputBody struct {
@@ -69,6 +300,180 @@ type ErrorModel struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// Feature defines model for Feature.
+type Feature struct {
+	AccountsCount int64 `json:"accounts_count"`
+
+	// SpanMinutes Elapsed whole minutes between first and last evidence events.
+	SpanMinutes int64 `json:"span_minutes"`
+
+	// TotalAmount Turnover in kopecks: sum of all evidence transfers, including repeated rounds.
+	TotalAmount int64 `json:"total_amount"`
+}
+
+// GetByIDOutputBody defines model for GetByIDOutputBody.
+type GetByIDOutputBody struct {
+	Group Group `json:"group"`
+}
+
+// GraphEdge defines model for GraphEdge.
+type GraphEdge struct {
+	Data GraphEdge_Data `json:"data"`
+}
+
+// GraphEdge_Data defines model for GraphEdge.Data.
+type GraphEdge_Data struct {
+	union json.RawMessage
+}
+
+// GraphNode defines model for GraphNode.
+type GraphNode struct {
+	Data GraphNodeData `json:"data"`
+}
+
+// GraphNodeData defines model for GraphNodeData.
+type GraphNodeData struct {
+	// EntityId Original source identifier.
+	EntityId string `json:"entity_id"`
+
+	// Id Type-prefixed ID, e.g. account:acc-1.
+	Id   string            `json:"id"`
+	Type GraphNodeDataType `json:"type"`
+}
+
+// GraphNodeDataType defines model for GraphNodeData.Type.
+type GraphNodeDataType string
+
+// Group defines model for Group.
+type Group struct {
+	// DecidedAt Null while status is новая.
+	DecidedAt *time.Time `json:"decided_at"`
+
+	// DecisionComment Empty until a decision is made.
+	DecisionComment string              `json:"decision_comment"`
+	Events          []Group_Events_Item `json:"events"`
+	Features        Feature             `json:"features"`
+	FirstEventAt    time.Time           `json:"first_event_at"`
+	Id              openapi_types.UUID  `json:"id"`
+	IsFrozen        bool                `json:"is_frozen"`
+	LastEventAt     time.Time           `json:"last_event_at"`
+	Members         []Account           `json:"members"`
+
+	// RiskParts Scheme-specific contributions; their sum equals risk_score. Used to explain the finding.
+	RiskParts map[string]int64 `json:"risk_parts"`
+	RiskScore int64            `json:"risk_score"`
+	Scheme    GroupScheme      `json:"scheme"`
+	Status    GroupStatus      `json:"status"`
+}
+
+// Group_Events_Item defines model for Group.events.Item.
+type Group_Events_Item struct {
+	union json.RawMessage
+}
+
+// GroupScheme defines model for Group.Scheme.
+type GroupScheme string
+
+// GroupStatus defines model for Group.Status.
+type GroupStatus string
+
+// GroupGraph defines model for GroupGraph.
+type GroupGraph struct {
+	Edges   []GraphEdge        `json:"edges"`
+	GroupId openapi_types.UUID `json:"group_id"`
+	Nodes   []GraphNode        `json:"nodes"`
+}
+
+// GroupItem defines model for GroupItem.
+type GroupItem struct {
+	Features     Feature            `json:"features"`
+	FirstEventAt time.Time          `json:"first_event_at"`
+	Id           openapi_types.UUID `json:"id"`
+	LastEventAt  time.Time          `json:"last_event_at"`
+
+	// RiskParts Scheme-specific contributions; their sum equals risk_score. Used to explain the finding.
+	RiskParts map[string]int64 `json:"risk_parts"`
+	RiskScore int64            `json:"risk_score"`
+	Scheme    GroupItemScheme  `json:"scheme"`
+	Status    GroupItemStatus  `json:"status"`
+}
+
+// GroupItemScheme defines model for GroupItem.Scheme.
+type GroupItemScheme string
+
+// GroupItemStatus defines model for GroupItem.Status.
+type GroupItemStatus string
+
+// GroupListOutputBody defines model for GroupListOutputBody.
+type GroupListOutputBody struct {
+	Items []GroupItem `json:"items"`
+
+	// NextCursor Pass unchanged as cursor; null on the last page.
+	NextCursor *string `json:"next_cursor"`
+}
+
+// GroupSolutionInputBody defines model for GroupSolutionInputBody.
+type GroupSolutionInputBody struct {
+	Approved        bool   `json:"approved"`
+	DecisionComment string `json:"decision_comment"`
+}
+
+// GroupSolutionOutputBody defines model for GroupSolutionOutputBody.
+type GroupSolutionOutputBody struct {
+	DecidedAt       time.Time                       `json:"decided_at"`
+	DecisionComment string                          `json:"decision_comment"`
+	IsFrozen        GroupSolutionOutputBodyIsFrozen `json:"is_frozen"`
+	Status          GroupSolutionOutputBodyStatus   `json:"status"`
+}
+
+// GroupSolutionOutputBodyIsFrozen defines model for GroupSolutionOutputBody.IsFrozen.
+type GroupSolutionOutputBodyIsFrozen bool
+
+// GroupSolutionOutputBodyStatus defines model for GroupSolutionOutputBody.Status.
+type GroupSolutionOutputBodyStatus string
+
+// LoginEdge defines model for LoginEdge.
+type LoginEdge struct {
+	EventId string `json:"event_id"`
+
+	// Id Unique type-prefixed edge ID. Login IDs additionally include device/address suffix.
+	Id         string        `json:"id"`
+	OccurredAt time.Time     `json:"occurred_at"`
+	Source     string        `json:"source"`
+	Target     string        `json:"target"`
+	Type       LoginEdgeType `json:"type"`
+}
+
+// LoginEdgeType defines model for LoginEdge.Type.
+type LoginEdgeType string
+
+// LoginEvent defines model for LoginEvent.
+type LoginEvent struct {
+	AccountId string `json:"account_id"`
+
+	// AddressId Source IP/network address; retained as a source identifier.
+	AddressId  string         `json:"address_id"`
+	ClientId   string         `json:"client_id"`
+	DeviceId   string         `json:"device_id"`
+	EventId    string         `json:"event_id"`
+	OccurredAt time.Time      `json:"occurred_at"`
+	Type       LoginEventType `json:"type"`
+}
+
+// LoginEventType defines model for LoginEvent.Type.
+type LoginEventType string
+
+// LoginPayload defines model for LoginPayload.
+type LoginPayload struct {
+	AccountId string `json:"account_id"`
+
+	// AddressId Source IP/network address; retained as a source identifier.
+	AddressId  string    `json:"address_id"`
+	ClientId   string    `json:"client_id"`
+	DeviceId   string    `json:"device_id"`
+	OccurredAt time.Time `json:"occurred_at"`
+}
+
 // Note defines model for Note.
 type Note struct {
 	CreatedAt time.Time `json:"created_at"`
@@ -76,14 +481,237 @@ type Note struct {
 	Text      string    `json:"text"`
 }
 
+// OwnershipEdge defines model for OwnershipEdge.
+type OwnershipEdge struct {
+	// Id Unique type-prefixed edge ID. Login IDs additionally include device/address suffix.
+	Id     string            `json:"id"`
+	Source string            `json:"source"`
+	Target string            `json:"target"`
+	Type   OwnershipEdgeType `json:"type"`
+}
+
+// OwnershipEdgeType defines model for OwnershipEdge.Type.
+type OwnershipEdgeType string
+
 // StatusOutputBody defines model for StatusOutputBody.
 type StatusOutputBody struct {
 	// Status Examples: ok
 	Status string `json:"status"`
 }
 
+// TransferEdge defines model for TransferEdge.
+type TransferEdge struct {
+	// Amount Amount in kopecks.
+	Amount  int64  `json:"amount"`
+	EventId string `json:"event_id"`
+
+	// Id Unique type-prefixed edge ID. Login IDs additionally include device/address suffix.
+	Id         string           `json:"id"`
+	OccurredAt time.Time        `json:"occurred_at"`
+	Source     string           `json:"source"`
+	Target     string           `json:"target"`
+	Type       TransferEdgeType `json:"type"`
+}
+
+// TransferEdgeType defines model for TransferEdge.Type.
+type TransferEdgeType string
+
+// TransferEvent defines model for TransferEvent.
+type TransferEvent struct {
+	// Amount Amount in kopecks.
+	Amount        int64             `json:"amount"`
+	EventId       string            `json:"event_id"`
+	FromAccountId string            `json:"from_account_id"`
+	FromClientId  string            `json:"from_client_id"`
+	OccurredAt    time.Time         `json:"occurred_at"`
+	ToAccountId   string            `json:"to_account_id"`
+	ToClientId    string            `json:"to_client_id"`
+	Type          TransferEventType `json:"type"`
+}
+
+// TransferEventType defines model for TransferEvent.Type.
+type TransferEventType string
+
+// TransferPayload defines model for TransferPayload.
+type TransferPayload struct {
+	// Amount Amount in kopecks.
+	Amount        int64     `json:"amount"`
+	FromAccountId string    `json:"from_account_id"`
+	FromClientId  string    `json:"from_client_id"`
+	OccurredAt    time.Time `json:"occurred_at"`
+	ToAccountId   string    `json:"to_account_id"`
+	ToClientId    string    `json:"to_client_id"`
+}
+
+// ListGroupsParams defines parameters for ListGroups.
+type ListGroupsParams struct {
+	Limit *int64 `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor Opaque continuation token. Omit for the first page.
+	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// LoginEventJSONRequestBody defines body for LoginEvent for application/json ContentType.
+type LoginEventJSONRequestBody = LoginPayload
+
+// TransferEventJSONRequestBody defines body for TransferEvent for application/json ContentType.
+type TransferEventJSONRequestBody = TransferPayload
+
+// ResolveGroupJSONRequestBody defines body for ResolveGroup for application/json ContentType.
+type ResolveGroupJSONRequestBody = GroupSolutionInputBody
+
 // CreateNoteJSONRequestBody defines body for CreateNote for application/json ContentType.
 type CreateNoteJSONRequestBody = CreateNoteInputBody
+
+// AsOwnershipEdge returns the union data inside the GraphEdge_Data as a OwnershipEdge
+func (t GraphEdge_Data) AsOwnershipEdge() (OwnershipEdge, error) {
+	var body OwnershipEdge
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromOwnershipEdge overwrites any union data inside the GraphEdge_Data as the provided OwnershipEdge
+func (t *GraphEdge_Data) FromOwnershipEdge(v OwnershipEdge) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeOwnershipEdge performs a merge with any union data inside the GraphEdge_Data, using the provided OwnershipEdge
+func (t *GraphEdge_Data) MergeOwnershipEdge(v OwnershipEdge) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsLoginEdge returns the union data inside the GraphEdge_Data as a LoginEdge
+func (t GraphEdge_Data) AsLoginEdge() (LoginEdge, error) {
+	var body LoginEdge
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoginEdge overwrites any union data inside the GraphEdge_Data as the provided LoginEdge
+func (t *GraphEdge_Data) FromLoginEdge(v LoginEdge) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeLoginEdge performs a merge with any union data inside the GraphEdge_Data, using the provided LoginEdge
+func (t *GraphEdge_Data) MergeLoginEdge(v LoginEdge) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsTransferEdge returns the union data inside the GraphEdge_Data as a TransferEdge
+func (t GraphEdge_Data) AsTransferEdge() (TransferEdge, error) {
+	var body TransferEdge
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromTransferEdge overwrites any union data inside the GraphEdge_Data as the provided TransferEdge
+func (t *GraphEdge_Data) FromTransferEdge(v TransferEdge) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeTransferEdge performs a merge with any union data inside the GraphEdge_Data, using the provided TransferEdge
+func (t *GraphEdge_Data) MergeTransferEdge(v TransferEdge) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t GraphEdge_Data) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *GraphEdge_Data) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
+
+// AsLoginEvent returns the union data inside the Group_Events_Item as a LoginEvent
+func (t Group_Events_Item) AsLoginEvent() (LoginEvent, error) {
+	var body LoginEvent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromLoginEvent overwrites any union data inside the Group_Events_Item as the provided LoginEvent
+func (t *Group_Events_Item) FromLoginEvent(v LoginEvent) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeLoginEvent performs a merge with any union data inside the Group_Events_Item, using the provided LoginEvent
+func (t *Group_Events_Item) MergeLoginEvent(v LoginEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+// AsTransferEvent returns the union data inside the Group_Events_Item as a TransferEvent
+func (t Group_Events_Item) AsTransferEvent() (TransferEvent, error) {
+	var body TransferEvent
+	err := json.Unmarshal(t.union, &body)
+	return body, err
+}
+
+// FromTransferEvent overwrites any union data inside the Group_Events_Item as the provided TransferEvent
+func (t *Group_Events_Item) FromTransferEvent(v TransferEvent) error {
+	b, err := json.Marshal(v)
+	t.union = b
+	return err
+}
+
+// MergeTransferEvent performs a merge with any union data inside the Group_Events_Item, using the provided TransferEvent
+func (t *Group_Events_Item) MergeTransferEvent(v TransferEvent) error {
+	b, err := json.Marshal(v)
+	if err != nil {
+		return err
+	}
+
+	merged, err := runtime.JSONMerge(t.union, b)
+	t.union = merged
+	return err
+}
+
+func (t Group_Events_Item) MarshalJSON() ([]byte, error) {
+	b, err := t.union.MarshalJSON()
+	return b, err
+}
+
+func (t *Group_Events_Item) UnmarshalJSON(b []byte) error {
+	err := t.union.UnmarshalJSON(b)
+	return err
+}
 
 // RequestEditorFn is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -159,6 +787,118 @@ func WithRequestEditorFn(fn RequestEditorFn) ClientOption {
 // The interface specification for the client above.
 type ClientInterface interface {
 
+	// LoginEventWithBody Accept a login event
+	//
+	// Event IDs are globally unique across both event types.
+	// New events return 201 with no body.
+	// An identical retry returns 204 without recomputing groups;
+	// an existing ID with different type or payload returns 409.
+	// Compare parsed values, not JSON formatting.
+	// Persistence/deduplication are implemented separately.
+	// Amounts are integer kopecks.
+	//
+	// Takes any type of body and a specified content type.
+	//
+	// Corresponds with PUT /api/v1/events/logins/{event_id} (the `LoginEvent` operationId).
+	LoginEventWithBody(ctx context.Context, eventId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// LoginEvent Accept a login event
+	//
+	// Event IDs are globally unique across both event types.
+	// New events return 201 with no body.
+	// An identical retry returns 204 without recomputing groups;
+	// an existing ID with different type or payload returns 409.
+	// Compare parsed values, not JSON formatting.
+	// Persistence/deduplication are implemented separately.
+	// Amounts are integer kopecks.
+	//
+	// Takes a body of the `application/json` content type.
+	//
+	// Corresponds with PUT /api/v1/events/logins/{event_id} (the `LoginEvent` operationId).
+	LoginEvent(ctx context.Context, eventId string, body LoginEventJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TransferEventWithBody Accept a transfer event
+	//
+	// Event IDs are globally unique across both event types.
+	// New events return 201 with no body.
+	// An identical retry returns 204 without recomputing groups;
+	// an existing ID with different type or payload returns 409.
+	// Compare parsed values, not JSON formatting.
+	// Persistence/deduplication are implemented separately.
+	// Amounts are integer kopecks.
+	//
+	// Takes any type of body and a specified content type.
+	//
+	// Corresponds with PUT /api/v1/events/transfers/{event_id} (the `TransferEvent` operationId).
+	TransferEventWithBody(ctx context.Context, eventId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// TransferEvent Accept a transfer event
+	//
+	// Event IDs are globally unique across both event types.
+	// New events return 201 with no body.
+	// An identical retry returns 204 without recomputing groups;
+	// an existing ID with different type or payload returns 409.
+	// Compare parsed values, not JSON formatting.
+	// Persistence/deduplication are implemented separately.
+	// Amounts are integer kopecks.
+	//
+	// Takes a body of the `application/json` content type.
+	//
+	// Corresponds with PUT /api/v1/events/transfers/{event_id} (the `TransferEvent` operationId).
+	TransferEvent(ctx context.Context, eventId string, body TransferEventJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ListGroups List suspicious groups
+	//
+	// Ordered by first_event_at DESC, id DESC.
+	// cursor is an opaque continuation token bound to this order.
+	// Poll the first page to discover new groups. Invalid cursors return 400.
+	// An empty list has items: [] and next_cursor: null.
+	//
+	// Corresponds with GET /api/v1/groups (the `ListGroups` operationId).
+	ListGroups(ctx context.Context, params *ListGroupsParams, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetGroup Get a suspicious group
+	//
+	// Corresponds with GET /api/v1/groups/{group_id} (the `GetGroup` operationId).
+	GetGroup(ctx context.Context, groupId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// GetGroupGraph Get a group's Cytoscape elements
+	//
+	// Only the selected group's evidence subgraph.
+	// IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
+	// Each login produces two edges sharing event_id:
+	// account to device and account to network address.
+	// Ownership is client to account. Layout and presentation are client concerns.
+	//
+	// Corresponds with GET /api/v1/groups/{group_id}/graph (the `GetGroupGraph` operationId).
+	GetGroupGraph(ctx context.Context, groupId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResolveGroupWithBody Confirm or decline a new group
+	//
+	// approved=true confirms, false declines.
+	// A non-whitespace comment is required.
+	// Both decisions freeze the group and set decided_at.
+	// Only status новая may be decided, including a group frozen by expiry.
+	// Any subsequent decision returns 409; undo/history are outside this contract.
+	//
+	// Takes any type of body and a specified content type.
+	//
+	// Corresponds with PATCH /api/v1/groups/{group_id}/solution (the `ResolveGroup` operationId).
+	ResolveGroupWithBody(ctx context.Context, groupId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
+
+	// ResolveGroup Confirm or decline a new group
+	//
+	// approved=true confirms, false declines.
+	// A non-whitespace comment is required.
+	// Both decisions freeze the group and set decided_at.
+	// Only status новая may be decided, including a group frozen by expiry.
+	// Any subsequent decision returns 409; undo/history are outside this contract.
+	//
+	// Takes a body of the `application/json` content type.
+	//
+	// Corresponds with PATCH /api/v1/groups/{group_id}/solution (the `ResolveGroup` operationId).
+	ResolveGroup(ctx context.Context, groupId openapi_types.UUID, body ResolveGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
+
 	// GetAllNotes Retrieve all notes
 	//
 	// Corresponds with GET /api/v1/notes (the `GetAllNotes` operationId).
@@ -187,6 +927,208 @@ type ClientInterface interface {
 	//
 	// Corresponds with GET /readyz (the `Ready` operationId).
 	Ready(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
+}
+
+// LoginEventWithBody Accept a login event
+//
+// Event IDs are globally unique across both event types.
+// New events return 201 with no body.
+// An identical retry returns 204 without recomputing groups;
+// an existing ID with different type or payload returns 409.
+// Compare parsed values, not JSON formatting.
+// Persistence/deduplication are implemented separately.
+// Amounts are integer kopecks.
+//
+// Takes any type of body and a specified content type.
+//
+// Corresponds with PUT /api/v1/events/logins/{event_id} (the `LoginEvent` operationId).
+func (c *Client) LoginEventWithBody(ctx context.Context, eventId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoginEventRequestWithBody(c.Server, eventId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// LoginEvent Accept a login event
+//
+// Event IDs are globally unique across both event types.
+// New events return 201 with no body.
+// An identical retry returns 204 without recomputing groups;
+// an existing ID with different type or payload returns 409.
+// Compare parsed values, not JSON formatting.
+// Persistence/deduplication are implemented separately.
+// Amounts are integer kopecks.
+//
+// Takes a body of the `application/json` content type.
+//
+// Corresponds with PUT /api/v1/events/logins/{event_id} (the `LoginEvent` operationId).
+func (c *Client) LoginEvent(ctx context.Context, eventId string, body LoginEventJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewLoginEventRequest(c.Server, eventId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// TransferEventWithBody Accept a transfer event
+//
+// Event IDs are globally unique across both event types.
+// New events return 201 with no body.
+// An identical retry returns 204 without recomputing groups;
+// an existing ID with different type or payload returns 409.
+// Compare parsed values, not JSON formatting.
+// Persistence/deduplication are implemented separately.
+// Amounts are integer kopecks.
+//
+// Takes any type of body and a specified content type.
+//
+// Corresponds with PUT /api/v1/events/transfers/{event_id} (the `TransferEvent` operationId).
+func (c *Client) TransferEventWithBody(ctx context.Context, eventId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTransferEventRequestWithBody(c.Server, eventId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// TransferEvent Accept a transfer event
+//
+// Event IDs are globally unique across both event types.
+// New events return 201 with no body.
+// An identical retry returns 204 without recomputing groups;
+// an existing ID with different type or payload returns 409.
+// Compare parsed values, not JSON formatting.
+// Persistence/deduplication are implemented separately.
+// Amounts are integer kopecks.
+//
+// Takes a body of the `application/json` content type.
+//
+// Corresponds with PUT /api/v1/events/transfers/{event_id} (the `TransferEvent` operationId).
+func (c *Client) TransferEvent(ctx context.Context, eventId string, body TransferEventJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewTransferEventRequest(c.Server, eventId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// ListGroups List suspicious groups
+//
+// Ordered by first_event_at DESC, id DESC.
+// cursor is an opaque continuation token bound to this order.
+// Poll the first page to discover new groups. Invalid cursors return 400.
+// An empty list has items: [] and next_cursor: null.
+//
+// Corresponds with GET /api/v1/groups (the `ListGroups` operationId).
+func (c *Client) ListGroups(ctx context.Context, params *ListGroupsParams, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewListGroupsRequest(c.Server, params)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// GetGroup Get a suspicious group
+//
+// Corresponds with GET /api/v1/groups/{group_id} (the `GetGroup` operationId).
+func (c *Client) GetGroup(ctx context.Context, groupId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGroupRequest(c.Server, groupId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// GetGroupGraph Get a group's Cytoscape elements
+//
+// Only the selected group's evidence subgraph.
+// IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
+// Each login produces two edges sharing event_id:
+// account to device and account to network address.
+// Ownership is client to account. Layout and presentation are client concerns.
+//
+// Corresponds with GET /api/v1/groups/{group_id}/graph (the `GetGroupGraph` operationId).
+func (c *Client) GetGroupGraph(ctx context.Context, groupId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewGetGroupGraphRequest(c.Server, groupId)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// ResolveGroupWithBody Confirm or decline a new group
+//
+// approved=true confirms, false declines.
+// A non-whitespace comment is required.
+// Both decisions freeze the group and set decided_at.
+// Only status новая may be decided, including a group frozen by expiry.
+// Any subsequent decision returns 409; undo/history are outside this contract.
+//
+// Takes any type of body and a specified content type.
+//
+// Corresponds with PATCH /api/v1/groups/{group_id}/solution (the `ResolveGroup` operationId).
+func (c *Client) ResolveGroupWithBody(ctx context.Context, groupId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResolveGroupRequestWithBody(c.Server, groupId, contentType, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
+}
+
+// ResolveGroup Confirm or decline a new group
+//
+// approved=true confirms, false declines.
+// A non-whitespace comment is required.
+// Both decisions freeze the group and set decided_at.
+// Only status новая may be decided, including a group frozen by expiry.
+// Any subsequent decision returns 409; undo/history are outside this contract.
+//
+// Takes a body of the `application/json` content type.
+//
+// Corresponds with PATCH /api/v1/groups/{group_id}/solution (the `ResolveGroup` operationId).
+func (c *Client) ResolveGroup(ctx context.Context, groupId openapi_types.UUID, body ResolveGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error) {
+	req, err := NewResolveGroupRequest(c.Server, groupId, body)
+	if err != nil {
+		return nil, err
+	}
+	req = req.WithContext(ctx)
+	if err := c.applyEditors(ctx, req, reqEditors); err != nil {
+		return nil, err
+	}
+	return c.Client.Do(req)
 }
 
 // GetAllNotes Retrieve all notes
@@ -266,6 +1208,281 @@ func (c *Client) Ready(ctx context.Context, reqEditors ...RequestEditorFn) (*htt
 		return nil, err
 	}
 	return c.Client.Do(req)
+}
+
+// NewLoginEventRequest calls the generic LoginEvent builder with application/json body
+func NewLoginEventRequest(server string, eventId string, body LoginEventJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewLoginEventRequestWithBody(server, eventId, "application/json", bodyReader)
+}
+
+// NewLoginEventRequestWithBody constructs an http.Request for the LoginEvent method, with any body, and a specified content type
+func NewLoginEventRequestWithBody(server string, eventId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "event_id", eventId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/events/logins/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPut, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewTransferEventRequest calls the generic TransferEvent builder with application/json body
+func NewTransferEventRequest(server string, eventId string, body TransferEventJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewTransferEventRequestWithBody(server, eventId, "application/json", bodyReader)
+}
+
+// NewTransferEventRequestWithBody constructs an http.Request for the TransferEvent method, with any body, and a specified content type
+func NewTransferEventRequestWithBody(server string, eventId string, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "event_id", eventId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: ""})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/events/transfers/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPut, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
+}
+
+// NewListGroupsRequest constructs an http.Request for the ListGroups method
+func NewListGroupsRequest(server string, params *ListGroupsParams) (*http.Request, error) {
+	var err error
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/groups")
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		// queryValues collects non-styled parameters (passthrough, JSON)
+		// that are safe to round-trip through url.Values.Encode().
+		queryValues := queryURL.Query()
+		// rawQueryFragments collects pre-encoded query fragments from
+		// styled parameters, preserving literal commas as delimiters
+		// per the OpenAPI spec (e.g. "color=blue,black,brown").
+		var rawQueryFragments []string
+
+		if params.Limit != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "limit", *params.Limit, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "integer", Format: "int64"}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Cursor != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "cursor", *params.Cursor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if encoded := queryValues.Encode(); encoded != "" {
+			rawQueryFragments = append(rawQueryFragments, encoded)
+		}
+		queryURL.RawQuery = strings.Join(rawQueryFragments, "&")
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetGroupRequest constructs an http.Request for the GetGroup method
+func NewGetGroupRequest(server string, groupId openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "group_id", groupId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/groups/%s", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewGetGroupGraphRequest constructs an http.Request for the GetGroupGraph method
+func NewGetGroupGraphRequest(server string, groupId openapi_types.UUID) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "group_id", groupId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/groups/%s/graph", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodGet, queryURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return req, nil
+}
+
+// NewResolveGroupRequest calls the generic ResolveGroup builder with application/json body
+func NewResolveGroupRequest(server string, groupId openapi_types.UUID, body ResolveGroupJSONRequestBody) (*http.Request, error) {
+	var bodyReader io.Reader
+	buf, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	bodyReader = bytes.NewReader(buf)
+	return NewResolveGroupRequestWithBody(server, groupId, "application/json", bodyReader)
+}
+
+// NewResolveGroupRequestWithBody constructs an http.Request for the ResolveGroup method, with any body, and a specified content type
+func NewResolveGroupRequestWithBody(server string, groupId openapi_types.UUID, contentType string, body io.Reader) (*http.Request, error) {
+	var err error
+
+	var pathParam0 string
+
+	pathParam0, err = runtime.StyleParamWithOptions("simple", false, "group_id", groupId, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationPath, Type: "string", Format: "uuid"})
+	if err != nil {
+		return nil, err
+	}
+
+	serverURL, err := url.Parse(server)
+	if err != nil {
+		return nil, err
+	}
+
+	operationPath := fmt.Sprintf("/api/v1/groups/%s/solution", pathParam0)
+	if operationPath[0] == '/' {
+		operationPath = "." + operationPath
+	}
+
+	queryURL, err := serverURL.Parse(operationPath)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, queryURL.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
 }
 
 // NewGetAllNotesRequest constructs an http.Request for the GetAllNotes method
@@ -433,6 +1650,124 @@ func WithBaseURL(baseURL string) ClientOption {
 // ClientWithResponsesInterface is the interface specification for the client with responses above.
 type ClientWithResponsesInterface interface {
 
+	// LoginEventWithBodyWithResponse Accept a login event
+	//
+	// Event IDs are globally unique across both event types.
+	// New events return 201 with no body.
+	// An identical retry returns 204 without recomputing groups;
+	// an existing ID with different type or payload returns 409.
+	// Compare parsed values, not JSON formatting.
+	// Persistence/deduplication are implemented separately.
+	// Amounts are integer kopecks.
+	//
+	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with PUT /api/v1/events/logins/{event_id} (the `LoginEvent` operationId).
+	LoginEventWithBodyWithResponse(ctx context.Context, eventId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LoginEventResponse, error)
+
+	// LoginEventWithResponse Accept a login event
+	//
+	// Event IDs are globally unique across both event types.
+	// New events return 201 with no body.
+	// An identical retry returns 204 without recomputing groups;
+	// an existing ID with different type or payload returns 409.
+	// Compare parsed values, not JSON formatting.
+	// Persistence/deduplication are implemented separately.
+	// Amounts are integer kopecks.
+	//
+	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with PUT /api/v1/events/logins/{event_id} (the `LoginEvent` operationId).
+	LoginEventWithResponse(ctx context.Context, eventId string, body LoginEventJSONRequestBody, reqEditors ...RequestEditorFn) (*LoginEventResponse, error)
+
+	// TransferEventWithBodyWithResponse Accept a transfer event
+	//
+	// Event IDs are globally unique across both event types.
+	// New events return 201 with no body.
+	// An identical retry returns 204 without recomputing groups;
+	// an existing ID with different type or payload returns 409.
+	// Compare parsed values, not JSON formatting.
+	// Persistence/deduplication are implemented separately.
+	// Amounts are integer kopecks.
+	//
+	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with PUT /api/v1/events/transfers/{event_id} (the `TransferEvent` operationId).
+	TransferEventWithBodyWithResponse(ctx context.Context, eventId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TransferEventResponse, error)
+
+	// TransferEventWithResponse Accept a transfer event
+	//
+	// Event IDs are globally unique across both event types.
+	// New events return 201 with no body.
+	// An identical retry returns 204 without recomputing groups;
+	// an existing ID with different type or payload returns 409.
+	// Compare parsed values, not JSON formatting.
+	// Persistence/deduplication are implemented separately.
+	// Amounts are integer kopecks.
+	//
+	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with PUT /api/v1/events/transfers/{event_id} (the `TransferEvent` operationId).
+	TransferEventWithResponse(ctx context.Context, eventId string, body TransferEventJSONRequestBody, reqEditors ...RequestEditorFn) (*TransferEventResponse, error)
+
+	// ListGroupsWithResponse List suspicious groups
+	//
+	// Ordered by first_event_at DESC, id DESC.
+	// cursor is an opaque continuation token bound to this order.
+	// Poll the first page to discover new groups. Invalid cursors return 400.
+	// An empty list has items: [] and next_cursor: null.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/groups (the `ListGroups` operationId).
+	ListGroupsWithResponse(ctx context.Context, params *ListGroupsParams, reqEditors ...RequestEditorFn) (*ListGroupsResponse, error)
+
+	// GetGroupWithResponse Get a suspicious group
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/groups/{group_id} (the `GetGroup` operationId).
+	GetGroupWithResponse(ctx context.Context, groupId openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetGroupResponse, error)
+
+	// GetGroupGraphWithResponse Get a group's Cytoscape elements
+	//
+	// Only the selected group's evidence subgraph.
+	// IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
+	// Each login produces two edges sharing event_id:
+	// account to device and account to network address.
+	// Ownership is client to account. Layout and presentation are client concerns.
+	//
+	// Returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with GET /api/v1/groups/{group_id}/graph (the `GetGroupGraph` operationId).
+	GetGroupGraphWithResponse(ctx context.Context, groupId openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetGroupGraphResponse, error)
+
+	// ResolveGroupWithBodyWithResponse Confirm or decline a new group
+	//
+	// approved=true confirms, false declines.
+	// A non-whitespace comment is required.
+	// Both decisions freeze the group and set decided_at.
+	// Only status новая may be decided, including a group frozen by expiry.
+	// Any subsequent decision returns 409; undo/history are outside this contract.
+	//
+	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with PATCH /api/v1/groups/{group_id}/solution (the `ResolveGroup` operationId).
+	ResolveGroupWithBodyWithResponse(ctx context.Context, groupId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResolveGroupResponse, error)
+
+	// ResolveGroupWithResponse Confirm or decline a new group
+	//
+	// approved=true confirms, false declines.
+	// A non-whitespace comment is required.
+	// Both decisions freeze the group and set decided_at.
+	// Only status новая may be decided, including a group frozen by expiry.
+	// Any subsequent decision returns 409; undo/history are outside this contract.
+	//
+	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+	//
+	// Corresponds with PATCH /api/v1/groups/{group_id}/solution (the `ResolveGroup` operationId).
+	ResolveGroupWithResponse(ctx context.Context, groupId openapi_types.UUID, body ResolveGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*ResolveGroupResponse, error)
+
 	// GetAllNotesWithResponse Retrieve all notes
 	//
 	// Returns a wrapper object for the known response body format(s).
@@ -467,6 +1802,434 @@ type ClientWithResponsesInterface interface {
 	//
 	// Corresponds with GET /readyz (the `Ready` operationId).
 	ReadyWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*ReadyResponse, error)
+}
+
+type LoginEventResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// ApplicationproblemJSON400 the response for an HTTP 400 `application/problem+json` response
+	ApplicationproblemJSON400 *ErrorModel
+	// ApplicationproblemJSON409 the response for an HTTP 409 `application/problem+json` response
+	ApplicationproblemJSON409 *ErrorModel
+	// ApplicationproblemJSON422 the response for an HTTP 422 `application/problem+json` response
+	ApplicationproblemJSON422 *ErrorModel
+	// ApplicationproblemJSON500 the response for an HTTP 500 `application/problem+json` response
+	ApplicationproblemJSON500 *ErrorModel
+	// ApplicationproblemJSON501 the response for an HTTP 501 `application/problem+json` response
+	ApplicationproblemJSON501 *ErrorModel
+}
+
+// GetApplicationproblemJSON400 returns the response for an HTTP 400 `application/problem+json` response
+func (r LoginEventResponse) GetApplicationproblemJSON400() *ErrorModel {
+	return r.ApplicationproblemJSON400
+}
+
+// GetApplicationproblemJSON409 returns the response for an HTTP 409 `application/problem+json` response
+func (r LoginEventResponse) GetApplicationproblemJSON409() *ErrorModel {
+	return r.ApplicationproblemJSON409
+}
+
+// GetApplicationproblemJSON422 returns the response for an HTTP 422 `application/problem+json` response
+func (r LoginEventResponse) GetApplicationproblemJSON422() *ErrorModel {
+	return r.ApplicationproblemJSON422
+}
+
+// GetApplicationproblemJSON500 returns the response for an HTTP 500 `application/problem+json` response
+func (r LoginEventResponse) GetApplicationproblemJSON500() *ErrorModel {
+	return r.ApplicationproblemJSON500
+}
+
+// GetApplicationproblemJSON501 returns the response for an HTTP 501 `application/problem+json` response
+func (r LoginEventResponse) GetApplicationproblemJSON501() *ErrorModel {
+	return r.ApplicationproblemJSON501
+}
+
+// GetBody returns the raw response body bytes
+func (r LoginEventResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r LoginEventResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r LoginEventResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r LoginEventResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type TransferEventResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// ApplicationproblemJSON400 the response for an HTTP 400 `application/problem+json` response
+	ApplicationproblemJSON400 *ErrorModel
+	// ApplicationproblemJSON409 the response for an HTTP 409 `application/problem+json` response
+	ApplicationproblemJSON409 *ErrorModel
+	// ApplicationproblemJSON422 the response for an HTTP 422 `application/problem+json` response
+	ApplicationproblemJSON422 *ErrorModel
+	// ApplicationproblemJSON500 the response for an HTTP 500 `application/problem+json` response
+	ApplicationproblemJSON500 *ErrorModel
+	// ApplicationproblemJSON501 the response for an HTTP 501 `application/problem+json` response
+	ApplicationproblemJSON501 *ErrorModel
+}
+
+// GetApplicationproblemJSON400 returns the response for an HTTP 400 `application/problem+json` response
+func (r TransferEventResponse) GetApplicationproblemJSON400() *ErrorModel {
+	return r.ApplicationproblemJSON400
+}
+
+// GetApplicationproblemJSON409 returns the response for an HTTP 409 `application/problem+json` response
+func (r TransferEventResponse) GetApplicationproblemJSON409() *ErrorModel {
+	return r.ApplicationproblemJSON409
+}
+
+// GetApplicationproblemJSON422 returns the response for an HTTP 422 `application/problem+json` response
+func (r TransferEventResponse) GetApplicationproblemJSON422() *ErrorModel {
+	return r.ApplicationproblemJSON422
+}
+
+// GetApplicationproblemJSON500 returns the response for an HTTP 500 `application/problem+json` response
+func (r TransferEventResponse) GetApplicationproblemJSON500() *ErrorModel {
+	return r.ApplicationproblemJSON500
+}
+
+// GetApplicationproblemJSON501 returns the response for an HTTP 501 `application/problem+json` response
+func (r TransferEventResponse) GetApplicationproblemJSON501() *ErrorModel {
+	return r.ApplicationproblemJSON501
+}
+
+// GetBody returns the raw response body bytes
+func (r TransferEventResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r TransferEventResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r TransferEventResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r TransferEventResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type ListGroupsResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *GroupListOutputBody
+	// ApplicationproblemJSON400 the response for an HTTP 400 `application/problem+json` response
+	ApplicationproblemJSON400 *ErrorModel
+	// ApplicationproblemJSON422 the response for an HTTP 422 `application/problem+json` response
+	ApplicationproblemJSON422 *ErrorModel
+	// ApplicationproblemJSON500 the response for an HTTP 500 `application/problem+json` response
+	ApplicationproblemJSON500 *ErrorModel
+	// ApplicationproblemJSON501 the response for an HTTP 501 `application/problem+json` response
+	ApplicationproblemJSON501 *ErrorModel
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r ListGroupsResponse) GetJSON200() *GroupListOutputBody {
+	return r.JSON200
+}
+
+// GetApplicationproblemJSON400 returns the response for an HTTP 400 `application/problem+json` response
+func (r ListGroupsResponse) GetApplicationproblemJSON400() *ErrorModel {
+	return r.ApplicationproblemJSON400
+}
+
+// GetApplicationproblemJSON422 returns the response for an HTTP 422 `application/problem+json` response
+func (r ListGroupsResponse) GetApplicationproblemJSON422() *ErrorModel {
+	return r.ApplicationproblemJSON422
+}
+
+// GetApplicationproblemJSON500 returns the response for an HTTP 500 `application/problem+json` response
+func (r ListGroupsResponse) GetApplicationproblemJSON500() *ErrorModel {
+	return r.ApplicationproblemJSON500
+}
+
+// GetApplicationproblemJSON501 returns the response for an HTTP 501 `application/problem+json` response
+func (r ListGroupsResponse) GetApplicationproblemJSON501() *ErrorModel {
+	return r.ApplicationproblemJSON501
+}
+
+// GetBody returns the raw response body bytes
+func (r ListGroupsResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r ListGroupsResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ListGroupsResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ListGroupsResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *GetByIDOutputBody
+	// ApplicationproblemJSON404 the response for an HTTP 404 `application/problem+json` response
+	ApplicationproblemJSON404 *ErrorModel
+	// ApplicationproblemJSON422 the response for an HTTP 422 `application/problem+json` response
+	ApplicationproblemJSON422 *ErrorModel
+	// ApplicationproblemJSON500 the response for an HTTP 500 `application/problem+json` response
+	ApplicationproblemJSON500 *ErrorModel
+	// ApplicationproblemJSON501 the response for an HTTP 501 `application/problem+json` response
+	ApplicationproblemJSON501 *ErrorModel
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r GetGroupResponse) GetJSON200() *GetByIDOutputBody {
+	return r.JSON200
+}
+
+// GetApplicationproblemJSON404 returns the response for an HTTP 404 `application/problem+json` response
+func (r GetGroupResponse) GetApplicationproblemJSON404() *ErrorModel {
+	return r.ApplicationproblemJSON404
+}
+
+// GetApplicationproblemJSON422 returns the response for an HTTP 422 `application/problem+json` response
+func (r GetGroupResponse) GetApplicationproblemJSON422() *ErrorModel {
+	return r.ApplicationproblemJSON422
+}
+
+// GetApplicationproblemJSON500 returns the response for an HTTP 500 `application/problem+json` response
+func (r GetGroupResponse) GetApplicationproblemJSON500() *ErrorModel {
+	return r.ApplicationproblemJSON500
+}
+
+// GetApplicationproblemJSON501 returns the response for an HTTP 501 `application/problem+json` response
+func (r GetGroupResponse) GetApplicationproblemJSON501() *ErrorModel {
+	return r.ApplicationproblemJSON501
+}
+
+// GetBody returns the raw response body bytes
+func (r GetGroupResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetGroupResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type GetGroupGraphResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *GroupGraph
+	// ApplicationproblemJSON404 the response for an HTTP 404 `application/problem+json` response
+	ApplicationproblemJSON404 *ErrorModel
+	// ApplicationproblemJSON422 the response for an HTTP 422 `application/problem+json` response
+	ApplicationproblemJSON422 *ErrorModel
+	// ApplicationproblemJSON500 the response for an HTTP 500 `application/problem+json` response
+	ApplicationproblemJSON500 *ErrorModel
+	// ApplicationproblemJSON501 the response for an HTTP 501 `application/problem+json` response
+	ApplicationproblemJSON501 *ErrorModel
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r GetGroupGraphResponse) GetJSON200() *GroupGraph {
+	return r.JSON200
+}
+
+// GetApplicationproblemJSON404 returns the response for an HTTP 404 `application/problem+json` response
+func (r GetGroupGraphResponse) GetApplicationproblemJSON404() *ErrorModel {
+	return r.ApplicationproblemJSON404
+}
+
+// GetApplicationproblemJSON422 returns the response for an HTTP 422 `application/problem+json` response
+func (r GetGroupGraphResponse) GetApplicationproblemJSON422() *ErrorModel {
+	return r.ApplicationproblemJSON422
+}
+
+// GetApplicationproblemJSON500 returns the response for an HTTP 500 `application/problem+json` response
+func (r GetGroupGraphResponse) GetApplicationproblemJSON500() *ErrorModel {
+	return r.ApplicationproblemJSON500
+}
+
+// GetApplicationproblemJSON501 returns the response for an HTTP 501 `application/problem+json` response
+func (r GetGroupGraphResponse) GetApplicationproblemJSON501() *ErrorModel {
+	return r.ApplicationproblemJSON501
+}
+
+// GetBody returns the raw response body bytes
+func (r GetGroupGraphResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r GetGroupGraphResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r GetGroupGraphResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r GetGroupGraphResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
+}
+
+type ResolveGroupResponse struct {
+	Body         []byte
+	HTTPResponse *http.Response
+	// JSON200 the response for an HTTP 200 `application/json` response
+	JSON200 *GroupSolutionOutputBody
+	// ApplicationproblemJSON400 the response for an HTTP 400 `application/problem+json` response
+	ApplicationproblemJSON400 *ErrorModel
+	// ApplicationproblemJSON404 the response for an HTTP 404 `application/problem+json` response
+	ApplicationproblemJSON404 *ErrorModel
+	// ApplicationproblemJSON409 the response for an HTTP 409 `application/problem+json` response
+	ApplicationproblemJSON409 *ErrorModel
+	// ApplicationproblemJSON422 the response for an HTTP 422 `application/problem+json` response
+	ApplicationproblemJSON422 *ErrorModel
+	// ApplicationproblemJSON500 the response for an HTTP 500 `application/problem+json` response
+	ApplicationproblemJSON500 *ErrorModel
+	// ApplicationproblemJSON501 the response for an HTTP 501 `application/problem+json` response
+	ApplicationproblemJSON501 *ErrorModel
+}
+
+// GetJSON200 returns the response for an HTTP 200 `application/json` response
+func (r ResolveGroupResponse) GetJSON200() *GroupSolutionOutputBody {
+	return r.JSON200
+}
+
+// GetApplicationproblemJSON400 returns the response for an HTTP 400 `application/problem+json` response
+func (r ResolveGroupResponse) GetApplicationproblemJSON400() *ErrorModel {
+	return r.ApplicationproblemJSON400
+}
+
+// GetApplicationproblemJSON404 returns the response for an HTTP 404 `application/problem+json` response
+func (r ResolveGroupResponse) GetApplicationproblemJSON404() *ErrorModel {
+	return r.ApplicationproblemJSON404
+}
+
+// GetApplicationproblemJSON409 returns the response for an HTTP 409 `application/problem+json` response
+func (r ResolveGroupResponse) GetApplicationproblemJSON409() *ErrorModel {
+	return r.ApplicationproblemJSON409
+}
+
+// GetApplicationproblemJSON422 returns the response for an HTTP 422 `application/problem+json` response
+func (r ResolveGroupResponse) GetApplicationproblemJSON422() *ErrorModel {
+	return r.ApplicationproblemJSON422
+}
+
+// GetApplicationproblemJSON500 returns the response for an HTTP 500 `application/problem+json` response
+func (r ResolveGroupResponse) GetApplicationproblemJSON500() *ErrorModel {
+	return r.ApplicationproblemJSON500
+}
+
+// GetApplicationproblemJSON501 returns the response for an HTTP 501 `application/problem+json` response
+func (r ResolveGroupResponse) GetApplicationproblemJSON501() *ErrorModel {
+	return r.ApplicationproblemJSON501
+}
+
+// GetBody returns the raw response body bytes
+func (r ResolveGroupResponse) GetBody() []byte {
+	return r.Body
+}
+
+// Status returns HTTPResponse.Status
+func (r ResolveGroupResponse) Status() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Status
+	}
+	return http.StatusText(0)
+}
+
+// StatusCode returns HTTPResponse.StatusCode
+func (r ResolveGroupResponse) StatusCode() int {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.StatusCode
+	}
+	return 0
+}
+
+// ContentType is a convenience method to retrieve the Content-Type value from the HTTP response headers
+func (r ResolveGroupResponse) ContentType() string {
+	if r.HTTPResponse != nil {
+		return r.HTTPResponse.Header.Get("Content-Type")
+	}
+	return ""
 }
 
 type GetAllNotesResponse struct {
@@ -682,6 +2445,178 @@ func (r ReadyResponse) ContentType() string {
 	return ""
 }
 
+// LoginEventWithBodyWithResponse Accept a login event
+//
+// Event IDs are globally unique across both event types.
+// New events return 201 with no body.
+// An identical retry returns 204 without recomputing groups;
+// an existing ID with different type or payload returns 409.
+// Compare parsed values, not JSON formatting.
+// Persistence/deduplication are implemented separately.
+// Amounts are integer kopecks.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PUT /api/v1/events/logins/{event_id} (the `LoginEvent` operationId).
+func (c *ClientWithResponses) LoginEventWithBodyWithResponse(ctx context.Context, eventId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*LoginEventResponse, error) {
+	rsp, err := c.LoginEventWithBody(ctx, eventId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoginEventResponse(rsp)
+}
+
+// LoginEventWithResponse Accept a login event
+//
+// Event IDs are globally unique across both event types.
+// New events return 201 with no body.
+// An identical retry returns 204 without recomputing groups;
+// an existing ID with different type or payload returns 409.
+// Compare parsed values, not JSON formatting.
+// Persistence/deduplication are implemented separately.
+// Amounts are integer kopecks.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PUT /api/v1/events/logins/{event_id} (the `LoginEvent` operationId).
+func (c *ClientWithResponses) LoginEventWithResponse(ctx context.Context, eventId string, body LoginEventJSONRequestBody, reqEditors ...RequestEditorFn) (*LoginEventResponse, error) {
+	rsp, err := c.LoginEvent(ctx, eventId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseLoginEventResponse(rsp)
+}
+
+// TransferEventWithBodyWithResponse Accept a transfer event
+//
+// Event IDs are globally unique across both event types.
+// New events return 201 with no body.
+// An identical retry returns 204 without recomputing groups;
+// an existing ID with different type or payload returns 409.
+// Compare parsed values, not JSON formatting.
+// Persistence/deduplication are implemented separately.
+// Amounts are integer kopecks.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PUT /api/v1/events/transfers/{event_id} (the `TransferEvent` operationId).
+func (c *ClientWithResponses) TransferEventWithBodyWithResponse(ctx context.Context, eventId string, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*TransferEventResponse, error) {
+	rsp, err := c.TransferEventWithBody(ctx, eventId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTransferEventResponse(rsp)
+}
+
+// TransferEventWithResponse Accept a transfer event
+//
+// Event IDs are globally unique across both event types.
+// New events return 201 with no body.
+// An identical retry returns 204 without recomputing groups;
+// an existing ID with different type or payload returns 409.
+// Compare parsed values, not JSON formatting.
+// Persistence/deduplication are implemented separately.
+// Amounts are integer kopecks.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PUT /api/v1/events/transfers/{event_id} (the `TransferEvent` operationId).
+func (c *ClientWithResponses) TransferEventWithResponse(ctx context.Context, eventId string, body TransferEventJSONRequestBody, reqEditors ...RequestEditorFn) (*TransferEventResponse, error) {
+	rsp, err := c.TransferEvent(ctx, eventId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseTransferEventResponse(rsp)
+}
+
+// ListGroupsWithResponse List suspicious groups
+//
+// Ordered by first_event_at DESC, id DESC.
+// cursor is an opaque continuation token bound to this order.
+// Poll the first page to discover new groups. Invalid cursors return 400.
+// An empty list has items: [] and next_cursor: null.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/groups (the `ListGroups` operationId).
+func (c *ClientWithResponses) ListGroupsWithResponse(ctx context.Context, params *ListGroupsParams, reqEditors ...RequestEditorFn) (*ListGroupsResponse, error) {
+	rsp, err := c.ListGroups(ctx, params, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseListGroupsResponse(rsp)
+}
+
+// GetGroupWithResponse Get a suspicious group
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/groups/{group_id} (the `GetGroup` operationId).
+func (c *ClientWithResponses) GetGroupWithResponse(ctx context.Context, groupId openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetGroupResponse, error) {
+	rsp, err := c.GetGroup(ctx, groupId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGroupResponse(rsp)
+}
+
+// GetGroupGraphWithResponse Get a group's Cytoscape elements
+//
+// Only the selected group's evidence subgraph.
+// IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
+// Each login produces two edges sharing event_id:
+// account to device and account to network address.
+// Ownership is client to account. Layout and presentation are client concerns.
+//
+// Returns a wrapper object for the known response body format(s).
+//
+// Corresponds with GET /api/v1/groups/{group_id}/graph (the `GetGroupGraph` operationId).
+func (c *ClientWithResponses) GetGroupGraphWithResponse(ctx context.Context, groupId openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetGroupGraphResponse, error) {
+	rsp, err := c.GetGroupGraph(ctx, groupId, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseGetGroupGraphResponse(rsp)
+}
+
+// ResolveGroupWithBodyWithResponse Confirm or decline a new group
+//
+// approved=true confirms, false declines.
+// A non-whitespace comment is required.
+// Both decisions freeze the group and set decided_at.
+// Only status новая may be decided, including a group frozen by expiry.
+// Any subsequent decision returns 409; undo/history are outside this contract.
+//
+// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PATCH /api/v1/groups/{group_id}/solution (the `ResolveGroup` operationId).
+func (c *ClientWithResponses) ResolveGroupWithBodyWithResponse(ctx context.Context, groupId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResolveGroupResponse, error) {
+	rsp, err := c.ResolveGroupWithBody(ctx, groupId, contentType, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResolveGroupResponse(rsp)
+}
+
+// ResolveGroupWithResponse Confirm or decline a new group
+//
+// approved=true confirms, false declines.
+// A non-whitespace comment is required.
+// Both decisions freeze the group and set decided_at.
+// Only status новая may be decided, including a group frozen by expiry.
+// Any subsequent decision returns 409; undo/history are outside this contract.
+//
+// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
+//
+// Corresponds with PATCH /api/v1/groups/{group_id}/solution (the `ResolveGroup` operationId).
+func (c *ClientWithResponses) ResolveGroupWithResponse(ctx context.Context, groupId openapi_types.UUID, body ResolveGroupJSONRequestBody, reqEditors ...RequestEditorFn) (*ResolveGroupResponse, error) {
+	rsp, err := c.ResolveGroup(ctx, groupId, body, reqEditors...)
+	if err != nil {
+		return nil, err
+	}
+	return ParseResolveGroupResponse(rsp)
+}
+
 // GetAllNotesWithResponse Retrieve all notes
 //
 // Returns a wrapper object for the known response body format(s).
@@ -745,6 +2680,356 @@ func (c *ClientWithResponses) ReadyWithResponse(ctx context.Context, reqEditors 
 		return nil, err
 	}
 	return ParseReadyResponse(rsp)
+}
+
+// ParseLoginEventResponse parses an HTTP response from a LoginEventWithResponse call
+func ParseLoginEventResponse(rsp *http.Response) (*LoginEventResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &LoginEventResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.StatusCode == 201:
+		break // No content-type
+
+	case rsp.StatusCode == 204:
+		break // No content-type
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 501:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON501 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseTransferEventResponse parses an HTTP response from a TransferEventWithResponse call
+func ParseTransferEventResponse(rsp *http.Response) (*TransferEventResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &TransferEventResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case rsp.StatusCode == 201:
+		break // No content-type
+
+	case rsp.StatusCode == 204:
+		break // No content-type
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 501:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON501 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseListGroupsResponse parses an HTTP response from a ListGroupsWithResponse call
+func ParseListGroupsResponse(rsp *http.Response) (*ListGroupsResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ListGroupsResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GroupListOutputBody
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 501:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON501 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetGroupResponse parses an HTTP response from a GetGroupWithResponse call
+func ParseGetGroupResponse(rsp *http.Response) (*GetGroupResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GetByIDOutputBody
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 501:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON501 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseGetGroupGraphResponse parses an HTTP response from a GetGroupGraphWithResponse call
+func ParseGetGroupGraphResponse(rsp *http.Response) (*GetGroupGraphResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &GetGroupGraphResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GroupGraph
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 501:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON501 = &dest
+
+	}
+
+	return response, nil
+}
+
+// ParseResolveGroupResponse parses an HTTP response from a ResolveGroupWithResponse call
+func ParseResolveGroupResponse(rsp *http.Response) (*ResolveGroupResponse, error) {
+	bodyBytes, err := io.ReadAll(rsp.Body)
+	defer func() { _ = rsp.Body.Close() }()
+	if err != nil {
+		return nil, err
+	}
+
+	response := &ResolveGroupResponse{
+		Body:         bodyBytes,
+		HTTPResponse: rsp,
+	}
+
+	switch {
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
+		var dest GroupSolutionOutputBody
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.JSON200 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 404:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON404 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 409:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON409 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 501:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON501 = &dest
+
+	}
+
+	return response, nil
 }
 
 // ParseGetAllNotesResponse parses an HTTP response from a GetAllNotesWithResponse call
