@@ -9,6 +9,7 @@
 - [risk.md](risk.md) - подсчёт риска
 - [schemes.md](schemes.md) - мошеннические схемы и правила их обнаружения (SRD)
 - [schemes-simple.md](schemes-simple.md) - схемы и правила простыми словами
+- [schemes-legal.md](schemes-legal.md) - правовые приложения к схемам
 
 RFC:
 
