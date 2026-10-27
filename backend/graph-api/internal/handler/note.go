@@ -92,7 +92,7 @@ func (h *noteHandlers) list(ctx context.Context, _ *struct{}) (*AllNoteOutput, e
 		out.Body.Notes = append(out.Body.Notes, Note{
 			ID:        note.ID.String(),
 			Text:      note.Text,
-			CreatedAt: note.CreatedAt.UTC(),
+			CreatedAt: note.CreatedAt,
 		})
 	}
 

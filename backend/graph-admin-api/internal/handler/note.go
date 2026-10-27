@@ -61,6 +61,6 @@ func (h *noteHandlers) proxy(ctx context.Context, in *ProxyNoteInput) (*ProxyNot
 		ID:          note.ID,
 		GraphNoteID: note.GraphNoteID,
 		Text:        note.Text,
-		CreatedAt:   note.CreatedAt.UTC(),
+		CreatedAt:   note.CreatedAt,
 	}}, nil
 }
