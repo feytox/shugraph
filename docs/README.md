@@ -3,6 +3,7 @@
 ## Оглавление
 
 - [definitions.md](definitions.md) - общий словарь проекта
+- [tz.md](tz.md) - техническое задание
 - [entities.md](entities.md) - сущности и модель данных
 - [features.md](features.md) - фичи продукта
 - [input-events.md](input-events.md) - входные события сценариев

@@ -62,9 +62,10 @@ erDiagram
         bigint total_amount
     }
     CLIENTS ||--o{ ACCOUNTS : " "
-    ACCOUNTS ||--o{ TRANSFERS : " "
-    EVENTS ||--|| TRANSFERS : " "
-    EVENTS ||--|| LOGIN_EVENTS : " "
+    ACCOUNTS ||--o{ TRANSFERS : "отправитель"
+    ACCOUNTS ||--o{ TRANSFERS : "получатель"
+    EVENTS ||--o| TRANSFERS : " "
+    EVENTS ||--o| LOGIN_EVENTS : " "
     ACCOUNTS ||--o{ LOGIN_EVENTS : " "
     CLIENTS ||--o{ LOGIN_EVENTS : " "
     DEVICES ||--o{ LOGIN_EVENTS : " "
@@ -124,7 +125,7 @@ erDiagram
 |---|---|---|---|
 | `event_id` | string | из события | `evt-0002` |
 | `account_id` | string | из события (счёт и владелец) | `acc-6742` |
-| `client_id` | string | из владельца счёта на момент приёма | `cli-0421` |
+| `client_id` | string | из события | `cli-0421` |
 | `device_id` | string | из события (отпечаток) | `dev-a91f` |
 | `address_id` | string | из события (IP) | `84.17.52.10` |
 
@@ -136,14 +137,14 @@ erDiagram
 | `scheme` | enum: ферма / адрес / цепочка / кольцо | вычисление | `цепочка` |
 | `status` | enum: новая / подтверждена / отклонена | по умолчанию `новая`, дальше действия аналитика| `подтверждена` |
 | `risk_score` | integer | вычисление | `85` |
-| `risk_parts` | json | вычисление | `{"scheme": 55, "speed": 15, "hops": 10, "preserved": 5}` |
+| `risk_parts` | json | вычисление (значения переменных формулы риска) | `{"scheme": 55, "speed": 15, "hops": 10, "preserved": 5}` |
 | `first_event_at` | timestamp | вычисляется в приложении на основе событий | `2026-10-12T18:03:00Z` |
 | `last_event_at` | timestamp | вычисляется в приложении на основе событий | `2026-10-12T18:14:00Z` |
 | `is_frozen` | boolean | решение аналитика или события вышли из окна | `true` |
 | `decision_comment` | string | действие аналитика | `транзит за 11 минут, подтверждаю` |
 | `decided_at` | timestamp, nullable | действие аналитика (Ф6), NULL пока "новая" | `2026-10-12T18:40:00Z` |
 
-Примеры `risk_parts` по схемам (ключ - слагаемое, сумма значений = `risk_score`):
+Примеры `risk_parts` по схемам (ключ — переменная формулы, значение — её подсчитанное значение; это не итоговый `risk_score`, он считается по [risk.md](schemes/risk.md) и ограничен 100):
 
 Ферма:
 
@@ -154,7 +155,7 @@ erDiagram
 Адрес:
 
 ```json
-{"scheme": 40, "speed": 10, "accounts": 0, "devices": 5, "burst": 10}
+{"scheme": 40, "speed": 10, "clients": 0, "devices": 5, "burst": 10}
 ```
 
 Цепочка:
