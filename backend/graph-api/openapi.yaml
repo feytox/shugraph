@@ -3,13 +3,6 @@ components:
     AllNoteOutputBody:
       additionalProperties: false
       properties:
-        $schema:
-          description: A URL to the JSON Schema for this object.
-          examples:
-            - https://example.com/schemas/AllNoteOutputBody.json
-          format: uri
-          readOnly: true
-          type: string
         notes:
           items:
             $ref: "#/components/schemas/Note"
@@ -22,13 +15,6 @@ components:
     CreateNoteInputBody:
       additionalProperties: false
       properties:
-        $schema:
-          description: A URL to the JSON Schema for this object.
-          examples:
-            - https://example.com/schemas/CreateNoteInputBody.json
-          format: uri
-          readOnly: true
-          type: string
         text:
           description: Текст заметки
           minLength: 1
@@ -51,13 +37,6 @@ components:
     ErrorModel:
       additionalProperties: false
       properties:
-        $schema:
-          description: A URL to the JSON Schema for this object.
-          examples:
-            - https://example.com/schemas/ErrorModel.json
-          format: uri
-          readOnly: true
-          type: string
         detail:
           description: A human-readable explanation specific to this occurrence of the problem.
           examples:
@@ -95,34 +74,9 @@ components:
           format: uri
           type: string
       type: object
-    HealthCheckOutputBody:
-      additionalProperties: false
-      properties:
-        $schema:
-          description: A URL to the JSON Schema for this object.
-          examples:
-            - https://example.com/schemas/HealthCheckOutputBody.json
-          format: uri
-          readOnly: true
-          type: string
-        status:
-          description: Operational status
-          examples:
-            - ok
-          type: string
-      required:
-        - status
-      type: object
     Note:
       additionalProperties: false
       properties:
-        $schema:
-          description: A URL to the JSON Schema for this object.
-          examples:
-            - https://example.com/schemas/Note.json
-          format: uri
-          readOnly: true
-          type: string
         created_at:
           format: date-time
           type: string
@@ -135,18 +89,10 @@ components:
         - text
         - created_at
       type: object
-    ReadyCheckOutputBody:
+    StatusOutputBody:
       additionalProperties: false
       properties:
-        $schema:
-          description: A URL to the JSON Schema for this object.
-          examples:
-            - https://example.com/schemas/ReadyCheckOutputBody.json
-          format: uri
-          readOnly: true
-          type: string
         status:
-          description: Availability status
           examples:
             - ok
           type: string
@@ -168,13 +114,15 @@ paths:
               schema:
                 $ref: "#/components/schemas/AllNoteOutputBody"
           description: OK
-        default:
+        "500":
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
-          description: Error
+          description: Internal Server Error
       summary: Retrieve all notes
+      tags:
+        - Notes
     post:
       operationId: create-note
       requestBody:
@@ -190,13 +138,27 @@ paths:
               schema:
                 $ref: "#/components/schemas/Note"
           description: Created
-        default:
+        "400":
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
-          description: Error
+          description: Bad Request
+        "422":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Internal Server Error
       summary: Create a new note
+      tags:
+        - Notes
   /healthz:
     get:
       operationId: health
@@ -205,7 +167,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/HealthCheckOutputBody"
+                $ref: "#/components/schemas/StatusOutputBody"
           description: OK
         default:
           content:
@@ -213,7 +175,9 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Error
-      summary: Checks the application's availability
+      summary: Check that the process is alive
+      tags:
+        - Health
   /readyz:
     get:
       operationId: ready
@@ -222,12 +186,20 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ReadyCheckOutputBody"
+                $ref: "#/components/schemas/StatusOutputBody"
           description: OK
-        default:
+        "500":
           content:
             application/problem+json:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
-          description: Error
-      summary: Checks the application's readiness for operation
+          description: Internal Server Error
+        "503":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Service Unavailable
+      summary: Check that the service can handle requests
+      tags:
+        - Health

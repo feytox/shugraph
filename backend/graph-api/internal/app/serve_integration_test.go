@@ -11,10 +11,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/caarlos0/env/v11"
+	"github.com/feytox/shugraph/backend/graph-api/internal/config"
 	"github.com/feytox/shugraph/backend/graph-api/internal/handler"
+	pgdb "github.com/feytox/shugraph/backend/graph-api/internal/postgres"
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository"
 	"github.com/feytox/shugraph/backend/graph-api/internal/service"
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
@@ -27,6 +29,7 @@ func TestMain(m *testing.M) {
 
 func run(m *testing.M) int {
 	ctx := context.Background()
+
 	pgContainer, err := postgres.Run(ctx,
 		"postgres:18-alpine",
 		postgres.WithDatabase("users"),
@@ -51,11 +54,16 @@ func run(m *testing.M) int {
 		slog.Error("Could not get connection string to postgres", "err", err)
 		return 1
 	}
-	if err := os.Setenv("DATABASE_URL", dbURL); err != nil {
-		slog.Error("could not set DATABASE_URL", "err", err)
+
+	dbCfg, err := env.ParseAsWithOptions[config.Database](env.Options{Environment: map[string]string{
+		"DATABASE_URL": dbURL,
+	}})
+	if err != nil {
+		slog.Error("could not parse database config", "err", err)
 		return 1
 	}
-	pool, err := ConnectToPg(ctx, dbURL)
+
+	pool, err := pgdb.Connect(ctx, dbCfg)
 	if err != nil {
 		slog.Error("Could not connect to postgres", "err", err)
 		return 1
@@ -65,17 +73,21 @@ func run(m *testing.M) int {
 	repo := repository.NewPgNoteRepository(pool)
 	noteService := service.NewNoteService(repo)
 
-	errMigrate := Migrate(ctx)
+	errMigrate := pgdb.Migrate(ctx, pool, slog.Default())
 	if errMigrate != nil {
 		slog.Error("could not migrate", "err", errMigrate)
 		return 1
 	}
-	r := chi.NewRouter()
-	handler.NewAPI(r, noteService, pool)
-	server := httptest.NewServer(r)
+
+	server := httptest.NewServer(handler.New(handler.Deps{
+		Notes:    noteService,
+		Database: pool,
+		Log:      slog.Default(),
+	}))
 	defer server.Close()
 
 	serverURL = server.URL
+
 	return m.Run()
 }
 

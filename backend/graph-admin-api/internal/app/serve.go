@@ -16,6 +16,7 @@ import (
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/graphapi"
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/handler"
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/logattr"
+	"github.com/feytox/shugraph/backend/graph-admin-api/internal/postgres"
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/repository"
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/service"
 )
@@ -43,7 +44,7 @@ type server struct {
 }
 
 func newServer(ctx context.Context, cfg config.Serve, log *slog.Logger) (*server, error) {
-	pool, err := connectPostgres(ctx, cfg.Database)
+	pool, err := postgres.Connect(ctx, cfg.Database)
 	if err != nil {
 		return nil, err
 	}

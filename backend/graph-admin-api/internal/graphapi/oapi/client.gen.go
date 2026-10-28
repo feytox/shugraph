@@ -17,20 +17,11 @@ import (
 
 // AllNoteOutputBody defines model for AllNoteOutputBody.
 type AllNoteOutputBody struct {
-	// Schema A URL to the JSON Schema for this object.
-	//
-	// Examples: https://example.com/schemas/AllNoteOutputBody.json
-	Schema *string `json:"$schema,omitempty"`
-	Notes  *[]Note `json:"notes"`
+	Notes *[]Note `json:"notes"`
 }
 
 // CreateNoteInputBody defines model for CreateNoteInputBody.
 type CreateNoteInputBody struct {
-	// Schema A URL to the JSON Schema for this object.
-	//
-	// Examples: https://example.com/schemas/CreateNoteInputBody.json
-	Schema *string `json:"$schema,omitempty"`
-
 	// Text Текст заметки
 	Text string `json:"text"`
 }
@@ -49,11 +40,6 @@ type ErrorDetail struct {
 
 // ErrorModel defines model for ErrorModel.
 type ErrorModel struct {
-	// Schema A URL to the JSON Schema for this object.
-	//
-	// Examples: https://example.com/schemas/ErrorModel.json
-	Schema *string `json:"$schema,omitempty"`
-
 	// Detail A human-readable explanation specific to this occurrence of the problem.
 	//
 	// Examples: Property foo is required but is missing.
@@ -83,40 +69,16 @@ type ErrorModel struct {
 	Type *string `json:"type,omitempty"`
 }
 
-// HealthCheckOutputBody defines model for HealthCheckOutputBody.
-type HealthCheckOutputBody struct {
-	// Schema A URL to the JSON Schema for this object.
-	//
-	// Examples: https://example.com/schemas/HealthCheckOutputBody.json
-	Schema *string `json:"$schema,omitempty"`
-
-	// Status Operational status
-	//
-	// Examples: ok
-	Status string `json:"status"`
-}
-
 // Note defines model for Note.
 type Note struct {
-	// Schema A URL to the JSON Schema for this object.
-	//
-	// Examples: https://example.com/schemas/Note.json
-	Schema    *string   `json:"$schema,omitempty"`
 	CreatedAt time.Time `json:"created_at"`
 	Id        string    `json:"id"`
 	Text      string    `json:"text"`
 }
 
-// ReadyCheckOutputBody defines model for ReadyCheckOutputBody.
-type ReadyCheckOutputBody struct {
-	// Schema A URL to the JSON Schema for this object.
-	//
-	// Examples: https://example.com/schemas/ReadyCheckOutputBody.json
-	Schema *string `json:"$schema,omitempty"`
-
-	// Status Availability status
-	//
-	// Examples: ok
+// StatusOutputBody defines model for StatusOutputBody.
+type StatusOutputBody struct {
+	// Status Examples: ok
 	Status string `json:"status"`
 }
 
@@ -216,12 +178,12 @@ type ClientInterface interface {
 	// Corresponds with POST /api/v1/notes (the `CreateNote` operationId).
 	CreateNote(ctx context.Context, body CreateNoteJSONRequestBody, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Health Checks the application's availability
+	// Health Check that the process is alive
 	//
 	// Corresponds with GET /healthz (the `Health` operationId).
 	Health(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// Ready Checks the application's readiness for operation
+	// Ready Check that the service can handle requests
 	//
 	// Corresponds with GET /readyz (the `Ready` operationId).
 	Ready(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -276,7 +238,7 @@ func (c *Client) CreateNote(ctx context.Context, body CreateNoteJSONRequestBody,
 	return c.Client.Do(req)
 }
 
-// Health Checks the application's availability
+// Health Check that the process is alive
 //
 // Corresponds with GET /healthz (the `Health` operationId).
 func (c *Client) Health(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -291,7 +253,7 @@ func (c *Client) Health(ctx context.Context, reqEditors ...RequestEditorFn) (*ht
 	return c.Client.Do(req)
 }
 
-// Ready Checks the application's readiness for operation
+// Ready Check that the service can handle requests
 //
 // Corresponds with GET /readyz (the `Ready` operationId).
 func (c *Client) Ready(ctx context.Context, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -492,14 +454,14 @@ type ClientWithResponsesInterface interface {
 	// Corresponds with POST /api/v1/notes (the `CreateNote` operationId).
 	CreateNoteWithResponse(ctx context.Context, body CreateNoteJSONRequestBody, reqEditors ...RequestEditorFn) (*CreateNoteResponse, error)
 
-	// HealthWithResponse Checks the application's availability
+	// HealthWithResponse Check that the process is alive
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with GET /healthz (the `Health` operationId).
 	HealthWithResponse(ctx context.Context, reqEditors ...RequestEditorFn) (*HealthResponse, error)
 
-	// ReadyWithResponse Checks the application's readiness for operation
+	// ReadyWithResponse Check that the service can handle requests
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -512,8 +474,8 @@ type GetAllNotesResponse struct {
 	HTTPResponse *http.Response
 	// JSON200 the response for an HTTP 200 `application/json` response
 	JSON200 *AllNoteOutputBody
-	// ApplicationproblemJSONDefault the response for an HTTP default `application/problem+json` response
-	ApplicationproblemJSONDefault *ErrorModel
+	// ApplicationproblemJSON500 the response for an HTTP 500 `application/problem+json` response
+	ApplicationproblemJSON500 *ErrorModel
 }
 
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
@@ -521,9 +483,9 @@ func (r GetAllNotesResponse) GetJSON200() *AllNoteOutputBody {
 	return r.JSON200
 }
 
-// GetApplicationproblemJSONDefault returns the response for an HTTP default `application/problem+json` response
-func (r GetAllNotesResponse) GetApplicationproblemJSONDefault() *ErrorModel {
-	return r.ApplicationproblemJSONDefault
+// GetApplicationproblemJSON500 returns the response for an HTTP 500 `application/problem+json` response
+func (r GetAllNotesResponse) GetApplicationproblemJSON500() *ErrorModel {
+	return r.ApplicationproblemJSON500
 }
 
 // GetBody returns the raw response body bytes
@@ -560,8 +522,12 @@ type CreateNoteResponse struct {
 	HTTPResponse *http.Response
 	// JSON201 the response for an HTTP 201 `application/json` response
 	JSON201 *Note
-	// ApplicationproblemJSONDefault the response for an HTTP default `application/problem+json` response
-	ApplicationproblemJSONDefault *ErrorModel
+	// ApplicationproblemJSON400 the response for an HTTP 400 `application/problem+json` response
+	ApplicationproblemJSON400 *ErrorModel
+	// ApplicationproblemJSON422 the response for an HTTP 422 `application/problem+json` response
+	ApplicationproblemJSON422 *ErrorModel
+	// ApplicationproblemJSON500 the response for an HTTP 500 `application/problem+json` response
+	ApplicationproblemJSON500 *ErrorModel
 }
 
 // GetJSON201 returns the response for an HTTP 201 `application/json` response
@@ -569,9 +535,19 @@ func (r CreateNoteResponse) GetJSON201() *Note {
 	return r.JSON201
 }
 
-// GetApplicationproblemJSONDefault returns the response for an HTTP default `application/problem+json` response
-func (r CreateNoteResponse) GetApplicationproblemJSONDefault() *ErrorModel {
-	return r.ApplicationproblemJSONDefault
+// GetApplicationproblemJSON400 returns the response for an HTTP 400 `application/problem+json` response
+func (r CreateNoteResponse) GetApplicationproblemJSON400() *ErrorModel {
+	return r.ApplicationproblemJSON400
+}
+
+// GetApplicationproblemJSON422 returns the response for an HTTP 422 `application/problem+json` response
+func (r CreateNoteResponse) GetApplicationproblemJSON422() *ErrorModel {
+	return r.ApplicationproblemJSON422
+}
+
+// GetApplicationproblemJSON500 returns the response for an HTTP 500 `application/problem+json` response
+func (r CreateNoteResponse) GetApplicationproblemJSON500() *ErrorModel {
+	return r.ApplicationproblemJSON500
 }
 
 // GetBody returns the raw response body bytes
@@ -607,13 +583,13 @@ type HealthResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	// JSON200 the response for an HTTP 200 `application/json` response
-	JSON200 *HealthCheckOutputBody
+	JSON200 *StatusOutputBody
 	// ApplicationproblemJSONDefault the response for an HTTP default `application/problem+json` response
 	ApplicationproblemJSONDefault *ErrorModel
 }
 
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
-func (r HealthResponse) GetJSON200() *HealthCheckOutputBody {
+func (r HealthResponse) GetJSON200() *StatusOutputBody {
 	return r.JSON200
 }
 
@@ -655,19 +631,26 @@ type ReadyResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	// JSON200 the response for an HTTP 200 `application/json` response
-	JSON200 *ReadyCheckOutputBody
-	// ApplicationproblemJSONDefault the response for an HTTP default `application/problem+json` response
-	ApplicationproblemJSONDefault *ErrorModel
+	JSON200 *StatusOutputBody
+	// ApplicationproblemJSON500 the response for an HTTP 500 `application/problem+json` response
+	ApplicationproblemJSON500 *ErrorModel
+	// ApplicationproblemJSON503 the response for an HTTP 503 `application/problem+json` response
+	ApplicationproblemJSON503 *ErrorModel
 }
 
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
-func (r ReadyResponse) GetJSON200() *ReadyCheckOutputBody {
+func (r ReadyResponse) GetJSON200() *StatusOutputBody {
 	return r.JSON200
 }
 
-// GetApplicationproblemJSONDefault returns the response for an HTTP default `application/problem+json` response
-func (r ReadyResponse) GetApplicationproblemJSONDefault() *ErrorModel {
-	return r.ApplicationproblemJSONDefault
+// GetApplicationproblemJSON500 returns the response for an HTTP 500 `application/problem+json` response
+func (r ReadyResponse) GetApplicationproblemJSON500() *ErrorModel {
+	return r.ApplicationproblemJSON500
+}
+
+// GetApplicationproblemJSON503 returns the response for an HTTP 503 `application/problem+json` response
+func (r ReadyResponse) GetApplicationproblemJSON503() *ErrorModel {
+	return r.ApplicationproblemJSON503
 }
 
 // GetBody returns the raw response body bytes
@@ -738,7 +721,7 @@ func (c *ClientWithResponses) CreateNoteWithResponse(ctx context.Context, body C
 	return ParseCreateNoteResponse(rsp)
 }
 
-// HealthWithResponse Checks the application's availability
+// HealthWithResponse Check that the process is alive
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -751,7 +734,7 @@ func (c *ClientWithResponses) HealthWithResponse(ctx context.Context, reqEditors
 	return ParseHealthResponse(rsp)
 }
 
-// ReadyWithResponse Checks the application's readiness for operation
+// ReadyWithResponse Check that the service can handle requests
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -785,12 +768,12 @@ func ParseGetAllNotesResponse(rsp *http.Response) (*GetAllNotesResponse, error) 
 		}
 		response.JSON200 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.ApplicationproblemJSONDefault = &dest
+		response.ApplicationproblemJSON500 = &dest
 
 	}
 
@@ -818,12 +801,26 @@ func ParseCreateNoteResponse(rsp *http.Response) (*CreateNoteResponse, error) {
 		}
 		response.JSON201 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 400:
 		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.ApplicationproblemJSONDefault = &dest
+		response.ApplicationproblemJSON400 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 422:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON422 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON500 = &dest
 
 	}
 
@@ -845,7 +842,7 @@ func ParseHealthResponse(rsp *http.Response) (*HealthResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest HealthCheckOutputBody
+		var dest StatusOutputBody
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
@@ -878,18 +875,25 @@ func ParseReadyResponse(rsp *http.Response) (*ReadyResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest ReadyCheckOutputBody
+		var dest StatusOutputBody
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
 		response.JSON200 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && true:
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 500:
 		var dest ErrorModel
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}
-		response.ApplicationproblemJSONDefault = &dest
+		response.ApplicationproblemJSON500 = &dest
+
+	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 503:
+		var dest ErrorModel
+		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
+			return nil, err
+		}
+		response.ApplicationproblemJSON503 = &dest
 
 	}
 

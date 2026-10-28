@@ -1,20 +1,23 @@
-package app
+package postgres
 
 import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 	"github.com/pressly/goose/v3/lock"
 
-	"github.com/feytox/shugraph/backend/graph-admin-api/db/migrations"
-	"github.com/feytox/shugraph/backend/graph-admin-api/internal/config"
+	"github.com/feytox/shugraph/backend/graph-api/db/migrations"
+	"github.com/feytox/shugraph/backend/graph-api/internal/config"
 )
 
-func connectPostgres(ctx context.Context, cfg config.Database) (*pgxpool.Pool, error) {
+func Connect(ctx context.Context, cfg config.Database) (*pgxpool.Pool, error) {
 	poolConfig, err := pgxpool.ParseConfig(cfg.URL)
 	if err != nil {
 		return nil, fmt.Errorf("parse database url: %w", err)
@@ -24,6 +27,15 @@ func connectPostgres(ctx context.Context, cfg config.Database) (*pgxpool.Pool, e
 	poolConfig.MinConns = cfg.MinConns
 	poolConfig.MaxConnLifetime = cfg.MaxConnLifetime
 	poolConfig.ConnConfig.ConnectTimeout = cfg.ConnectTimeout
+	poolConfig.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
+		conn.TypeMap().RegisterType(&pgtype.Type{
+			Name:  "timestamptz",
+			OID:   pgtype.TimestamptzOID,
+			Codec: &pgtype.TimestamptzCodec{ScanLocation: time.UTC},
+		})
+
+		return nil
+	}
 
 	pool, err := pgxpool.NewWithConfig(ctx, poolConfig)
 	if err != nil {
@@ -41,22 +53,7 @@ func connectPostgres(ctx context.Context, cfg config.Database) (*pgxpool.Pool, e
 	return pool, nil
 }
 
-func Migrate(ctx context.Context, log *slog.Logger) error {
-	cfg, err := config.Load[config.Migrate]()
-	if err != nil {
-		return fmt.Errorf("load config: %w", err)
-	}
-
-	pool, err := connectPostgres(ctx, cfg.Database)
-	if err != nil {
-		return err
-	}
-	defer pool.Close()
-
-	return migrate(ctx, pool, log)
-}
-
-func migrate(ctx context.Context, pool *pgxpool.Pool, log *slog.Logger) error {
+func Migrate(ctx context.Context, pool *pgxpool.Pool, log *slog.Logger) error {
 	locker, err := lock.NewPostgresSessionLocker()
 	if err != nil {
 		return fmt.Errorf("create migration lock: %w", err)

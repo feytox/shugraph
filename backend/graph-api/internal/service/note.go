@@ -31,6 +31,7 @@ func (s *NoteService) CreateNote(ctx context.Context, text string) (domain.Note,
 	if err != nil {
 		return domain.Note{}, err
 	}
+
 	return noteDb, nil
 }
 
@@ -39,5 +40,6 @@ func (s *NoteService) List(ctx context.Context) ([]domain.Note, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	return notes, nil
 }

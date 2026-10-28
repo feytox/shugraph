@@ -19,6 +19,7 @@ import (
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/config"
+	pgdb "github.com/feytox/shugraph/backend/graph-admin-api/internal/postgres"
 )
 
 func TestProxyNoteIntegration(t *testing.T) {
@@ -100,7 +101,7 @@ func startServer(t *testing.T, graphAPIURL string) *server {
 	require.NoError(t, err)
 	t.Cleanup(srv.close)
 
-	require.NoError(t, migrate(ctx, srv.pool, log))
+	require.NoError(t, pgdb.Migrate(ctx, srv.pool, log))
 
 	return srv
 }

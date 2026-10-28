@@ -1,22 +1,21 @@
-.PHONY: sql-gen new-migrate test integration-test lint openapi
-sql-gen:
-	cd db && go tool sqlc generate
+.PHONY: gen openapi test integration-test lint new-migration
 
-new-migrate:
-	@if [ -z "$(name)" ]; then \
-			echo "Error: Use: make create n=name"; \
-			exit 1; \
-		fi
-		cd db/migrations && go tool goose create $(name) sql
+gen:
+	cd db && go run github.com/sqlc-dev/sqlc/cmd/sqlc@v1.31.1 generate
+	$(MAKE) openapi
 
-test :
-	go test ./...
+openapi:
+	go run ./cmd openapi > openapi.yaml
+
+test:
+	go vet ./... && go test -race ./...
 
 integration-test:
-	go test -tags=integration ./...
+	go test -race -tags=integration ./...
 
 lint:
 	golangci-lint run ./...
 
-openapi:
-	go run ./cmd openapi > openapi.yaml
+new-migration:
+	@test -n "$(name)" || (echo "usage: make new-migration name=<name>" && exit 1)
+	cd db/migrations && go run github.com/pressly/goose/v3/cmd/goose@v3.28.0 create $(name) sql

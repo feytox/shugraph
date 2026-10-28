@@ -29,7 +29,7 @@ func (f pingerFunc) Ping(ctx context.Context) error {
 }
 
 func TestProxyNote(t *testing.T) {
-	createdAt := time.Date(2026, 10, 16, 15, 0, 0, 0, time.FixedZone("UTC+5", 5*60*60))
+	createdAt := time.Date(2026, 10, 16, 10, 0, 0, 0, time.UTC)
 	notes := noteServiceFunc(func(_ context.Context, text string) (domain.ProxiedNote, error) {
 		return domain.ProxiedNote{ID: 7, GraphNoteID: "note-1", Text: text, CreatedAt: createdAt}, nil
 	})

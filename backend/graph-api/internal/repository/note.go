@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository/db"
@@ -22,22 +23,25 @@ func (p *PgNoteRepository) Create(ctx context.Context, note domain.Note) (domain
 		ID:   note.ID,
 		Text: note.Text,
 	}
+
 	noteDb, err := p.queries.CreateNote(ctx, record)
 	if err != nil {
-		return domain.Note{}, err
+		return domain.Note{}, fmt.Errorf("insert note: %w", err)
 	}
+
 	return domain.Note{
 		ID:        noteDb.ID,
 		Text:      noteDb.Text,
 		CreatedAt: noteDb.CreatedAt,
-	}, err
+	}, nil
 }
 
 func (p *PgNoteRepository) List(ctx context.Context) ([]domain.Note, error) {
 	noteRecords, err := p.queries.GetNotes(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("select notes: %w", err)
 	}
+
 	notes := make([]domain.Note, 0, len(noteRecords))
 	for _, record := range noteRecords {
 		note := domain.Note{
@@ -47,5 +51,6 @@ func (p *PgNoteRepository) List(ctx context.Context) ([]domain.Note, error) {
 		}
 		notes = append(notes, note)
 	}
+
 	return notes, nil
 }
