@@ -13,6 +13,31 @@ components:
         - id
         - client_id
       type: object
+    AddressScheme:
+      additionalProperties: false
+      properties:
+        accounts:
+          format: int64
+          type: integer
+        burst:
+          format: int64
+          type: integer
+        devices:
+          format: int64
+          type: integer
+        scheme:
+          format: int64
+          type: integer
+        speed:
+          format: int64
+          type: integer
+      required:
+        - scheme
+        - speed
+        - accounts
+        - devices
+        - burst
+      type: object
     AllNoteOutputBody:
       additionalProperties: false
       properties:
@@ -24,6 +49,27 @@ components:
             - "null"
       required:
         - notes
+      type: object
+    ChainScheme:
+      additionalProperties: false
+      properties:
+        hops:
+          format: int64
+          type: integer
+        preserved:
+          format: int64
+          type: integer
+        scheme:
+          format: int64
+          type: integer
+        speed:
+          format: int64
+          type: integer
+      required:
+        - scheme
+        - speed
+        - hops
+        - preserved
       type: object
     CreateNoteInputBody:
       additionalProperties: false
@@ -87,6 +133,27 @@ components:
           format: uri
           type: string
       type: object
+    FarmScheme:
+      additionalProperties: false
+      properties:
+        clients:
+          format: int64
+          type: integer
+        collector:
+          format: int64
+          type: integer
+        scheme:
+          format: int64
+          type: integer
+        speed:
+          format: int64
+          type: integer
+      required:
+        - scheme
+        - speed
+        - clients
+        - collector
+      type: object
     Feature:
       additionalProperties: false
       properties:
@@ -108,14 +175,6 @@ components:
         - accounts_count
         - span_minutes
         - total_amount
-      type: object
-    GetByIDOutputBody:
-      additionalProperties: false
-      properties:
-        group:
-          $ref: "#/components/schemas/Group"
-      required:
-        - group
       type: object
     GraphEdge:
       additionalProperties: false
@@ -194,12 +253,15 @@ components:
           items:
             $ref: "#/components/schemas/Account"
           type: array
+        risk_level:
+          enum:
+            - low
+            - medium
+            - high
+          type: string
         risk_parts:
-          additionalProperties:
-            format: int64
-            type: integer
+          $ref: "#/components/schemas/RiskParts"
           description: Scheme-specific contributions; their sum equals risk_score. Used to explain the finding.
-          type: object
         risk_score:
           format: int64
           maximum: 100
@@ -207,31 +269,32 @@ components:
           type: integer
         scheme:
           enum:
-            - ферма
-            - адрес
-            - цепочка
-            - кольцо
+            - farm
+            - address
+            - chain
+            - ring
           type: string
         status:
           enum:
-            - новая
-            - подтверждена
-            - отклонена
+            - new
+            - approved
+            - declined
           type: string
       required:
         - is_frozen
-        - decision_comment
-        - decided_at
         - members
         - events
         - id
         - scheme
         - status
+        - risk_level
         - risk_score
         - risk_parts
         - first_event_at
         - last_event_at
         - features
+        - decision_comment
+        - decided_at
       type: object
     GroupGraph:
       additionalProperties: false
@@ -266,12 +329,15 @@ components:
         last_event_at:
           format: date-time
           type: string
+        risk_level:
+          enum:
+            - low
+            - medium
+            - high
+          type: string
         risk_parts:
-          additionalProperties:
-            format: int64
-            type: integer
+          $ref: "#/components/schemas/RiskParts"
           description: Scheme-specific contributions; their sum equals risk_score. Used to explain the finding.
-          type: object
         risk_score:
           format: int64
           maximum: 100
@@ -279,21 +345,22 @@ components:
           type: integer
         scheme:
           enum:
-            - ферма
-            - адрес
-            - цепочка
-            - кольцо
+            - farm
+            - address
+            - chain
+            - ring
           type: string
         status:
           enum:
-            - новая
-            - подтверждена
-            - отклонена
+            - new
+            - approved
+            - declined
           type: string
       required:
         - id
         - scheme
         - status
+        - risk_level
         - risk_score
         - risk_parts
         - first_event_at
@@ -319,38 +386,38 @@ components:
     GroupSolutionInputBody:
       additionalProperties: false
       properties:
-        approved:
-          type: boolean
         decision_comment:
           minLength: 1
           pattern: \S
           type: string
+        status:
+          enum:
+            - approved
+            - declined
+          type: string
       required:
-        - approved
+        - status
         - decision_comment
       type: object
     GroupSolutionOutputBody:
       additionalProperties: false
       properties:
         decided_at:
+          description: Null while status is новая.
           format: date-time
-          type: string
+          type:
+            - string
+            - "null"
         decision_comment:
-          minLength: 1
-          pattern: \S
+          description: Empty until a decision is made.
           type: string
-        is_frozen:
-          enum:
-            - true
-          type: boolean
         status:
           enum:
-            - подтверждена
-            - отклонена
+            - confirmed
+            - rejected
           type: string
       required:
         - status
-        - is_frozen
         - decision_comment
         - decided_at
       type: object
@@ -483,6 +550,47 @@ components:
         - id
         - source
         - target
+      type: object
+    RingScheme:
+      additionalProperties: false
+      properties:
+        accounts:
+          format: int64
+          type: integer
+        preserved:
+          format: int64
+          type: integer
+        rounds:
+          format: int64
+          type: integer
+        scheme:
+          format: int64
+          type: integer
+        speed:
+          format: int64
+          type: integer
+      required:
+        - scheme
+        - speed
+        - rounds
+        - accounts
+        - preserved
+      type: object
+    RiskParts:
+      additionalProperties: false
+      properties:
+        address:
+          $ref: "#/components/schemas/AddressScheme"
+          description: "'Address' Scheme Metrics"
+        chain:
+          $ref: "#/components/schemas/ChainScheme"
+          description: "'Chain' scheme metrics"
+        farm:
+          $ref: "#/components/schemas/FarmScheme"
+          description: "'Farm' scheme metrics"
+        ring:
+          $ref: "#/components/schemas/RingScheme"
+          description: "'Ring' scheme metrics"
       type: object
     StatusOutputBody:
       additionalProperties: false
@@ -752,6 +860,17 @@ paths:
           schema:
             description: Opaque continuation token. Omit for the first page.
             type: string
+        - description: Status to filter groups to.
+          explode: false
+          in: query
+          name: status
+          schema:
+            description: Status to filter groups to.
+            enum:
+              - new
+              - approved
+              - declined
+            type: string
       responses:
         "200":
           content:
@@ -799,7 +918,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GetByIDOutputBody"
+                $ref: "#/components/schemas/Group"
           description: OK
         "404":
           content:
