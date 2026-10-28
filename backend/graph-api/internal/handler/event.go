@@ -11,6 +11,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
+const eventsTag = "Events"
+
 type eventHandlers struct{}
 
 func registerEvents(api huma.API, h *eventHandlers) {
@@ -27,6 +29,7 @@ Amounts are integer kopecks.`
 		Summary:       "Accept a login event",
 		Method:        http.MethodPut,
 		Path:          "/api/v1/events/logins/{event_id}",
+		Tags:          []string{eventsTag},
 		DefaultStatus: http.StatusCreated,
 		Description:   ingestDescription,
 		Errors: []int{
@@ -45,6 +48,7 @@ Amounts are integer kopecks.`
 		Summary:       "Accept a transfer event",
 		Method:        http.MethodPut,
 		Path:          "/api/v1/events/transfers/{event_id}",
+		Tags:          []string{eventsTag},
 		DefaultStatus: http.StatusCreated,
 		Description:   ingestDescription,
 		Errors: []int{

@@ -8,6 +8,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 )
 
+const groupsTag = "Groups"
+
 type groupHandlers struct{}
 
 func registerGroups(api huma.API, h *groupHandlers) {
@@ -16,6 +18,7 @@ func registerGroups(api huma.API, h *groupHandlers) {
 		Summary:     "List suspicious groups",
 		Method:      http.MethodGet,
 		Path:        "/api/v1/groups",
+		Tags:        []string{groupsTag},
 		Errors:      []int{http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusNotImplemented},
 		Description: `Ordered by first_event_at DESC, id DESC.
 cursor is an opaque continuation token bound to this order.
@@ -28,6 +31,7 @@ An empty list has items: [] and next_cursor: null.`,
 		Summary:     "Get a suspicious group",
 		Method:      http.MethodGet,
 		Path:        "/api/v1/groups/{group_id}",
+		Tags:        []string{groupsTag},
 		Errors:      []int{http.StatusNotFound, http.StatusUnprocessableEntity, http.StatusNotImplemented},
 	}, h.getByID)
 
@@ -36,6 +40,7 @@ An empty list has items: [] and next_cursor: null.`,
 		Summary:     "Get a group's Cytoscape elements",
 		Method:      http.MethodGet,
 		Path:        "/api/v1/groups/{group_id}/graph",
+		Tags:        []string{groupsTag},
 		Errors:      []int{http.StatusNotFound, http.StatusUnprocessableEntity, http.StatusNotImplemented},
 		Description: `Only the selected group's evidence subgraph.
 IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
@@ -49,6 +54,7 @@ Ownership is client to account. Layout and presentation are client concerns.`,
 		Summary:     "Confirm or decline a new group",
 		Method:      http.MethodPatch,
 		Path:        "/api/v1/groups/{group_id}/solution",
+		Tags:        []string{groupsTag},
 		Errors: []int{
 			http.StatusBadRequest,
 			http.StatusNotFound,

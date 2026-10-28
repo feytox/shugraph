@@ -413,8 +413,8 @@ components:
           type: string
         status:
           enum:
-            - confirmed
-            - rejected
+            - approved
+            - declined
           type: string
       required:
         - status
@@ -775,6 +775,8 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Not Implemented
       summary: Accept a login event
+      tags:
+        - Events
   /api/v1/events/transfers/{event_id}:
     put:
       description: |-
@@ -835,6 +837,8 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Not Implemented
       summary: Accept a transfer event
+      tags:
+        - Events
   /api/v1/groups:
     get:
       description: |-
@@ -903,6 +907,8 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Not Implemented
       summary: List suspicious groups
+      tags:
+        - Groups
   /api/v1/groups/{group_id}:
     get:
       operationId: get-group
@@ -945,6 +951,8 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Not Implemented
       summary: Get a suspicious group
+      tags:
+        - Groups
   /api/v1/groups/{group_id}/graph:
     get:
       description: |-
@@ -993,6 +1001,8 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Not Implemented
       summary: Get a group's Cytoscape elements
+      tags:
+        - Groups
   /api/v1/groups/{group_id}/solution:
     patch:
       description: |-
@@ -1059,6 +1069,8 @@ paths:
                 $ref: "#/components/schemas/ErrorModel"
           description: Not Implemented
       summary: Confirm or decline a new group
+      tags:
+        - Groups
   /api/v1/notes:
     get:
       operationId: get-all-notes
