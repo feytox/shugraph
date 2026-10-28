@@ -31,7 +31,6 @@ erDiagram
     LOGIN_EVENTS {
         string event_id PK, FK
         string account_id FK
-        string client_id FK
         string device_id FK
         string address_id FK
     }
@@ -67,7 +66,6 @@ erDiagram
     EVENTS ||--o| TRANSFERS : " "
     EVENTS ||--o| LOGIN_EVENTS : " "
     ACCOUNTS ||--o{ LOGIN_EVENTS : " "
-    CLIENTS ||--o{ LOGIN_EVENTS : " "
     DEVICES ||--o{ LOGIN_EVENTS : " "
     NETWORK_ADDRESSES ||--o{ LOGIN_EVENTS : " "
     GROUPS ||--o{ GROUP_MEMBERS : " "
@@ -124,8 +122,7 @@ erDiagram
 | Поле | Тип | Откуда берётся | Пример |
 |---|---|---|---|
 | `event_id` | string | из события | `evt-0002` |
-| `account_id` | string | из события (счёт и владелец) | `acc-6742` |
-| `client_id` | string | из события | `cli-0421` |
+| `account_id` | string | из события (счёт входа; владелец — через `accounts.client_id`) | `acc-6742` |
 | `device_id` | string | из события (отпечаток) | `dev-a91f` |
 | `address_id` | string | из события (IP) | `84.17.52.10` |
 
