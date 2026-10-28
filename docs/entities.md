@@ -42,6 +42,8 @@ erDiagram
         json risk_parts
         timestamp first_event_at
         timestamp last_event_at
+        integer accounts_count
+        bigint total_amount
         boolean is_frozen
         string decision_comment
         timestamp? decided_at
@@ -53,12 +55,6 @@ erDiagram
     GROUP_EVENTS {
         uuid group_id PK, FK
         string event_id PK, FK
-    }
-    GROUP_FEATURES {
-        uuid group_id PK, FK
-        integer accounts_count
-        integer span_minutes
-        bigint total_amount
     }
     CLIENTS ||--o{ ACCOUNTS : " "
     ACCOUNTS ||--o{ TRANSFERS : "отправитель"
@@ -72,7 +68,6 @@ erDiagram
     ACCOUNTS ||--o{ GROUP_MEMBERS : " "
     GROUPS ||--o{ GROUP_EVENTS : " "
     EVENTS ||--o{ GROUP_EVENTS : " "
-    GROUPS ||--|| GROUP_FEATURES : " "
 ```
 
 ## Клиенты (`clients`)
@@ -137,9 +132,15 @@ erDiagram
 | `risk_parts` | json | вычисление (значения переменных формулы риска) | `{"scheme": 55, "speed": 15, "hops": 10, "preserved": 5}` |
 | `first_event_at` | timestamp | вычисляется в приложении на основе событий | `2026-10-12T18:03:00Z` |
 | `last_event_at` | timestamp | вычисляется в приложении на основе событий | `2026-10-12T18:14:00Z` |
+| `accounts_count` | integer | вычисление | `5` |
+| `total_amount` | bigint | вычисление (сумма в копейках) | `32450000` |
 | `is_frozen` | boolean | решение аналитика или события вышли из окна | `true` |
 | `decision_comment` | string | действие аналитика | `транзит за 11 минут, подтверждаю` |
 | `decided_at` | timestamp, nullable | действие аналитика (Ф6), NULL пока "новая" | `2026-10-12T18:40:00Z` |
+
+Примечание по `total_amount`: это оборот в копейках, т.е. сумма всех переводов группы по `group_events` (повторы кругов суммируются).
+
+Примечание по `span`: длительность группы отдельно не хранится, это `last_event_at - first_event_at`.
 
 Примеры `risk_parts` по схемам (ключ — переменная формулы, значение — её подсчитанное значение; это не итоговый `risk_score`, он считается по [risk.md](schemes/risk.md) и ограничен 100):
 
@@ -182,16 +183,5 @@ erDiagram
 |---|---|---|---|
 | `group_id` | uuid | вычисление | `b5f2a1c4-3d6e-4f7a-8b9c-0d1e2f3a4b5c` |
 | `event_id` | string | вычисление | `evt-0001` |
-
-## Признаки группы (`group_features`)
-
-| Поле | Тип | Откуда берётся | Пример |
-|---|---|---|---|
-| `group_id` | uuid | вычисление | `b5f2a1c4-3d6e-4f7a-8b9c-0d1e2f3a4b5c` |
-| `accounts_count` | integer | вычисление | `5` |
-| `span_minutes` | integer | вычисление | `11` |
-| `total_amount` | bigint | вычисление (сумма в копейках) | `32450000` |
-
-Примечание по `total_amount`: это оборот в копейках, т.е. сумма всех переводов группы по `group_events` (повторы кругов суммируются).
 
 Схемо-зависимые признаки отдельно не хранятся: разбор риска по слагаемым лежит в `groups.risk_parts`, сырьё для него - события группы (`group_events`)
