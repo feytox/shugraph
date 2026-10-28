@@ -62,6 +62,7 @@ block-beta
 
 ## Оглавление
 
+- [Общее оглавление документации](../../README.md)
 - [business.md](business.md) - фичи первого спринта
 - [backend.md](backend.md) - стек и архитектура бэкенда, хранение данных
 - [frontend.md](frontend.md) - стек и архитектура фронтенда
