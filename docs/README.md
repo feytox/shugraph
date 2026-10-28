@@ -7,6 +7,7 @@
 - [entities.md](entities.md) - сущности и модель данных
 - [features.md](features.md) - фичи продукта
 - [input-events.md](input-events.md) - входные события сценариев
+- [data-flow.md](data-flow.md) - поток данных от события до решения аналитика
 - [schemes/README.md](schemes/README.md) - мошеннические схемы и правила их обнаружения (SRD)
   - [schemes/device-farm.md](schemes/device-farm.md) - схема 1: одно устройство на толпу
   - [schemes/shared-address.md](schemes/shared-address.md) - схема 2: один адрес на толпу
