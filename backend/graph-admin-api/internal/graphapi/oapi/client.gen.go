@@ -18,24 +18,45 @@ import (
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
-// Defines values for GraphNodeDataType.
+// Defines values for GraphNodeType.
 const (
-	GraphNodeDataTypeAccount        GraphNodeDataType = "account"
-	GraphNodeDataTypeClient         GraphNodeDataType = "client"
-	GraphNodeDataTypeDevice         GraphNodeDataType = "device"
-	GraphNodeDataTypeNetworkAddress GraphNodeDataType = "network_address"
+	GraphNodeTypeAccount        GraphNodeType = "account"
+	GraphNodeTypeClient         GraphNodeType = "client"
+	GraphNodeTypeDevice         GraphNodeType = "device"
+	GraphNodeTypeNetworkAddress GraphNodeType = "network_address"
 )
 
-// Valid indicates whether the value is a known member of the GraphNodeDataType enum.
-func (e GraphNodeDataType) Valid() bool {
+// Valid indicates whether the value is a known member of the GraphNodeType enum.
+func (e GraphNodeType) Valid() bool {
 	switch e {
-	case GraphNodeDataTypeAccount:
+	case GraphNodeTypeAccount:
 		return true
-	case GraphNodeDataTypeClient:
+	case GraphNodeTypeClient:
 		return true
-	case GraphNodeDataTypeDevice:
+	case GraphNodeTypeDevice:
 		return true
-	case GraphNodeDataTypeNetworkAddress:
+	case GraphNodeTypeNetworkAddress:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GroupRiskLevel.
+const (
+	GroupRiskLevelHigh   GroupRiskLevel = "high"
+	GroupRiskLevelLow    GroupRiskLevel = "low"
+	GroupRiskLevelMedium GroupRiskLevel = "medium"
+)
+
+// Valid indicates whether the value is a known member of the GroupRiskLevel enum.
+func (e GroupRiskLevel) Valid() bool {
+	switch e {
+	case GroupRiskLevelHigh:
+		return true
+	case GroupRiskLevelLow:
+		return true
+	case GroupRiskLevelMedium:
 		return true
 	default:
 		return false
@@ -44,22 +65,22 @@ func (e GraphNodeDataType) Valid() bool {
 
 // Defines values for GroupScheme.
 const (
-	GroupSchemeАдрес   GroupScheme = "адрес"
-	GroupSchemeКольцо  GroupScheme = "кольцо"
-	GroupSchemeФерма   GroupScheme = "ферма"
-	GroupSchemeЦепочка GroupScheme = "цепочка"
+	GroupSchemeAddress GroupScheme = "address"
+	GroupSchemeChain   GroupScheme = "chain"
+	GroupSchemeFarm    GroupScheme = "farm"
+	GroupSchemeRing    GroupScheme = "ring"
 )
 
 // Valid indicates whether the value is a known member of the GroupScheme enum.
 func (e GroupScheme) Valid() bool {
 	switch e {
-	case GroupSchemeАдрес:
+	case GroupSchemeAddress:
 		return true
-	case GroupSchemeКольцо:
+	case GroupSchemeChain:
 		return true
-	case GroupSchemeФерма:
+	case GroupSchemeFarm:
 		return true
-	case GroupSchemeЦепочка:
+	case GroupSchemeRing:
 		return true
 	default:
 		return false
@@ -68,19 +89,40 @@ func (e GroupScheme) Valid() bool {
 
 // Defines values for GroupStatus.
 const (
-	GroupStatusНовая        GroupStatus = "новая"
-	GroupStatusОтклонена    GroupStatus = "отклонена"
-	GroupStatusПодтверждена GroupStatus = "подтверждена"
+	GroupStatusApproved GroupStatus = "approved"
+	GroupStatusDeclined GroupStatus = "declined"
+	GroupStatusNew      GroupStatus = "new"
 )
 
 // Valid indicates whether the value is a known member of the GroupStatus enum.
 func (e GroupStatus) Valid() bool {
 	switch e {
-	case GroupStatusНовая:
+	case GroupStatusApproved:
 		return true
-	case GroupStatusОтклонена:
+	case GroupStatusDeclined:
 		return true
-	case GroupStatusПодтверждена:
+	case GroupStatusNew:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GroupItemRiskLevel.
+const (
+	GroupItemRiskLevelHigh   GroupItemRiskLevel = "high"
+	GroupItemRiskLevelLow    GroupItemRiskLevel = "low"
+	GroupItemRiskLevelMedium GroupItemRiskLevel = "medium"
+)
+
+// Valid indicates whether the value is a known member of the GroupItemRiskLevel enum.
+func (e GroupItemRiskLevel) Valid() bool {
+	switch e {
+	case GroupItemRiskLevelHigh:
+		return true
+	case GroupItemRiskLevelLow:
+		return true
+	case GroupItemRiskLevelMedium:
 		return true
 	default:
 		return false
@@ -89,22 +131,22 @@ func (e GroupStatus) Valid() bool {
 
 // Defines values for GroupItemScheme.
 const (
-	GroupItemSchemeАдрес   GroupItemScheme = "адрес"
-	GroupItemSchemeКольцо  GroupItemScheme = "кольцо"
-	GroupItemSchemeФерма   GroupItemScheme = "ферма"
-	GroupItemSchemeЦепочка GroupItemScheme = "цепочка"
+	GroupItemSchemeAddress GroupItemScheme = "address"
+	GroupItemSchemeChain   GroupItemScheme = "chain"
+	GroupItemSchemeFarm    GroupItemScheme = "farm"
+	GroupItemSchemeRing    GroupItemScheme = "ring"
 )
 
 // Valid indicates whether the value is a known member of the GroupItemScheme enum.
 func (e GroupItemScheme) Valid() bool {
 	switch e {
-	case GroupItemSchemeАдрес:
+	case GroupItemSchemeAddress:
 		return true
-	case GroupItemSchemeКольцо:
+	case GroupItemSchemeChain:
 		return true
-	case GroupItemSchemeФерма:
+	case GroupItemSchemeFarm:
 		return true
-	case GroupItemSchemeЦепочка:
+	case GroupItemSchemeRing:
 		return true
 	default:
 		return false
@@ -113,34 +155,37 @@ func (e GroupItemScheme) Valid() bool {
 
 // Defines values for GroupItemStatus.
 const (
-	GroupItemStatusНовая        GroupItemStatus = "новая"
-	GroupItemStatusОтклонена    GroupItemStatus = "отклонена"
-	GroupItemStatusПодтверждена GroupItemStatus = "подтверждена"
+	GroupItemStatusApproved GroupItemStatus = "approved"
+	GroupItemStatusDeclined GroupItemStatus = "declined"
+	GroupItemStatusNew      GroupItemStatus = "new"
 )
 
 // Valid indicates whether the value is a known member of the GroupItemStatus enum.
 func (e GroupItemStatus) Valid() bool {
 	switch e {
-	case GroupItemStatusНовая:
+	case GroupItemStatusApproved:
 		return true
-	case GroupItemStatusОтклонена:
+	case GroupItemStatusDeclined:
 		return true
-	case GroupItemStatusПодтверждена:
+	case GroupItemStatusNew:
 		return true
 	default:
 		return false
 	}
 }
 
-// Defines values for GroupSolutionOutputBodyIsFrozen.
+// Defines values for GroupSolutionInputBodyStatus.
 const (
-	True GroupSolutionOutputBodyIsFrozen = true
+	GroupSolutionInputBodyStatusApproved GroupSolutionInputBodyStatus = "approved"
+	GroupSolutionInputBodyStatusDeclined GroupSolutionInputBodyStatus = "declined"
 )
 
-// Valid indicates whether the value is a known member of the GroupSolutionOutputBodyIsFrozen enum.
-func (e GroupSolutionOutputBodyIsFrozen) Valid() bool {
+// Valid indicates whether the value is a known member of the GroupSolutionInputBodyStatus enum.
+func (e GroupSolutionInputBodyStatus) Valid() bool {
 	switch e {
-	case True:
+	case GroupSolutionInputBodyStatusApproved:
+		return true
+	case GroupSolutionInputBodyStatusDeclined:
 		return true
 	default:
 		return false
@@ -149,91 +194,37 @@ func (e GroupSolutionOutputBodyIsFrozen) Valid() bool {
 
 // Defines values for GroupSolutionOutputBodyStatus.
 const (
-	GroupSolutionOutputBodyStatusОтклонена    GroupSolutionOutputBodyStatus = "отклонена"
-	GroupSolutionOutputBodyStatusПодтверждена GroupSolutionOutputBodyStatus = "подтверждена"
+	GroupSolutionOutputBodyStatusApproved GroupSolutionOutputBodyStatus = "approved"
+	GroupSolutionOutputBodyStatusDeclined GroupSolutionOutputBodyStatus = "declined"
 )
 
 // Valid indicates whether the value is a known member of the GroupSolutionOutputBodyStatus enum.
 func (e GroupSolutionOutputBodyStatus) Valid() bool {
 	switch e {
-	case GroupSolutionOutputBodyStatusОтклонена:
+	case GroupSolutionOutputBodyStatusApproved:
 		return true
-	case GroupSolutionOutputBodyStatusПодтверждена:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for LoginEdgeType.
-const (
-	LoginEdgeTypeLogin LoginEdgeType = "login"
-)
-
-// Valid indicates whether the value is a known member of the LoginEdgeType enum.
-func (e LoginEdgeType) Valid() bool {
-	switch e {
-	case LoginEdgeTypeLogin:
+	case GroupSolutionOutputBodyStatusDeclined:
 		return true
 	default:
 		return false
 	}
 }
 
-// Defines values for LoginEventType.
+// Defines values for ListGroupsParamsStatus.
 const (
-	LoginEventTypeLogin LoginEventType = "login"
+	ListGroupsParamsStatusApproved ListGroupsParamsStatus = "approved"
+	ListGroupsParamsStatusDeclined ListGroupsParamsStatus = "declined"
+	ListGroupsParamsStatusNew      ListGroupsParamsStatus = "new"
 )
 
-// Valid indicates whether the value is a known member of the LoginEventType enum.
-func (e LoginEventType) Valid() bool {
+// Valid indicates whether the value is a known member of the ListGroupsParamsStatus enum.
+func (e ListGroupsParamsStatus) Valid() bool {
 	switch e {
-	case LoginEventTypeLogin:
+	case ListGroupsParamsStatusApproved:
 		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for OwnershipEdgeType.
-const (
-	Ownership OwnershipEdgeType = "ownership"
-)
-
-// Valid indicates whether the value is a known member of the OwnershipEdgeType enum.
-func (e OwnershipEdgeType) Valid() bool {
-	switch e {
-	case Ownership:
+	case ListGroupsParamsStatusDeclined:
 		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for TransferEdgeType.
-const (
-	TransferEdgeTypeTransfer TransferEdgeType = "transfer"
-)
-
-// Valid indicates whether the value is a known member of the TransferEdgeType enum.
-func (e TransferEdgeType) Valid() bool {
-	switch e {
-	case TransferEdgeTypeTransfer:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for TransferEventType.
-const (
-	TransferEventTypeTransfer TransferEventType = "transfer"
-)
-
-// Valid indicates whether the value is a known member of the TransferEventType enum.
-func (e TransferEventType) Valid() bool {
-	switch e {
-	case TransferEventTypeTransfer:
+	case ListGroupsParamsStatusNew:
 		return true
 	default:
 		return false
@@ -246,9 +237,26 @@ type Account struct {
 	Id       string `json:"id"`
 }
 
+// AddressScheme defines model for AddressScheme.
+type AddressScheme struct {
+	Accounts int64 `json:"accounts"`
+	Burst    int64 `json:"burst"`
+	Devices  int64 `json:"devices"`
+	Scheme   int64 `json:"scheme"`
+	Speed    int64 `json:"speed"`
+}
+
 // AllNoteOutputBody defines model for AllNoteOutputBody.
 type AllNoteOutputBody struct {
 	Notes *[]Note `json:"notes"`
+}
+
+// ChainScheme defines model for ChainScheme.
+type ChainScheme struct {
+	Hops      int64 `json:"hops"`
+	Preserved int64 `json:"preserved"`
+	Scheme    int64 `json:"scheme"`
+	Speed     int64 `json:"speed"`
 }
 
 // CreateNoteInputBody defines model for CreateNoteInputBody.
@@ -300,6 +308,14 @@ type ErrorModel struct {
 	Type *string `json:"type,omitempty"`
 }
 
+// FarmScheme defines model for FarmScheme.
+type FarmScheme struct {
+	Clients   int64 `json:"clients"`
+	Collector int64 `json:"collector"`
+	Scheme    int64 `json:"scheme"`
+	Speed     int64 `json:"speed"`
+}
+
 // Feature defines model for Feature.
 type Feature struct {
 	AccountsCount int64 `json:"accounts_count"`
@@ -311,38 +327,18 @@ type Feature struct {
 	TotalAmount int64 `json:"total_amount"`
 }
 
-// GetByIDOutputBody defines model for GetByIDOutputBody.
-type GetByIDOutputBody struct {
-	Group Group `json:"group"`
-}
-
-// GraphEdge defines model for GraphEdge.
-type GraphEdge struct {
-	Data GraphEdge_Data `json:"data"`
-}
-
-// GraphEdge_Data defines model for GraphEdge.Data.
-type GraphEdge_Data struct {
-	union json.RawMessage
-}
-
 // GraphNode defines model for GraphNode.
 type GraphNode struct {
-	Data GraphNodeData `json:"data"`
-}
-
-// GraphNodeData defines model for GraphNodeData.
-type GraphNodeData struct {
 	// EntityId Original source identifier.
 	EntityId string `json:"entity_id"`
 
 	// Id Type-prefixed ID, e.g. account:acc-1.
-	Id   string            `json:"id"`
-	Type GraphNodeDataType `json:"type"`
+	Id   string        `json:"id"`
+	Type GraphNodeType `json:"type"`
 }
 
-// GraphNodeDataType defines model for GraphNodeData.Type.
-type GraphNodeDataType string
+// GraphNodeType defines model for GraphNode.Type.
+type GraphNodeType string
 
 // Group defines model for Group.
 type Group struct {
@@ -350,26 +346,29 @@ type Group struct {
 	DecidedAt *time.Time `json:"decided_at"`
 
 	// DecisionComment Empty until a decision is made.
-	DecisionComment string              `json:"decision_comment"`
-	Events          []Group_Events_Item `json:"events"`
-	Features        Feature             `json:"features"`
-	FirstEventAt    time.Time           `json:"first_event_at"`
-	Id              openapi_types.UUID  `json:"id"`
-	IsFrozen        bool                `json:"is_frozen"`
-	LastEventAt     time.Time           `json:"last_event_at"`
-	Members         []Account           `json:"members"`
+	DecisionComment string `json:"decision_comment"`
+
+	// DetectedAt Server time of first detection; immutable.
+	DetectedAt   time.Time          `json:"detected_at"`
+	Features     Feature            `json:"features"`
+	FirstEventAt time.Time          `json:"first_event_at"`
+	Id           openapi_types.UUID `json:"id"`
+	IsFrozen     bool               `json:"is_frozen"`
+	LastEventAt  time.Time          `json:"last_event_at"`
+	Logins       []LoginEvent       `json:"logins"`
+	Members      []Account          `json:"members"`
+	RiskLevel    GroupRiskLevel     `json:"risk_level"`
 
 	// RiskParts Scheme-specific contributions; their sum equals risk_score. Used to explain the finding.
-	RiskParts map[string]int64 `json:"risk_parts"`
-	RiskScore int64            `json:"risk_score"`
-	Scheme    GroupScheme      `json:"scheme"`
-	Status    GroupStatus      `json:"status"`
+	RiskParts RiskParts       `json:"risk_parts"`
+	RiskScore int64           `json:"risk_score"`
+	Scheme    GroupScheme     `json:"scheme"`
+	Status    GroupStatus     `json:"status"`
+	Transfers []TransferEvent `json:"transfers"`
 }
 
-// Group_Events_Item defines model for Group.events.Item.
-type Group_Events_Item struct {
-	union json.RawMessage
-}
+// GroupRiskLevel defines model for Group.RiskLevel.
+type GroupRiskLevel string
 
 // GroupScheme defines model for Group.Scheme.
 type GroupScheme string
@@ -379,24 +378,32 @@ type GroupStatus string
 
 // GroupGraph defines model for GroupGraph.
 type GroupGraph struct {
-	Edges   []GraphEdge        `json:"edges"`
-	GroupId openapi_types.UUID `json:"group_id"`
-	Nodes   []GraphNode        `json:"nodes"`
+	GroupId    openapi_types.UUID `json:"group_id"`
+	Logins     []LoginEdge        `json:"logins"`
+	Nodes      []GraphNode        `json:"nodes"`
+	Ownerships []OwnershipEdge    `json:"ownerships"`
+	Transfers  []TransferEdge     `json:"transfers"`
 }
 
 // GroupItem defines model for GroupItem.
 type GroupItem struct {
+	// DetectedAt Server time of first detection; immutable.
+	DetectedAt   time.Time          `json:"detected_at"`
 	Features     Feature            `json:"features"`
 	FirstEventAt time.Time          `json:"first_event_at"`
 	Id           openapi_types.UUID `json:"id"`
 	LastEventAt  time.Time          `json:"last_event_at"`
+	RiskLevel    GroupItemRiskLevel `json:"risk_level"`
 
 	// RiskParts Scheme-specific contributions; their sum equals risk_score. Used to explain the finding.
-	RiskParts map[string]int64 `json:"risk_parts"`
-	RiskScore int64            `json:"risk_score"`
-	Scheme    GroupItemScheme  `json:"scheme"`
-	Status    GroupItemStatus  `json:"status"`
+	RiskParts RiskParts       `json:"risk_parts"`
+	RiskScore int64           `json:"risk_score"`
+	Scheme    GroupItemScheme `json:"scheme"`
+	Status    GroupItemStatus `json:"status"`
 }
+
+// GroupItemRiskLevel defines model for GroupItem.RiskLevel.
+type GroupItemRiskLevel string
 
 // GroupItemScheme defines model for GroupItem.Scheme.
 type GroupItemScheme string
@@ -414,20 +421,22 @@ type GroupListOutputBody struct {
 
 // GroupSolutionInputBody defines model for GroupSolutionInputBody.
 type GroupSolutionInputBody struct {
-	Approved        bool   `json:"approved"`
-	DecisionComment string `json:"decision_comment"`
+	DecisionComment string                       `json:"decision_comment"`
+	Status          GroupSolutionInputBodyStatus `json:"status"`
 }
+
+// GroupSolutionInputBodyStatus defines model for GroupSolutionInputBody.Status.
+type GroupSolutionInputBodyStatus string
 
 // GroupSolutionOutputBody defines model for GroupSolutionOutputBody.
 type GroupSolutionOutputBody struct {
-	DecidedAt       time.Time                       `json:"decided_at"`
-	DecisionComment string                          `json:"decision_comment"`
-	IsFrozen        GroupSolutionOutputBodyIsFrozen `json:"is_frozen"`
-	Status          GroupSolutionOutputBodyStatus   `json:"status"`
-}
+	// DecidedAt Null while status is новая.
+	DecidedAt *time.Time `json:"decided_at"`
 
-// GroupSolutionOutputBodyIsFrozen defines model for GroupSolutionOutputBody.IsFrozen.
-type GroupSolutionOutputBodyIsFrozen bool
+	// DecisionComment Empty until a decision is made.
+	DecisionComment string                        `json:"decision_comment"`
+	Status          GroupSolutionOutputBodyStatus `json:"status"`
+}
 
 // GroupSolutionOutputBodyStatus defines model for GroupSolutionOutputBody.Status.
 type GroupSolutionOutputBodyStatus string
@@ -436,32 +445,24 @@ type GroupSolutionOutputBodyStatus string
 type LoginEdge struct {
 	EventId string `json:"event_id"`
 
-	// Id Unique type-prefixed edge ID. Login IDs additionally include device/address suffix.
-	Id         string        `json:"id"`
-	OccurredAt time.Time     `json:"occurred_at"`
-	Source     string        `json:"source"`
-	Target     string        `json:"target"`
-	Type       LoginEdgeType `json:"type"`
+	// Id Unique type-prefixed edge ID.
+	Id         string    `json:"id"`
+	OccurredAt time.Time `json:"occurred_at"`
+	Source     string    `json:"source"`
+	Target     string    `json:"target"`
 }
-
-// LoginEdgeType defines model for LoginEdge.Type.
-type LoginEdgeType string
 
 // LoginEvent defines model for LoginEvent.
 type LoginEvent struct {
 	AccountId string `json:"account_id"`
 
 	// AddressId Source IP/network address; retained as a source identifier.
-	AddressId  string         `json:"address_id"`
-	ClientId   string         `json:"client_id"`
-	DeviceId   string         `json:"device_id"`
-	EventId    string         `json:"event_id"`
-	OccurredAt time.Time      `json:"occurred_at"`
-	Type       LoginEventType `json:"type"`
+	AddressId  string    `json:"address_id"`
+	ClientId   string    `json:"client_id"`
+	DeviceId   string    `json:"device_id"`
+	EventId    string    `json:"event_id"`
+	OccurredAt time.Time `json:"occurred_at"`
 }
-
-// LoginEventType defines model for LoginEvent.Type.
-type LoginEventType string
 
 // LoginPayload defines model for LoginPayload.
 type LoginPayload struct {
@@ -483,15 +484,35 @@ type Note struct {
 
 // OwnershipEdge defines model for OwnershipEdge.
 type OwnershipEdge struct {
-	// Id Unique type-prefixed edge ID. Login IDs additionally include device/address suffix.
-	Id     string            `json:"id"`
-	Source string            `json:"source"`
-	Target string            `json:"target"`
-	Type   OwnershipEdgeType `json:"type"`
+	// Id Unique type-prefixed edge ID.
+	Id     string `json:"id"`
+	Source string `json:"source"`
+	Target string `json:"target"`
 }
 
-// OwnershipEdgeType defines model for OwnershipEdge.Type.
-type OwnershipEdgeType string
+// RingScheme defines model for RingScheme.
+type RingScheme struct {
+	Accounts  int64 `json:"accounts"`
+	Preserved int64 `json:"preserved"`
+	Rounds    int64 `json:"rounds"`
+	Scheme    int64 `json:"scheme"`
+	Speed     int64 `json:"speed"`
+}
+
+// RiskParts defines model for RiskParts.
+type RiskParts struct {
+	// Address 'Address' Scheme Metrics
+	Address *AddressScheme `json:"address,omitempty"`
+
+	// Chain 'Chain' scheme metrics
+	Chain *ChainScheme `json:"chain,omitempty"`
+
+	// Farm 'Farm' scheme metrics
+	Farm *FarmScheme `json:"farm,omitempty"`
+
+	// Ring 'Ring' scheme metrics
+	Ring *RingScheme `json:"ring,omitempty"`
+}
 
 // StatusOutputBody defines model for StatusOutputBody.
 type StatusOutputBody struct {
@@ -505,32 +526,24 @@ type TransferEdge struct {
 	Amount  int64  `json:"amount"`
 	EventId string `json:"event_id"`
 
-	// Id Unique type-prefixed edge ID. Login IDs additionally include device/address suffix.
-	Id         string           `json:"id"`
-	OccurredAt time.Time        `json:"occurred_at"`
-	Source     string           `json:"source"`
-	Target     string           `json:"target"`
-	Type       TransferEdgeType `json:"type"`
+	// Id Unique type-prefixed edge ID.
+	Id         string    `json:"id"`
+	OccurredAt time.Time `json:"occurred_at"`
+	Source     string    `json:"source"`
+	Target     string    `json:"target"`
 }
-
-// TransferEdgeType defines model for TransferEdge.Type.
-type TransferEdgeType string
 
 // TransferEvent defines model for TransferEvent.
 type TransferEvent struct {
 	// Amount Amount in kopecks.
-	Amount        int64             `json:"amount"`
-	EventId       string            `json:"event_id"`
-	FromAccountId string            `json:"from_account_id"`
-	FromClientId  string            `json:"from_client_id"`
-	OccurredAt    time.Time         `json:"occurred_at"`
-	ToAccountId   string            `json:"to_account_id"`
-	ToClientId    string            `json:"to_client_id"`
-	Type          TransferEventType `json:"type"`
+	Amount        int64     `json:"amount"`
+	EventId       string    `json:"event_id"`
+	FromAccountId string    `json:"from_account_id"`
+	FromClientId  string    `json:"from_client_id"`
+	OccurredAt    time.Time `json:"occurred_at"`
+	ToAccountId   string    `json:"to_account_id"`
+	ToClientId    string    `json:"to_client_id"`
 }
-
-// TransferEventType defines model for TransferEvent.Type.
-type TransferEventType string
 
 // TransferPayload defines model for TransferPayload.
 type TransferPayload struct {
@@ -549,7 +562,13 @@ type ListGroupsParams struct {
 
 	// Cursor Opaque continuation token. Omit for the first page.
 	Cursor *string `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// Status Status to filter groups to.
+	Status *ListGroupsParamsStatus `form:"status,omitempty" json:"status,omitempty"`
 }
+
+// ListGroupsParamsStatus defines parameters for ListGroups.
+type ListGroupsParamsStatus string
 
 // LoginEventJSONRequestBody defines body for LoginEvent for application/json ContentType.
 type LoginEventJSONRequestBody = LoginPayload
@@ -562,156 +581,6 @@ type ResolveGroupJSONRequestBody = GroupSolutionInputBody
 
 // CreateNoteJSONRequestBody defines body for CreateNote for application/json ContentType.
 type CreateNoteJSONRequestBody = CreateNoteInputBody
-
-// AsOwnershipEdge returns the union data inside the GraphEdge_Data as a OwnershipEdge
-func (t GraphEdge_Data) AsOwnershipEdge() (OwnershipEdge, error) {
-	var body OwnershipEdge
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromOwnershipEdge overwrites any union data inside the GraphEdge_Data as the provided OwnershipEdge
-func (t *GraphEdge_Data) FromOwnershipEdge(v OwnershipEdge) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeOwnershipEdge performs a merge with any union data inside the GraphEdge_Data, using the provided OwnershipEdge
-func (t *GraphEdge_Data) MergeOwnershipEdge(v OwnershipEdge) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsLoginEdge returns the union data inside the GraphEdge_Data as a LoginEdge
-func (t GraphEdge_Data) AsLoginEdge() (LoginEdge, error) {
-	var body LoginEdge
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromLoginEdge overwrites any union data inside the GraphEdge_Data as the provided LoginEdge
-func (t *GraphEdge_Data) FromLoginEdge(v LoginEdge) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeLoginEdge performs a merge with any union data inside the GraphEdge_Data, using the provided LoginEdge
-func (t *GraphEdge_Data) MergeLoginEdge(v LoginEdge) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsTransferEdge returns the union data inside the GraphEdge_Data as a TransferEdge
-func (t GraphEdge_Data) AsTransferEdge() (TransferEdge, error) {
-	var body TransferEdge
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromTransferEdge overwrites any union data inside the GraphEdge_Data as the provided TransferEdge
-func (t *GraphEdge_Data) FromTransferEdge(v TransferEdge) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeTransferEdge performs a merge with any union data inside the GraphEdge_Data, using the provided TransferEdge
-func (t *GraphEdge_Data) MergeTransferEdge(v TransferEdge) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t GraphEdge_Data) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *GraphEdge_Data) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
-
-// AsLoginEvent returns the union data inside the Group_Events_Item as a LoginEvent
-func (t Group_Events_Item) AsLoginEvent() (LoginEvent, error) {
-	var body LoginEvent
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromLoginEvent overwrites any union data inside the Group_Events_Item as the provided LoginEvent
-func (t *Group_Events_Item) FromLoginEvent(v LoginEvent) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeLoginEvent performs a merge with any union data inside the Group_Events_Item, using the provided LoginEvent
-func (t *Group_Events_Item) MergeLoginEvent(v LoginEvent) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-// AsTransferEvent returns the union data inside the Group_Events_Item as a TransferEvent
-func (t Group_Events_Item) AsTransferEvent() (TransferEvent, error) {
-	var body TransferEvent
-	err := json.Unmarshal(t.union, &body)
-	return body, err
-}
-
-// FromTransferEvent overwrites any union data inside the Group_Events_Item as the provided TransferEvent
-func (t *Group_Events_Item) FromTransferEvent(v TransferEvent) error {
-	b, err := json.Marshal(v)
-	t.union = b
-	return err
-}
-
-// MergeTransferEvent performs a merge with any union data inside the Group_Events_Item, using the provided TransferEvent
-func (t *Group_Events_Item) MergeTransferEvent(v TransferEvent) error {
-	b, err := json.Marshal(v)
-	if err != nil {
-		return err
-	}
-
-	merged, err := runtime.JSONMerge(t.union, b)
-	t.union = merged
-	return err
-}
-
-func (t Group_Events_Item) MarshalJSON() ([]byte, error) {
-	b, err := t.union.MarshalJSON()
-	return b, err
-}
-
-func (t *Group_Events_Item) UnmarshalJSON(b []byte) error {
-	err := t.union.UnmarshalJSON(b)
-	return err
-}
 
 // RequestEditorFn is the function signature for the RequestEditor callback function
 type RequestEditorFn func(ctx context.Context, req *http.Request) error
@@ -793,9 +662,6 @@ type ClientInterface interface {
 	// New events return 201 with no body.
 	// An identical retry returns 204 without recomputing groups;
 	// an existing ID with different type or payload returns 409.
-	// Compare parsed values, not JSON formatting.
-	// Persistence/deduplication are implemented separately.
-	// Amounts are integer kopecks.
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -808,9 +674,6 @@ type ClientInterface interface {
 	// New events return 201 with no body.
 	// An identical retry returns 204 without recomputing groups;
 	// an existing ID with different type or payload returns 409.
-	// Compare parsed values, not JSON formatting.
-	// Persistence/deduplication are implemented separately.
-	// Amounts are integer kopecks.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -823,9 +686,6 @@ type ClientInterface interface {
 	// New events return 201 with no body.
 	// An identical retry returns 204 without recomputing groups;
 	// an existing ID with different type or payload returns 409.
-	// Compare parsed values, not JSON formatting.
-	// Persistence/deduplication are implemented separately.
-	// Amounts are integer kopecks.
 	//
 	// Takes any type of body and a specified content type.
 	//
@@ -838,9 +698,6 @@ type ClientInterface interface {
 	// New events return 201 with no body.
 	// An identical retry returns 204 without recomputing groups;
 	// an existing ID with different type or payload returns 409.
-	// Compare parsed values, not JSON formatting.
-	// Persistence/deduplication are implemented separately.
-	// Amounts are integer kopecks.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -849,9 +706,9 @@ type ClientInterface interface {
 
 	// ListGroups List suspicious groups
 	//
-	// Ordered by first_event_at DESC, id DESC.
-	// cursor is an opaque continuation token bound to this order.
-	// Poll the first page to discover new groups. Invalid cursors return 400.
+	// Ordered by detected_at DESC, id DESC.
+	// cursor is an opaque continuation token containing this pair. Invalid cursors return 400.
+	// When polling, read pages until a known group is reached to avoid missing arrivals.
 	// An empty list has items: [] and next_cursor: null.
 	//
 	// Corresponds with GET /api/v1/groups (the `ListGroups` operationId).
@@ -862,13 +719,13 @@ type ClientInterface interface {
 	// Corresponds with GET /api/v1/groups/{group_id} (the `GetGroup` operationId).
 	GetGroup(ctx context.Context, groupId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
 
-	// GetGroupGraph Get a group's Cytoscape elements
+	// GetGroupGraph Get a group's evidence graph
 	//
 	// Only the selected group's evidence subgraph.
 	// IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
 	// Each login produces two edges sharing event_id:
 	// account to device and account to network address.
-	// Ownership is client to account. Layout and presentation are client concerns.
+	// Ownership is client to account.
 	//
 	// Corresponds with GET /api/v1/groups/{group_id}/graph (the `GetGroupGraph` operationId).
 	GetGroupGraph(ctx context.Context, groupId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error)
@@ -935,9 +792,6 @@ type ClientInterface interface {
 // New events return 201 with no body.
 // An identical retry returns 204 without recomputing groups;
 // an existing ID with different type or payload returns 409.
-// Compare parsed values, not JSON formatting.
-// Persistence/deduplication are implemented separately.
-// Amounts are integer kopecks.
 //
 // Takes any type of body and a specified content type.
 //
@@ -960,9 +814,6 @@ func (c *Client) LoginEventWithBody(ctx context.Context, eventId string, content
 // New events return 201 with no body.
 // An identical retry returns 204 without recomputing groups;
 // an existing ID with different type or payload returns 409.
-// Compare parsed values, not JSON formatting.
-// Persistence/deduplication are implemented separately.
-// Amounts are integer kopecks.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -985,9 +836,6 @@ func (c *Client) LoginEvent(ctx context.Context, eventId string, body LoginEvent
 // New events return 201 with no body.
 // An identical retry returns 204 without recomputing groups;
 // an existing ID with different type or payload returns 409.
-// Compare parsed values, not JSON formatting.
-// Persistence/deduplication are implemented separately.
-// Amounts are integer kopecks.
 //
 // Takes any type of body and a specified content type.
 //
@@ -1010,9 +858,6 @@ func (c *Client) TransferEventWithBody(ctx context.Context, eventId string, cont
 // New events return 201 with no body.
 // An identical retry returns 204 without recomputing groups;
 // an existing ID with different type or payload returns 409.
-// Compare parsed values, not JSON formatting.
-// Persistence/deduplication are implemented separately.
-// Amounts are integer kopecks.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -1031,9 +876,9 @@ func (c *Client) TransferEvent(ctx context.Context, eventId string, body Transfe
 
 // ListGroups List suspicious groups
 //
-// Ordered by first_event_at DESC, id DESC.
-// cursor is an opaque continuation token bound to this order.
-// Poll the first page to discover new groups. Invalid cursors return 400.
+// Ordered by detected_at DESC, id DESC.
+// cursor is an opaque continuation token containing this pair. Invalid cursors return 400.
+// When polling, read pages until a known group is reached to avoid missing arrivals.
 // An empty list has items: [] and next_cursor: null.
 //
 // Corresponds with GET /api/v1/groups (the `ListGroups` operationId).
@@ -1064,13 +909,13 @@ func (c *Client) GetGroup(ctx context.Context, groupId openapi_types.UUID, reqEd
 	return c.Client.Do(req)
 }
 
-// GetGroupGraph Get a group's Cytoscape elements
+// GetGroupGraph Get a group's evidence graph
 //
 // Only the selected group's evidence subgraph.
 // IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
 // Each login produces two edges sharing event_id:
 // account to device and account to network address.
-// Ownership is client to account. Layout and presentation are client concerns.
+// Ownership is client to account.
 //
 // Corresponds with GET /api/v1/groups/{group_id}/graph (the `GetGroupGraph` operationId).
 func (c *Client) GetGroupGraph(ctx context.Context, groupId openapi_types.UUID, reqEditors ...RequestEditorFn) (*http.Response, error) {
@@ -1347,6 +1192,18 @@ func NewListGroupsRequest(server string, params *ListGroupsParams) (*http.Reques
 		if params.Cursor != nil {
 
 			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "cursor", *params.Cursor, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
+				return nil, err
+			} else {
+				for _, qp := range strings.Split(queryFrag, "&") {
+					rawQueryFragments = append(rawQueryFragments, qp)
+				}
+			}
+
+		}
+
+		if params.Status != nil {
+
+			if queryFrag, err := runtime.StyleParamWithOptions("form", false, "status", *params.Status, runtime.StyleParamOptions{ParamLocation: runtime.ParamLocationQuery, Type: "string", Format: ""}); err != nil {
 				return nil, err
 			} else {
 				for _, qp := range strings.Split(queryFrag, "&") {
@@ -1656,9 +1513,6 @@ type ClientWithResponsesInterface interface {
 	// New events return 201 with no body.
 	// An identical retry returns 204 without recomputing groups;
 	// an existing ID with different type or payload returns 409.
-	// Compare parsed values, not JSON formatting.
-	// Persistence/deduplication are implemented separately.
-	// Amounts are integer kopecks.
 	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -1671,9 +1525,6 @@ type ClientWithResponsesInterface interface {
 	// New events return 201 with no body.
 	// An identical retry returns 204 without recomputing groups;
 	// an existing ID with different type or payload returns 409.
-	// Compare parsed values, not JSON formatting.
-	// Persistence/deduplication are implemented separately.
-	// Amounts are integer kopecks.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -1686,9 +1537,6 @@ type ClientWithResponsesInterface interface {
 	// New events return 201 with no body.
 	// An identical retry returns 204 without recomputing groups;
 	// an existing ID with different type or payload returns 409.
-	// Compare parsed values, not JSON formatting.
-	// Persistence/deduplication are implemented separately.
-	// Amounts are integer kopecks.
 	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -1701,9 +1549,6 @@ type ClientWithResponsesInterface interface {
 	// New events return 201 with no body.
 	// An identical retry returns 204 without recomputing groups;
 	// an existing ID with different type or payload returns 409.
-	// Compare parsed values, not JSON formatting.
-	// Persistence/deduplication are implemented separately.
-	// Amounts are integer kopecks.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -1712,9 +1557,9 @@ type ClientWithResponsesInterface interface {
 
 	// ListGroupsWithResponse List suspicious groups
 	//
-	// Ordered by first_event_at DESC, id DESC.
-	// cursor is an opaque continuation token bound to this order.
-	// Poll the first page to discover new groups. Invalid cursors return 400.
+	// Ordered by detected_at DESC, id DESC.
+	// cursor is an opaque continuation token containing this pair. Invalid cursors return 400.
+	// When polling, read pages until a known group is reached to avoid missing arrivals.
 	// An empty list has items: [] and next_cursor: null.
 	//
 	// Returns a wrapper object for the known response body format(s).
@@ -1729,13 +1574,13 @@ type ClientWithResponsesInterface interface {
 	// Corresponds with GET /api/v1/groups/{group_id} (the `GetGroup` operationId).
 	GetGroupWithResponse(ctx context.Context, groupId openapi_types.UUID, reqEditors ...RequestEditorFn) (*GetGroupResponse, error)
 
-	// GetGroupGraphWithResponse Get a group's Cytoscape elements
+	// GetGroupGraphWithResponse Get a group's evidence graph
 	//
 	// Only the selected group's evidence subgraph.
 	// IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
 	// Each login produces two edges sharing event_id:
 	// account to device and account to network address.
-	// Ownership is client to account. Layout and presentation are client concerns.
+	// Ownership is client to account.
 	//
 	// Returns a wrapper object for the known response body format(s).
 	//
@@ -2015,7 +1860,7 @@ type GetGroupResponse struct {
 	Body         []byte
 	HTTPResponse *http.Response
 	// JSON200 the response for an HTTP 200 `application/json` response
-	JSON200 *GetByIDOutputBody
+	JSON200 *Group
 	// ApplicationproblemJSON404 the response for an HTTP 404 `application/problem+json` response
 	ApplicationproblemJSON404 *ErrorModel
 	// ApplicationproblemJSON422 the response for an HTTP 422 `application/problem+json` response
@@ -2027,7 +1872,7 @@ type GetGroupResponse struct {
 }
 
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
-func (r GetGroupResponse) GetJSON200() *GetByIDOutputBody {
+func (r GetGroupResponse) GetJSON200() *Group {
 	return r.JSON200
 }
 
@@ -2451,9 +2296,6 @@ func (r ReadyResponse) ContentType() string {
 // New events return 201 with no body.
 // An identical retry returns 204 without recomputing groups;
 // an existing ID with different type or payload returns 409.
-// Compare parsed values, not JSON formatting.
-// Persistence/deduplication are implemented separately.
-// Amounts are integer kopecks.
 //
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
@@ -2472,9 +2314,6 @@ func (c *ClientWithResponses) LoginEventWithBodyWithResponse(ctx context.Context
 // New events return 201 with no body.
 // An identical retry returns 204 without recomputing groups;
 // an existing ID with different type or payload returns 409.
-// Compare parsed values, not JSON formatting.
-// Persistence/deduplication are implemented separately.
-// Amounts are integer kopecks.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
@@ -2493,9 +2332,6 @@ func (c *ClientWithResponses) LoginEventWithResponse(ctx context.Context, eventI
 // New events return 201 with no body.
 // An identical retry returns 204 without recomputing groups;
 // an existing ID with different type or payload returns 409.
-// Compare parsed values, not JSON formatting.
-// Persistence/deduplication are implemented separately.
-// Amounts are integer kopecks.
 //
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
@@ -2514,9 +2350,6 @@ func (c *ClientWithResponses) TransferEventWithBodyWithResponse(ctx context.Cont
 // New events return 201 with no body.
 // An identical retry returns 204 without recomputing groups;
 // an existing ID with different type or payload returns 409.
-// Compare parsed values, not JSON formatting.
-// Persistence/deduplication are implemented separately.
-// Amounts are integer kopecks.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //
@@ -2531,9 +2364,9 @@ func (c *ClientWithResponses) TransferEventWithResponse(ctx context.Context, eve
 
 // ListGroupsWithResponse List suspicious groups
 //
-// Ordered by first_event_at DESC, id DESC.
-// cursor is an opaque continuation token bound to this order.
-// Poll the first page to discover new groups. Invalid cursors return 400.
+// Ordered by detected_at DESC, id DESC.
+// cursor is an opaque continuation token containing this pair. Invalid cursors return 400.
+// When polling, read pages until a known group is reached to avoid missing arrivals.
 // An empty list has items: [] and next_cursor: null.
 //
 // Returns a wrapper object for the known response body format(s).
@@ -2560,13 +2393,13 @@ func (c *ClientWithResponses) GetGroupWithResponse(ctx context.Context, groupId 
 	return ParseGetGroupResponse(rsp)
 }
 
-// GetGroupGraphWithResponse Get a group's Cytoscape elements
+// GetGroupGraphWithResponse Get a group's evidence graph
 //
 // Only the selected group's evidence subgraph.
 // IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
 // Each login produces two edges sharing event_id:
 // account to device and account to network address.
-// Ownership is client to account. Layout and presentation are client concerns.
+// Ownership is client to account.
 //
 // Returns a wrapper object for the known response body format(s).
 //
@@ -2871,7 +2704,7 @@ func ParseGetGroupResponse(rsp *http.Response) (*GetGroupResponse, error) {
 
 	switch {
 	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 200:
-		var dest GetByIDOutputBody
+		var dest Group
 		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
 			return nil, err
 		}

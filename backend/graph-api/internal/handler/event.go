@@ -2,10 +2,7 @@ package handler
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
 	"net/http"
-	"reflect"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -19,10 +16,7 @@ func registerEvents(api huma.API, h *eventHandlers) {
 	const ingestDescription = `Event IDs are globally unique across both event types.
 New events return 201 with no body.
 An identical retry returns 204 without recomputing groups;
-an existing ID with different type or payload returns 409.
-Compare parsed values, not JSON formatting.
-Persistence/deduplication are implemented separately.
-Amounts are integer kopecks.`
+an existing ID with different type or payload returns 409.`
 
 	huma.Register(api, huma.Operation{
 		OperationID:   "login-event",
@@ -93,38 +87,13 @@ type TransferInput struct {
 }
 type LoginEvent struct {
 	EventID string `json:"event_id" minLength:"1"`
-	Type    string `json:"type" enum:"login"`
 	LoginPayload
 }
 type TransferEvent struct {
 	EventID string `json:"event_id" minLength:"1"`
-	Type    string `json:"type" enum:"transfer"`
 	TransferPayload
 }
 
-// Event contains exactly one typed evidence event, flattened on the wire.
-type Event struct {
-	Login    *LoginEvent
-	Transfer *TransferEvent
-}
-
-func (Event) Schema(r huma.Registry) *huma.Schema {
-	return &huma.Schema{OneOf: []*huma.Schema{
-		r.Schema(reflect.TypeFor[LoginEvent](), true, ""),
-		r.Schema(reflect.TypeFor[TransferEvent](), true, ""),
-	}}
-}
-func (e Event) MarshalJSON() ([]byte, error) {
-	if (e.Login == nil) == (e.Transfer == nil) {
-		return nil, fmt.Errorf("event requires exactly one payload")
-	}
-
-	if e.Login != nil {
-		return json.Marshal(e.Login)
-	}
-
-	return json.Marshal(e.Transfer)
-}
 func (h *eventHandlers) login(context.Context, *LoginInput) (*struct{}, error) {
 	return nil, huma.Error501NotImplemented("Event ingestion is not implemented yet.")
 }

@@ -20,9 +20,9 @@ func registerGroups(api huma.API, h *groupHandlers) {
 		Path:        "/api/v1/groups",
 		Tags:        []string{groupsTag},
 		Errors:      []int{http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusNotImplemented},
-		Description: `Ordered by first_event_at DESC, id DESC.
-cursor is an opaque continuation token bound to this order.
-Poll the first page to discover new groups. Invalid cursors return 400.
+		Description: `Ordered by detected_at DESC, id DESC.
+cursor is an opaque continuation token containing this pair. Invalid cursors return 400.
+When polling, read pages until a known group is reached to avoid missing arrivals.
 An empty list has items: [] and next_cursor: null.`,
 	}, h.list)
 
@@ -37,7 +37,7 @@ An empty list has items: [] and next_cursor: null.`,
 
 	huma.Register(api, huma.Operation{
 		OperationID: "get-group-graph",
-		Summary:     "Get a group's Cytoscape elements",
+		Summary:     "Get a group's evidence graph",
 		Method:      http.MethodGet,
 		Path:        "/api/v1/groups/{group_id}/graph",
 		Tags:        []string{groupsTag},
@@ -46,7 +46,7 @@ An empty list has items: [] and next_cursor: null.`,
 IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
 Each login produces two edges sharing event_id:
 account to device and account to network address.
-Ownership is client to account. Layout and presentation are client concerns.`,
+Ownership is client to account.`,
 	}, h.getGraph)
 
 	huma.Register(api, huma.Operation{
@@ -145,6 +145,7 @@ type GroupItem struct {
 	RiskLevel    GroupRiskType   `json:"risk_level" enum:"low,medium,high"`
 	RiskScore    int             `json:"risk_score" minimum:"0" maximum:"100"`
 	RiskParts    `json:"risk_parts" doc:"Scheme-specific contributions; their sum equals risk_score. Used to explain the finding."`
+	DetectedAt   time.Time `json:"detected_at" doc:"Server time of first detection; immutable."`
 	FirstEventAt time.Time `json:"first_event_at"`
 	LastEventAt  time.Time `json:"last_event_at"`
 	Features     Feature   `json:"features"`
@@ -158,8 +159,9 @@ type Group struct {
 	GroupItem
 	IsFrozen bool `json:"is_frozen"`
 	Decided
-	Members []Account `json:"members" nullable:"false"`
-	Events  []Event   `json:"events" nullable:"false"`
+	Members   []Account       `json:"members" nullable:"false"`
+	Logins    []LoginEvent    `json:"logins" nullable:"false"`
+	Transfers []TransferEvent `json:"transfers" nullable:"false"`
 }
 
 type GroupListOutput struct {

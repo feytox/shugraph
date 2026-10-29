@@ -176,26 +176,7 @@ components:
         - span_minutes
         - total_amount
       type: object
-    GraphEdge:
-      additionalProperties: false
-      properties:
-        data:
-          oneOf:
-            - $ref: "#/components/schemas/OwnershipEdge"
-            - $ref: "#/components/schemas/LoginEdge"
-            - $ref: "#/components/schemas/TransferEdge"
-      required:
-        - data
-      type: object
     GraphNode:
-      additionalProperties: false
-      properties:
-        data:
-          $ref: "#/components/schemas/GraphNodeData"
-      required:
-        - data
-      type: object
-    GraphNodeData:
       additionalProperties: false
       properties:
         entity_id:
@@ -230,12 +211,10 @@ components:
         decision_comment:
           description: Empty until a decision is made.
           type: string
-        events:
-          items:
-            oneOf:
-              - $ref: "#/components/schemas/LoginEvent"
-              - $ref: "#/components/schemas/TransferEvent"
-          type: array
+        detected_at:
+          description: Server time of first detection; immutable.
+          format: date-time
+          type: string
         features:
           $ref: "#/components/schemas/Feature"
         first_event_at:
@@ -249,6 +228,10 @@ components:
         last_event_at:
           format: date-time
           type: string
+        logins:
+          items:
+            $ref: "#/components/schemas/LoginEvent"
+          type: array
         members:
           items:
             $ref: "#/components/schemas/Account"
@@ -280,16 +263,22 @@ components:
             - approved
             - declined
           type: string
+        transfers:
+          items:
+            $ref: "#/components/schemas/TransferEvent"
+          type: array
       required:
         - is_frozen
         - members
-        - events
+        - logins
+        - transfers
         - id
         - scheme
         - status
         - risk_level
         - risk_score
         - risk_parts
+        - detected_at
         - first_event_at
         - last_event_at
         - features
@@ -299,25 +288,39 @@ components:
     GroupGraph:
       additionalProperties: false
       properties:
-        edges:
-          items:
-            $ref: "#/components/schemas/GraphEdge"
-          type: array
         group_id:
           format: uuid
           type: string
+        logins:
+          items:
+            $ref: "#/components/schemas/LoginEdge"
+          type: array
         nodes:
           items:
             $ref: "#/components/schemas/GraphNode"
           type: array
+        ownerships:
+          items:
+            $ref: "#/components/schemas/OwnershipEdge"
+          type: array
+        transfers:
+          items:
+            $ref: "#/components/schemas/TransferEdge"
+          type: array
       required:
         - group_id
         - nodes
-        - edges
+        - ownerships
+        - logins
+        - transfers
       type: object
     GroupItem:
       additionalProperties: false
       properties:
+        detected_at:
+          description: Server time of first detection; immutable.
+          format: date-time
+          type: string
         features:
           $ref: "#/components/schemas/Feature"
         first_event_at:
@@ -363,6 +366,7 @@ components:
         - risk_level
         - risk_score
         - risk_parts
+        - detected_at
         - first_event_at
         - last_event_at
         - features
@@ -428,7 +432,7 @@ components:
           minLength: 1
           type: string
         id:
-          description: Unique type-prefixed edge ID. Login IDs additionally include device/address suffix.
+          description: Unique type-prefixed edge ID.
           minLength: 1
           type: string
         occurred_at:
@@ -440,12 +444,7 @@ components:
         target:
           minLength: 1
           type: string
-        type:
-          enum:
-            - login
-          type: string
       required:
-        - type
         - event_id
         - occurred_at
         - id
@@ -474,13 +473,8 @@ components:
         occurred_at:
           format: date-time
           type: string
-        type:
-          enum:
-            - login
-          type: string
       required:
         - event_id
-        - type
         - occurred_at
         - account_id
         - client_id
@@ -532,7 +526,7 @@ components:
       additionalProperties: false
       properties:
         id:
-          description: Unique type-prefixed edge ID. Login IDs additionally include device/address suffix.
+          description: Unique type-prefixed edge ID.
           minLength: 1
           type: string
         source:
@@ -541,12 +535,7 @@ components:
         target:
           minLength: 1
           type: string
-        type:
-          enum:
-            - ownership
-          type: string
       required:
-        - type
         - id
         - source
         - target
@@ -614,7 +603,7 @@ components:
           minLength: 1
           type: string
         id:
-          description: Unique type-prefixed edge ID. Login IDs additionally include device/address suffix.
+          description: Unique type-prefixed edge ID.
           minLength: 1
           type: string
         occurred_at:
@@ -626,12 +615,7 @@ components:
         target:
           minLength: 1
           type: string
-        type:
-          enum:
-            - transfer
-          type: string
       required:
-        - type
         - event_id
         - occurred_at
         - amount
@@ -665,13 +649,8 @@ components:
         to_client_id:
           minLength: 1
           type: string
-        type:
-          enum:
-            - transfer
-          type: string
       required:
         - event_id
-        - type
         - occurred_at
         - from_account_id
         - from_client_id
@@ -722,9 +701,6 @@ paths:
         New events return 201 with no body.
         An identical retry returns 204 without recomputing groups;
         an existing ID with different type or payload returns 409.
-        Compare parsed values, not JSON formatting.
-        Persistence/deduplication are implemented separately.
-        Amounts are integer kopecks.
       operationId: login-event
       parameters:
         - in: path
@@ -784,9 +760,6 @@ paths:
         New events return 201 with no body.
         An identical retry returns 204 without recomputing groups;
         an existing ID with different type or payload returns 409.
-        Compare parsed values, not JSON formatting.
-        Persistence/deduplication are implemented separately.
-        Amounts are integer kopecks.
       operationId: transfer-event
       parameters:
         - in: path
@@ -842,9 +815,9 @@ paths:
   /api/v1/groups:
     get:
       description: |-
-        Ordered by first_event_at DESC, id DESC.
-        cursor is an opaque continuation token bound to this order.
-        Poll the first page to discover new groups. Invalid cursors return 400.
+        Ordered by detected_at DESC, id DESC.
+        cursor is an opaque continuation token containing this pair. Invalid cursors return 400.
+        When polling, read pages until a known group is reached to avoid missing arrivals.
         An empty list has items: [] and next_cursor: null.
       operationId: list-groups
       parameters:
@@ -960,7 +933,7 @@ paths:
         IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
         Each login produces two edges sharing event_id:
         account to device and account to network address.
-        Ownership is client to account. Layout and presentation are client concerns.
+        Ownership is client to account.
       operationId: get-group-graph
       parameters:
         - in: path
@@ -1000,7 +973,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Not Implemented
-      summary: Get a group's Cytoscape elements
+      summary: Get a group's evidence graph
       tags:
         - Groups
   /api/v1/groups/{group_id}/solution:

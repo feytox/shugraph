@@ -7,6 +7,8 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestContractRoutes(t *testing.T) {
@@ -20,7 +22,7 @@ func TestContractRoutes(t *testing.T) {
 		{http.MethodGet, "/api/v1/groups", ""},
 		{http.MethodGet, groupPath, ""},
 		{http.MethodGet, groupPath + "/graph", ""},
-		{http.MethodPatch, groupPath + "/solution", `{"approved":true,"decision_comment":"Confirmed"}`},
+		{http.MethodPatch, groupPath + "/solution", `{"status":"approved","decision_comment":"Confirmed"}`},
 		{http.MethodPut, "/api/v1/events/logins/login-1", `{
 			"occurred_at":"2026-10-26T12:00:00Z",
 			"account_id":"account-1","client_id":"client-1",
@@ -44,25 +46,17 @@ func TestContractRoutes(t *testing.T) {
 
 			handler.ServeHTTP(rec, req)
 
-			if rec.Code != http.StatusNotImplemented {
-				t.Fatalf("expected contract stub status 501, got %d: %s", rec.Code, rec.Body.String())
-			}
+			require.Equal(t, http.StatusNotImplemented, rec.Code, rec.Body.String())
 		})
 	}
 }
 
 func TestOpenAPIUpToDate(t *testing.T) {
 	generated, err := OpenAPISpec()
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	committed, err := os.ReadFile("../../openapi.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if strings.ReplaceAll(string(committed), "\r\n", "\n") != string(generated) {
-		t.Fatal("openapi.yaml is stale: run make openapi")
-	}
+	require.Equal(t, string(generated), strings.ReplaceAll(string(committed), "\r\n", "\n"), "openapi.yaml is stale: run make openapi")
 }
