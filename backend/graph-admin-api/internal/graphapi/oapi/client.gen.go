@@ -265,6 +265,12 @@ type CreateNoteInputBody struct {
 	Text string `json:"text"`
 }
 
+// Decision defines model for Decision.
+type Decision struct {
+	Comment   string    `json:"comment"`
+	DecidedAt time.Time `json:"decided_at"`
+}
+
 // ErrorDetail defines model for ErrorDetail.
 type ErrorDetail struct {
 	// Location Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id'
@@ -342,11 +348,7 @@ type GraphNodeType string
 
 // Group defines model for Group.
 type Group struct {
-	// DecidedAt Null while status is новая.
-	DecidedAt *time.Time `json:"decided_at"`
-
-	// DecisionComment Empty until a decision is made.
-	DecisionComment string `json:"decision_comment"`
+	Decision *Decision `json:"decision"`
 
 	// DetectedAt Server time of first detection; immutable.
 	DetectedAt   time.Time          `json:"detected_at"`
@@ -430,12 +432,8 @@ type GroupSolutionInputBodyStatus string
 
 // GroupSolutionOutputBody defines model for GroupSolutionOutputBody.
 type GroupSolutionOutputBody struct {
-	// DecidedAt Null while status is новая.
-	DecidedAt *time.Time `json:"decided_at"`
-
-	// DecisionComment Empty until a decision is made.
-	DecisionComment string                        `json:"decision_comment"`
-	Status          GroupSolutionOutputBodyStatus `json:"status"`
+	Decision Decision                      `json:"decision"`
+	Status   GroupSolutionOutputBodyStatus `json:"status"`
 }
 
 // GroupSolutionOutputBodyStatus defines model for GroupSolutionOutputBody.Status.
@@ -732,24 +730,12 @@ type ClientInterface interface {
 
 	// ResolveGroupWithBody Confirm or decline a new group
 	//
-	// approved=true confirms, false declines.
-	// A non-whitespace comment is required.
-	// Both decisions freeze the group and set decided_at.
-	// Only status новая may be decided, including a group frozen by expiry.
-	// Any subsequent decision returns 409; undo/history are outside this contract.
-	//
 	// Takes any type of body and a specified content type.
 	//
 	// Corresponds with PATCH /api/v1/groups/{group_id}/solution (the `ResolveGroup` operationId).
 	ResolveGroupWithBody(ctx context.Context, groupId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*http.Response, error)
 
 	// ResolveGroup Confirm or decline a new group
-	//
-	// approved=true confirms, false declines.
-	// A non-whitespace comment is required.
-	// Both decisions freeze the group and set decided_at.
-	// Only status новая may be decided, including a group frozen by expiry.
-	// Any subsequent decision returns 409; undo/history are outside this contract.
 	//
 	// Takes a body of the `application/json` content type.
 	//
@@ -932,12 +918,6 @@ func (c *Client) GetGroupGraph(ctx context.Context, groupId openapi_types.UUID, 
 
 // ResolveGroupWithBody Confirm or decline a new group
 //
-// approved=true confirms, false declines.
-// A non-whitespace comment is required.
-// Both decisions freeze the group and set decided_at.
-// Only status новая may be decided, including a group frozen by expiry.
-// Any subsequent decision returns 409; undo/history are outside this contract.
-//
 // Takes any type of body and a specified content type.
 //
 // Corresponds with PATCH /api/v1/groups/{group_id}/solution (the `ResolveGroup` operationId).
@@ -954,12 +934,6 @@ func (c *Client) ResolveGroupWithBody(ctx context.Context, groupId openapi_types
 }
 
 // ResolveGroup Confirm or decline a new group
-//
-// approved=true confirms, false declines.
-// A non-whitespace comment is required.
-// Both decisions freeze the group and set decided_at.
-// Only status новая may be decided, including a group frozen by expiry.
-// Any subsequent decision returns 409; undo/history are outside this contract.
 //
 // Takes a body of the `application/json` content type.
 //
@@ -1589,24 +1563,12 @@ type ClientWithResponsesInterface interface {
 
 	// ResolveGroupWithBodyWithResponse Confirm or decline a new group
 	//
-	// approved=true confirms, false declines.
-	// A non-whitespace comment is required.
-	// Both decisions freeze the group and set decided_at.
-	// Only status новая may be decided, including a group frozen by expiry.
-	// Any subsequent decision returns 409; undo/history are outside this contract.
-	//
 	// Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 	//
 	// Corresponds with PATCH /api/v1/groups/{group_id}/solution (the `ResolveGroup` operationId).
 	ResolveGroupWithBodyWithResponse(ctx context.Context, groupId openapi_types.UUID, contentType string, body io.Reader, reqEditors ...RequestEditorFn) (*ResolveGroupResponse, error)
 
 	// ResolveGroupWithResponse Confirm or decline a new group
-	//
-	// approved=true confirms, false declines.
-	// A non-whitespace comment is required.
-	// Both decisions freeze the group and set decided_at.
-	// Only status новая may be decided, including a group frozen by expiry.
-	// Any subsequent decision returns 409; undo/history are outside this contract.
 	//
 	// Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 	//
@@ -2414,12 +2376,6 @@ func (c *ClientWithResponses) GetGroupGraphWithResponse(ctx context.Context, gro
 
 // ResolveGroupWithBodyWithResponse Confirm or decline a new group
 //
-// approved=true confirms, false declines.
-// A non-whitespace comment is required.
-// Both decisions freeze the group and set decided_at.
-// Only status новая may be decided, including a group frozen by expiry.
-// Any subsequent decision returns 409; undo/history are outside this contract.
-//
 // Takes any type of body and a specified content type, and returns a wrapper object for the known response body format(s).
 //
 // Corresponds with PATCH /api/v1/groups/{group_id}/solution (the `ResolveGroup` operationId).
@@ -2432,12 +2388,6 @@ func (c *ClientWithResponses) ResolveGroupWithBodyWithResponse(ctx context.Conte
 }
 
 // ResolveGroupWithResponse Confirm or decline a new group
-//
-// approved=true confirms, false declines.
-// A non-whitespace comment is required.
-// Both decisions freeze the group and set decided_at.
-// Only status новая may be decided, including a group frozen by expiry.
-// Any subsequent decision returns 409; undo/history are outside this contract.
 //
 // Takes a body of the `application/json` content type, and returns a wrapper object for the known response body format(s).
 //

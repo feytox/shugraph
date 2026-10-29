@@ -62,20 +62,15 @@ Ownership is client to account.`,
 			http.StatusUnprocessableEntity,
 			http.StatusNotImplemented,
 		},
-		Description: `approved=true confirms, false declines.
-A non-whitespace comment is required.
-Both decisions freeze the group and set decided_at.
-Only status новая may be decided, including a group frozen by expiry.
-Any subsequent decision returns 409; undo/history are outside this contract.`,
 	}, h.applySolution)
 }
 
 type GroupRiskType string
 
 const (
-	GroupSchemeLow    GroupSchemeType = "low"
-	GroupSchemeMiddle GroupSchemeType = "middle"
-	GroupSchemeHigh   GroupSchemeType = "high"
+	GroupRiskLow    GroupRiskType = "low"
+	GroupRiskMedium GroupRiskType = "medium"
+	GroupRiskHigh   GroupRiskType = "high"
 )
 
 type GroupSchemeType string
@@ -151,17 +146,25 @@ type GroupItem struct {
 	Features     Feature   `json:"features"`
 }
 
-type Decided struct {
-	DecisionComment string     `json:"decision_comment" doc:"Empty until a decision is made."`
-	DecidedAt       *time.Time `json:"decided_at" nullable:"true" doc:"Null while status is новая."`
+type Decision struct {
+	Comment   string    `json:"comment"`
+	DecidedAt time.Time `json:"decided_at"`
 }
 type Group struct {
 	GroupItem
-	IsFrozen bool `json:"is_frozen"`
-	Decided
+	IsFrozen  bool            `json:"is_frozen"`
+	Decision  *Decision       `json:"decision"`
 	Members   []Account       `json:"members" nullable:"false"`
 	Logins    []LoginEvent    `json:"logins" nullable:"false"`
 	Transfers []TransferEvent `json:"transfers" nullable:"false"`
+}
+
+func (Group) TransformSchema(_ huma.Registry, schema *huma.Schema) *huma.Schema {
+	// Huma does not support nullable object references via the nullable tag.
+	schema.Properties["decision"] = &huma.Schema{
+		AnyOf: []*huma.Schema{schema.Properties["decision"], {Type: "null"}},
+	}
+	return schema
 }
 
 type GroupListOutput struct {
@@ -178,11 +181,11 @@ type GroupIDInput struct {
 type ListGroupInput struct {
 	Limit  int    `query:"limit" default:"10" minimum:"1" maximum:"100"`
 	Cursor string `query:"cursor" doc:"Opaque continuation token. Omit for the first page."`
-	Status string `query:"status" doc:"Status to filter groups to." enum:"new,approved,declined"`
+	Status string `query:"status" default:"new" doc:"Status to filter groups to." enum:"new,approved,declined"`
 }
 
 type GetByIDOutput struct {
-	Body Group `json:"group"`
+	Body Group
 }
 
 type GetGraphOutput struct{ Body GroupGraph }
@@ -197,8 +200,8 @@ type GroupSolutionInput struct {
 
 type GroupSolutionOutput struct {
 	Body struct {
-		Status GroupStatusType `json:"status" enum:"approved,declined"`
-		Decided
+		Status   GroupStatusType `json:"status" enum:"approved,declined"`
+		Decision Decision        `json:"decision"`
 	}
 }
 

@@ -81,6 +81,18 @@ components:
       required:
         - text
       type: object
+    Decision:
+      additionalProperties: false
+      properties:
+        comment:
+          type: string
+        decided_at:
+          format: date-time
+          type: string
+      required:
+        - comment
+        - decided_at
+      type: object
     ErrorDetail:
       additionalProperties: false
       properties:
@@ -202,15 +214,10 @@ components:
     Group:
       additionalProperties: false
       properties:
-        decided_at:
-          description: Null while status is новая.
-          format: date-time
-          type:
-            - string
-            - "null"
-        decision_comment:
-          description: Empty until a decision is made.
-          type: string
+        decision:
+          anyOf:
+            - $ref: "#/components/schemas/Decision"
+            - type: "null"
         detected_at:
           description: Server time of first detection; immutable.
           format: date-time
@@ -269,6 +276,7 @@ components:
           type: array
       required:
         - is_frozen
+        - decision
         - members
         - logins
         - transfers
@@ -282,8 +290,6 @@ components:
         - first_event_at
         - last_event_at
         - features
-        - decision_comment
-        - decided_at
       type: object
     GroupGraph:
       additionalProperties: false
@@ -406,15 +412,8 @@ components:
     GroupSolutionOutputBody:
       additionalProperties: false
       properties:
-        decided_at:
-          description: Null while status is новая.
-          format: date-time
-          type:
-            - string
-            - "null"
-        decision_comment:
-          description: Empty until a decision is made.
-          type: string
+        decision:
+          $ref: "#/components/schemas/Decision"
         status:
           enum:
             - approved
@@ -422,8 +421,7 @@ components:
           type: string
       required:
         - status
-        - decision_comment
-        - decided_at
+        - decision
       type: object
     LoginEdge:
       additionalProperties: false
@@ -842,6 +840,7 @@ paths:
           in: query
           name: status
           schema:
+            default: new
             description: Status to filter groups to.
             enum:
               - new
@@ -978,12 +977,6 @@ paths:
         - Groups
   /api/v1/groups/{group_id}/solution:
     patch:
-      description: |-
-        approved=true confirms, false declines.
-        A non-whitespace comment is required.
-        Both decisions freeze the group and set decided_at.
-        Only status новая may be decided, including a group frozen by expiry.
-        Any subsequent decision returns 409; undo/history are outside this contract.
       operationId: resolve-group
       parameters:
         - in: path
