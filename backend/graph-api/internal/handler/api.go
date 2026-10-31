@@ -47,5 +47,8 @@ func registerAPI(router chi.Router, deps Deps) huma.API {
 	registerHealth(api, &healthHandlers{database: deps.Database, log: deps.Log})
 	registerNotes(api, &noteHandlers{notes: deps.Notes, log: deps.Log})
 
+	registerEvents(api, &eventHandlers{})
+	registerGroups(api, &groupHandlers{})
+
 	return api
 }
