@@ -15,7 +15,7 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Editor & OS files
-.idea/
+.idea
 .vscode/
 *.suo
 *.ntvs*
@@ -28,3 +28,6 @@ Thumbs.db
 # Vitest / testing
 coverage/
 *.tmp
+
+# Secrets
+.env
