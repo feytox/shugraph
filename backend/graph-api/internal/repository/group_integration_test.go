@@ -3,21 +3,14 @@
 package repository_test
 
 import (
-	"context"
 	"fmt"
-	"log/slog"
 	"testing"
 	"time"
 
-	"github.com/caarlos0/env/v11"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
 
-	"github.com/feytox/shugraph/backend/graph-api/internal/config"
 	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
-	pgdb "github.com/feytox/shugraph/backend/graph-api/internal/postgres"
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository"
 )
 
@@ -46,43 +39,10 @@ func groupID(n int) uuid.UUID {
 	return uuid.MustParse(fmt.Sprintf("00000000-0000-0000-0000-%012d", n))
 }
 
-func startPostgres(t *testing.T) *pgxpool.Pool {
+func insertGroups(t *testing.T) {
 	t.Helper()
 
-	ctx := t.Context()
-
-	pgContainer, err := postgres.Run(ctx,
-		"postgres:18-alpine",
-		postgres.WithDatabase("graph_api"),
-		postgres.WithUsername("graph_api"),
-		postgres.WithPassword("postgres"),
-		postgres.BasicWaitStrategies(),
-	)
-	require.NoError(t, err)
-
-	t.Cleanup(func() {
-		require.NoError(t, pgContainer.Terminate(context.Background()))
-	})
-
-	dbURL, err := pgContainer.ConnectionString(ctx, "sslmode=disable")
-	require.NoError(t, err)
-
-	dbCfg, err := env.ParseAsWithOptions[config.Database](env.Options{Environment: map[string]string{
-		"DATABASE_URL": dbURL,
-	}})
-	require.NoError(t, err)
-
-	pool, err := pgdb.Connect(ctx, dbCfg)
-	require.NoError(t, err)
-	t.Cleanup(pool.Close)
-
-	require.NoError(t, pgdb.Migrate(ctx, pool, slog.Default()))
-
-	return pool
-}
-
-func insertGroups(t *testing.T, pool *pgxpool.Pool) {
-	t.Helper()
+	truncate(t, "groups")
 
 	for _, g := range seedGroups {
 		detectedAt := seedBase.Add(time.Duration(g.detected) * time.Minute)
@@ -98,13 +58,14 @@ func insertGroups(t *testing.T, pool *pgxpool.Pool) {
 			comment, decidedAt = &text, &at
 		}
 
-		_, err := pool.Exec(t.Context(), `
+		// Числовые поля зависят от n, чтобы перепутанные в маппере поля не совпали случайно.
+		_, err := testPool.Exec(t.Context(), `
 			INSERT INTO groups (id, scheme, status, risk_score, risk_parts, detected_at,
 			                    first_event_at, last_event_at, accounts_count, total_amount,
-			                    decision_comment, decided_at)
-			VALUES ($1, $2, $3, 80, '{"scheme": 55, "speed": 15}', $4, $5, $4, 3, 100000, $6, $7)`,
-			groupID(g.n), string(g.scheme), string(g.status), detectedAt,
-			detectedAt.Add(-10*time.Minute), comment, decidedAt,
+			                    is_frozen, decision_comment, decided_at)
+			VALUES ($1, $2, $3, $4, '{"scheme": 55, "speed": 15}', $5, $6, $5, $7, $8, $9, $10, $11)`,
+			groupID(g.n), string(g.scheme), string(g.status), 10*g.n, detectedAt,
+			detectedAt.Add(-10*time.Minute), g.n, int64(g.n)*1000, g.n%2 == 0, comment, decidedAt,
 		)
 		require.NoError(t, err)
 	}
@@ -141,10 +102,9 @@ func ids(groups []domain.Group) []int {
 }
 
 func TestGroupRepository_List(t *testing.T) {
-	pool := startPostgres(t)
-	insertGroups(t, pool)
+	insertGroups(t)
 
-	repo := repository.NewPgGroupRepository(pool)
+	repo := repository.NewPgGroupRepository(testPool)
 	statusNew := domain.GroupStatusNew
 
 	tests := []struct {
@@ -193,6 +153,41 @@ func TestGroupRepository_List(t *testing.T) {
 			require.Equal(t, tc.expected, ids(listAll(t, repo, tc.filter)))
 		})
 	}
+
+	t.Run("AllFields", func(t *testing.T) {
+		groups, err := repo.List(t.Context(), domain.GroupFilter{Limit: 100})
+		require.NoError(t, err)
+
+		// Группа 4: отклонённая, с решением, is_frozen = true.
+		got := groups[4]
+		require.JSONEq(t, `{"scheme": 55, "speed": 15}`, string(got.RiskParts))
+
+		got.RiskParts = nil
+		detectedAt := seedBase.Add(4 * time.Minute)
+		require.Equal(t, domain.Group{
+			ID:            groupID(4),
+			Scheme:        domain.GroupSchemeRing,
+			Status:        domain.GroupStatusDeclined,
+			RiskScore:     40,
+			DetectedAt:    detectedAt,
+			FirstEventAt:  detectedAt.Add(-10 * time.Minute),
+			LastEventAt:   detectedAt,
+			AccountsCount: 4,
+			TotalAmount:   4000,
+			IsFrozen:      true,
+			Decision: &domain.Decision{
+				Comment:   "решение по группе",
+				DecidedAt: detectedAt.Add(time.Hour),
+			},
+		}, got)
+	})
+
+	t.Run("NonPositiveLimit", func(t *testing.T) {
+		for _, limit := range []int32{0, -1} {
+			_, err := repo.List(t.Context(), domain.GroupFilter{Limit: limit})
+			require.Error(t, err, "limit %d", limit)
+		}
+	})
 
 	t.Run("Decision", func(t *testing.T) {
 		groups, err := repo.List(t.Context(), domain.GroupFilter{Limit: 100})
