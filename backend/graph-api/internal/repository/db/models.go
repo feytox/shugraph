@@ -11,6 +11,25 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Account struct {
+	ID       string
+	ClientID string
+}
+
+type Client struct {
+	ID string
+}
+
+type Device struct {
+	DeviceID string
+}
+
+type Event struct {
+	EventID    string
+	Type       string
+	OccurredAt time.Time
+}
+
 type Group struct {
 	ID              uuid.UUID
 	Scheme          string
@@ -27,8 +46,36 @@ type Group struct {
 	DecidedAt       pgtype.Timestamptz
 }
 
+type GroupEvent struct {
+	GroupID uuid.UUID
+	EventID string
+}
+
+type GroupMember struct {
+	GroupID   uuid.UUID
+	AccountID string
+}
+
+type LoginEvent struct {
+	EventID   string
+	AccountID string
+	DeviceID  string
+	AddressID string
+}
+
+type NetworkAddress struct {
+	AddressID string
+}
+
 type Note struct {
 	ID        uuid.UUID
 	Text      string
 	CreatedAt time.Time
+}
+
+type Transfer struct {
+	EventID       string
+	FromAccountID string
+	ToAccountID   string
+	Amount        int64
 }
