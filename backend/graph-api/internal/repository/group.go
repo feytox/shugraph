@@ -43,6 +43,11 @@ func NewPgGroupRepository(pool db.DBTX) *PgGroupRepository {
 }
 
 func (p *PgGroupRepository) List(ctx context.Context, filter domain.GroupFilter) ([]domain.Group, error) {
+	// go-sqlbuilder молча снимает LIMIT при отрицательном значении.
+	if filter.Limit <= 0 {
+		return nil, fmt.Errorf("list groups: limit must be positive, got %d", filter.Limit)
+	}
+
 	sb := groupStruct.SelectFrom("groups")
 	sb.OrderBy("detected_at DESC", "id DESC")
 	sb.Limit(int(filter.Limit))
@@ -59,9 +64,9 @@ func (p *PgGroupRepository) List(ctx context.Context, filter domain.GroupFilter)
 		sb.Where(fmt.Sprintf("(detected_at, id) < (%s, %s)", sb.Var(filter.After.DetectedAt), sb.Var(filter.After.ID)))
 	}
 
-	sql, args := sb.Build()
+	query, args := sb.Build()
 
-	rows, err := p.pool.Query(ctx, sql, args...)
+	rows, err := p.pool.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("select groups: %w", err)
 	}
