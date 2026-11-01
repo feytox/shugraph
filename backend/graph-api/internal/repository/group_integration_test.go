@@ -149,8 +149,9 @@ func TestGroupRepository_List(t *testing.T) {
 	insertGroups(t, pool)
 
 	repos := map[string]groupLister{
-		"sqlc": repository.NewPgGroupRepository(pool),
-		"goqu": repository.NewGoquGroupRepository(pool),
+		"sqlc":       repository.NewPgGroupRepository(pool),
+		"goqu":       repository.NewGoquGroupRepository(pool),
+		"sqlbuilder": repository.NewSQLBuilderGroupRepository(pool),
 	}
 
 	statusNew := domain.GroupStatusNew
@@ -205,7 +206,9 @@ func TestGroupRepository_List(t *testing.T) {
 				require.Equal(t, tc.expected, ids(results[name]), name)
 			}
 
-			require.Equal(t, results["sqlc"], results["goqu"])
+			for name, result := range results {
+				require.Equal(t, results["sqlc"], result, name)
+			}
 		})
 	}
 }
@@ -215,8 +218,9 @@ func TestGroupRepository_ListDecision(t *testing.T) {
 	insertGroups(t, pool)
 
 	repos := map[string]groupLister{
-		"sqlc": repository.NewPgGroupRepository(pool),
-		"goqu": repository.NewGoquGroupRepository(pool),
+		"sqlc":       repository.NewPgGroupRepository(pool),
+		"goqu":       repository.NewGoquGroupRepository(pool),
+		"sqlbuilder": repository.NewSQLBuilderGroupRepository(pool),
 	}
 
 	for name, repo := range repos {
