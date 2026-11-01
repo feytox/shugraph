@@ -21,10 +21,6 @@ import (
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository"
 )
 
-type groupLister interface {
-	List(ctx context.Context, filter domain.GroupFilter) ([]domain.Group, error)
-}
-
 type seedGroup struct {
 	n        int
 	scheme   domain.GroupScheme
@@ -115,7 +111,7 @@ func insertGroups(t *testing.T, pool *pgxpool.Pool) {
 }
 
 // listAll листает страницы по курсору, пока они не закончатся.
-func listAll(t *testing.T, repo groupLister, filter domain.GroupFilter) []domain.Group {
+func listAll(t *testing.T, repo *repository.PgGroupRepository, filter domain.GroupFilter) []domain.Group {
 	t.Helper()
 
 	var all []domain.Group
@@ -148,12 +144,7 @@ func TestGroupRepository_List(t *testing.T) {
 	pool := startPostgres(t)
 	insertGroups(t, pool)
 
-	repos := map[string]groupLister{
-		"sqlc":       repository.NewPgGroupRepository(pool),
-		"goqu":       repository.NewGoquGroupRepository(pool),
-		"sqlbuilder": repository.NewSQLBuilderGroupRepository(pool),
-	}
-
+	repo := repository.NewPgGroupRepository(pool)
 	statusNew := domain.GroupStatusNew
 
 	tests := []struct {
@@ -199,45 +190,23 @@ func TestGroupRepository_List(t *testing.T) {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			results := make(map[string][]domain.Group, len(repos))
-
-			for name, repo := range repos {
-				results[name] = listAll(t, repo, tc.filter)
-				require.Equal(t, tc.expected, ids(results[name]), name)
-			}
-
-			for name, result := range results {
-				require.Equal(t, results["sqlc"], result, name)
-			}
+			require.Equal(t, tc.expected, ids(listAll(t, repo, tc.filter)))
 		})
 	}
-}
 
-func TestGroupRepository_ListDecision(t *testing.T) {
-	pool := startPostgres(t)
-	insertGroups(t, pool)
+	t.Run("Decision", func(t *testing.T) {
+		groups, err := repo.List(t.Context(), domain.GroupFilter{Limit: 100})
+		require.NoError(t, err)
 
-	repos := map[string]groupLister{
-		"sqlc":       repository.NewPgGroupRepository(pool),
-		"goqu":       repository.NewGoquGroupRepository(pool),
-		"sqlbuilder": repository.NewSQLBuilderGroupRepository(pool),
-	}
-
-	for name, repo := range repos {
-		t.Run(name, func(t *testing.T) {
-			groups, err := repo.List(t.Context(), domain.GroupFilter{Limit: 100})
-			require.NoError(t, err)
-
-			for _, g := range groups {
-				if g.Status == domain.GroupStatusNew {
-					require.Nil(t, g.Decision, "group %s", g.ID)
-					continue
-				}
-
-				require.NotNil(t, g.Decision, "group %s", g.ID)
-				require.Equal(t, "решение по группе", g.Decision.Comment)
-				require.Equal(t, g.DetectedAt.Add(time.Hour), g.Decision.DecidedAt)
+		for _, g := range groups {
+			if g.Status == domain.GroupStatusNew {
+				require.Nil(t, g.Decision, "group %s", g.ID)
+				continue
 			}
-		})
-	}
+
+			require.NotNil(t, g.Decision, "group %s", g.ID)
+			require.Equal(t, "решение по группе", g.Decision.Comment)
+			require.Equal(t, g.DetectedAt.Add(time.Hour), g.Decision.DecidedAt)
+		}
+	})
 }
