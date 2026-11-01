@@ -5,10 +5,116 @@
 package db
 
 import (
+	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type GroupScheme string
+
+const (
+	GroupSchemeFarm    GroupScheme = "farm"
+	GroupSchemeAddress GroupScheme = "address"
+	GroupSchemeChain   GroupScheme = "chain"
+	GroupSchemeRing    GroupScheme = "ring"
+)
+
+func (e *GroupScheme) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = GroupScheme(s)
+	case string:
+		*e = GroupScheme(s)
+	default:
+		return fmt.Errorf("unsupported scan type for GroupScheme: %T", src)
+	}
+	return nil
+}
+
+type NullGroupScheme struct {
+	GroupScheme GroupScheme
+	Valid       bool // Valid is true if GroupScheme is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullGroupScheme) Scan(value interface{}) error {
+	if value == nil {
+		ns.GroupScheme, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.GroupScheme.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullGroupScheme) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.GroupScheme), nil
+}
+
+type GroupStatus string
+
+const (
+	GroupStatusNew      GroupStatus = "new"
+	GroupStatusApproved GroupStatus = "approved"
+	GroupStatusDeclined GroupStatus = "declined"
+)
+
+func (e *GroupStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = GroupStatus(s)
+	case string:
+		*e = GroupStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for GroupStatus: %T", src)
+	}
+	return nil
+}
+
+type NullGroupStatus struct {
+	GroupStatus GroupStatus
+	Valid       bool // Valid is true if GroupStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullGroupStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.GroupStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.GroupStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullGroupStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.GroupStatus), nil
+}
+
+type Group struct {
+	ID              uuid.UUID
+	Scheme          GroupScheme
+	Status          GroupStatus
+	RiskScore       int32
+	RiskParts       []byte
+	DetectedAt      time.Time
+	FirstEventAt    time.Time
+	LastEventAt     time.Time
+	AccountsCount   int32
+	TotalAmount     int64
+	IsFrozen        bool
+	DecisionComment pgtype.Text
+	DecidedAt       pgtype.Timestamptz
+}
 
 type Note struct {
 	ID        uuid.UUID
