@@ -19,7 +19,7 @@ erDiagram
     }
     EVENTS {
         string event_id PK
-        string type
+        enum type
         timestamp occurred_at
     }
     TRANSFERS {
@@ -36,8 +36,8 @@ erDiagram
     }
     GROUPS {
         uuid id PK
-        string scheme
-        string status
+        enum scheme
+        enum status
         integer risk_score
         jsonb risk_parts
         timestamp detected_at
@@ -101,7 +101,7 @@ erDiagram
 | Поле | Тип | Откуда берётся | Пример |
 |---|---|---|---|
 | `event_id` | string | из события (номер от источника, задаётся в сценарии) | `evt-0001` |
-| `type` | string, одно из: `transfer` / `login` | из события | `transfer` |
+| `type` | enum: `transfer` / `login` | из события | `transfer` |
 | `occurred_at` | timestamp | из события (время события) | `2026-10-12T18:03:00Z` |
 
 ## Переводы (`transfers`)
@@ -127,8 +127,8 @@ erDiagram
 | Поле | Тип | Откуда берётся | Пример |
 |---|---|---|---|
 | `id` | uuid | системное | `b5f2a1c4-3d6e-4f7a-8b9c-0d1e2f3a4b5c` |
-| `scheme` | string, одно из: `farm` (ферма) / `address` (адрес) / `chain` (цепочка) / `ring` (кольцо) | вычисление | `chain` |
-| `status` | string, одно из: `new` (новая) / `approved` (подтверждена) / `declined` (отклонена) | по умолчанию `new`, дальше действия аналитика| `approved` |
+| `scheme` | enum: `farm` (ферма) / `address` (адрес) / `chain` (цепочка) / `ring` (кольцо) | вычисление | `chain` |
+| `status` | enum: `new` (новая) / `approved` (подтверждена) / `declined` (отклонена) | по умолчанию `new`, дальше действия аналитика| `approved` |
 | `risk_score` | integer | вычисление | `85` |
 | `risk_parts` | jsonb | вычисление (значения переменных формулы риска) | `{"scheme": 55, "speed": 15, "hops": 10, "preserved": 5}` |
 | `detected_at` | timestamp | системное: время, когда группа найдена; не меняется | `2026-10-12T18:15:00Z` |
