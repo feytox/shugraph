@@ -17,7 +17,6 @@ import (
 	pgdb "github.com/feytox/shugraph/backend/graph-api/internal/postgres"
 )
 
-// testPool - один Postgres на все тесты пакета, данные между тестами чистит truncate.
 var testPool *pgxpool.Pool
 
 func TestMain(m *testing.M) {

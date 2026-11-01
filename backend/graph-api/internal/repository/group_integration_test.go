@@ -23,7 +23,6 @@ type seedGroup struct {
 
 var seedBase = time.Date(2026, 10, 12, 18, 0, 0, 0, time.UTC)
 
-// Группы 7 и 8 обнаружены в одну минуту: порядок между ними решает id.
 var seedGroups = []seedGroup{
 	{n: 1, scheme: domain.GroupSchemeFarm, status: domain.GroupStatusNew, detected: 1},
 	{n: 2, scheme: domain.GroupSchemeRing, status: domain.GroupStatusNew, detected: 2},
@@ -58,7 +57,6 @@ func insertGroups(t *testing.T) {
 			comment, decidedAt = &text, &at
 		}
 
-		// Числовые поля зависят от n, чтобы перепутанные в маппере поля не совпали случайно.
 		_, err := testPool.Exec(t.Context(), `
 			INSERT INTO groups (id, scheme, status, risk_score, risk_parts, detected_at,
 			                    first_event_at, last_event_at, accounts_count, total_amount,
@@ -71,7 +69,6 @@ func insertGroups(t *testing.T) {
 	}
 }
 
-// listAll листает страницы по курсору, пока они не закончатся.
 func listAll(t *testing.T, repo *repository.PgGroupRepository, filter domain.GroupFilter) []domain.Group {
 	t.Helper()
 
@@ -158,7 +155,6 @@ func TestGroupRepository_List(t *testing.T) {
 		groups, err := repo.List(t.Context(), domain.GroupFilter{Limit: 100})
 		require.NoError(t, err)
 
-		// Группа 4: отклонённая, с решением, is_frozen = true.
 		got := groups[4]
 		require.JSONEq(t, `{"scheme": 55, "speed": 15}`, string(got.RiskParts))
 
