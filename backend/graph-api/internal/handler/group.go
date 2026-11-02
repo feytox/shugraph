@@ -20,10 +20,6 @@ func registerGroups(api huma.API, h *groupHandlers) {
 		Path:        "/api/v1/groups",
 		Tags:        []string{groupsTag},
 		Errors:      []int{http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusNotImplemented},
-		Description: `Ordered by detected_at DESC, id DESC.
-cursor is an opaque continuation token containing this pair. Invalid cursors return 400.
-When polling, read pages until a known group is reached to avoid missing arrivals.
-An empty list has items: [] and next_cursor: null.`,
 	}, h.list)
 
 	huma.Register(api, huma.Operation{
@@ -42,11 +38,6 @@ An empty list has items: [] and next_cursor: null.`,
 		Path:        "/api/v1/groups/{group_id}/graph",
 		Tags:        []string{groupsTag},
 		Errors:      []int{http.StatusNotFound, http.StatusUnprocessableEntity, http.StatusNotImplemented},
-		Description: `Only the selected group's evidence subgraph.
-IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
-Each login produces two edges sharing event_id:
-account to device and account to network address.
-Ownership is client to account.`,
 	}, h.getGraph)
 
 	huma.Register(api, huma.Operation{

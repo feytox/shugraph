@@ -13,10 +13,6 @@ const eventsTag = "Events"
 type eventHandlers struct{}
 
 func registerEvents(api huma.API, h *eventHandlers) {
-	const ingestDescription = `Event IDs are globally unique across both event types.
-New events return 201 with no body.
-An identical retry returns 204 without recomputing groups;
-an existing ID with different type or payload returns 409.`
 
 	huma.Register(api, huma.Operation{
 		OperationID:   "login-event",
@@ -25,7 +21,6 @@ an existing ID with different type or payload returns 409.`
 		Path:          "/api/v1/events/logins/{event_id}",
 		Tags:          []string{eventsTag},
 		DefaultStatus: http.StatusCreated,
-		Description:   ingestDescription,
 		Errors: []int{
 			http.StatusBadRequest,
 			http.StatusConflict,
@@ -44,7 +39,6 @@ an existing ID with different type or payload returns 409.`
 		Path:          "/api/v1/events/transfers/{event_id}",
 		Tags:          []string{eventsTag},
 		DefaultStatus: http.StatusCreated,
-		Description:   ingestDescription,
 		Errors: []int{
 			http.StatusBadRequest,
 			http.StatusConflict,
