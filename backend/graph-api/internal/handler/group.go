@@ -181,7 +181,7 @@ type GroupIDInput struct {
 type ListGroupInput struct {
 	Limit  int    `query:"limit" default:"10" minimum:"1" maximum:"100"`
 	Cursor string `query:"cursor" doc:"Opaque continuation token. Omit for the first page."`
-	Status string `query:"status" default:"new" doc:"Status to filter groups to." enum:"new,approved,declined"`
+	Status string `query:"status" doc:"Status to filter groups to." enum:"new,approved,declined"`
 }
 
 type GetByIDOutput struct {
