@@ -111,11 +111,11 @@ type FarmScheme struct {
 }
 
 type AddressScheme struct {
-	Scheme   int `json:"scheme"`
-	Speed    int `json:"speed"`
-	Accounts int `json:"accounts"`
-	Devices  int `json:"devices"`
-	Burst    int `json:"burst"`
+	Scheme  int `json:"scheme"`
+	Speed   int `json:"speed"`
+	Clients int `json:"clients"`
+	Devices int `json:"devices"`
+	Burst   int `json:"burst"`
 }
 
 type ChainScheme struct {
