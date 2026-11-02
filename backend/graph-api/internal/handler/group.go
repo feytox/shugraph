@@ -164,6 +164,7 @@ func (Group) TransformSchema(_ huma.Registry, schema *huma.Schema) *huma.Schema 
 	schema.Properties["decision"] = &huma.Schema{
 		AnyOf: []*huma.Schema{schema.Properties["decision"], {Type: "null"}},
 	}
+
 	return schema
 }
 
