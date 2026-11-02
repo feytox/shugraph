@@ -5,7 +5,7 @@
 | Параметр     | Значение                                          |
 |--------------|---------------------------------------------------|
 | Имя          | `shucluster-vm`                                   |
-| Зона         | ru-central1-d                                     |
+| Зона         | ru-central1-e                                     |
 | Платформа    | standard-v3, прерываемая                          |
 | vCPU         | 2, гарантированная доля 20%                       |
 | RAM          | 4 ГБ                                              |
@@ -44,16 +44,16 @@
 
 Нужны `yc` (профиль с правами на каталог), `jq` и `gh`. Команды запускаются из `infra/vm/`.
 
-В каталоге должна быть сеть `default` с подсетью `default-ru-central1-d`. Если подсети нет:
+В каталоге должна быть сеть `default` с подсетью `default-ru-central1-e`. Если подсети нет:
 ```bash
-yc vpc subnet create --name default-ru-central1-d --zone ru-central1-d --network-name default --range 10.130.0.0/24
+yc vpc subnet create --name default-ru-central1-e --zone ru-central1-e --network-name default --range 10.131.0.0/24
 ```
 
 1. Создать SSH-ключ и вставить публичную часть в `cloud-init.yaml` вместо текущей:
    ```bash
    ssh-keygen -t ed25519 -N "" -C shugraph-ci -f ~/.ssh/shugraph-ci
    ```
-2. Создать группу безопасности и ВМ. ВМ сразу запускается и начинает тратить деньги, k3s поставит cloud-init при первом запуске:
+2. Создать группу безопасности (если её ещё нет) и ВМ. ВМ сразу запускается и начинает тратить деньги, k3s поставит cloud-init при первом запуске:
    ```bash
    ./create-vm.sh
    ```
