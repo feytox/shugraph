@@ -153,19 +153,10 @@ type Decision struct {
 type Group struct {
 	GroupItem
 	IsFrozen  bool            `json:"is_frozen"`
-	Decision  *Decision       `json:"decision"`
+	Decision  *Decision       `json:"decision,omitempty"`
 	Members   []Account       `json:"members" nullable:"false"`
 	Logins    []LoginEvent    `json:"logins" nullable:"false"`
 	Transfers []TransferEvent `json:"transfers" nullable:"false"`
-}
-
-func (Group) TransformSchema(_ huma.Registry, schema *huma.Schema) *huma.Schema {
-	// Huma does not support nullable object references via the nullable tag.
-	schema.Properties["decision"] = &huma.Schema{
-		AnyOf: []*huma.Schema{schema.Properties["decision"], {Type: "null"}},
-	}
-
-	return schema
 }
 
 type GroupListOutput struct {
