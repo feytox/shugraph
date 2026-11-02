@@ -16,10 +16,10 @@ components:
     AddressScheme:
       additionalProperties: false
       properties:
-        accounts:
+        burst:
           format: int64
           type: integer
-        burst:
+        clients:
           format: int64
           type: integer
         devices:
@@ -34,7 +34,7 @@ components:
       required:
         - scheme
         - speed
-        - accounts
+        - clients
         - devices
         - burst
       type: object
@@ -215,9 +215,7 @@ components:
       additionalProperties: false
       properties:
         decision:
-          anyOf:
-            - $ref: "#/components/schemas/Decision"
-            - type: "null"
+          $ref: "#/components/schemas/Decision"
         detected_at:
           description: Server time of first detection; immutable.
           format: date-time
@@ -251,7 +249,6 @@ components:
           type: string
         risk_parts:
           $ref: "#/components/schemas/RiskParts"
-          description: Scheme-specific contributions; their sum equals risk_score. Used to explain the finding.
         risk_score:
           format: int64
           maximum: 100
@@ -276,7 +273,6 @@ components:
           type: array
       required:
         - is_frozen
-        - decision
         - members
         - logins
         - transfers
@@ -346,7 +342,6 @@ components:
           type: string
         risk_parts:
           $ref: "#/components/schemas/RiskParts"
-          description: Scheme-specific contributions; their sum equals risk_score. Used to explain the finding.
         risk_score:
           format: int64
           maximum: 100
@@ -694,11 +689,6 @@ openapi: 3.1.0
 paths:
   /api/v1/events/logins/{event_id}:
     put:
-      description: |-
-        Event IDs are globally unique across both event types.
-        New events return 201 with no body.
-        An identical retry returns 204 without recomputing groups;
-        an existing ID with different type or payload returns 409.
       operationId: login-event
       parameters:
         - in: path
@@ -753,11 +743,6 @@ paths:
         - Events
   /api/v1/events/transfers/{event_id}:
     put:
-      description: |-
-        Event IDs are globally unique across both event types.
-        New events return 201 with no body.
-        An identical retry returns 204 without recomputing groups;
-        an existing ID with different type or payload returns 409.
       operationId: transfer-event
       parameters:
         - in: path
@@ -812,11 +797,6 @@ paths:
         - Events
   /api/v1/groups:
     get:
-      description: |-
-        Ordered by detected_at DESC, id DESC.
-        cursor is an opaque continuation token containing this pair. Invalid cursors return 400.
-        When polling, read pages until a known group is reached to avoid missing arrivals.
-        An empty list has items: [] and next_cursor: null.
       operationId: list-groups
       parameters:
         - explode: false
@@ -840,7 +820,6 @@ paths:
           in: query
           name: status
           schema:
-            default: new
             description: Status to filter groups to.
             enum:
               - new
@@ -927,12 +906,6 @@ paths:
         - Groups
   /api/v1/groups/{group_id}/graph:
     get:
-      description: |-
-        Only the selected group's evidence subgraph.
-        IDs are prefixed by entity/edge type. Parallel transfers remain separate edges.
-        Each login produces two edges sharing event_id:
-        account to device and account to network address.
-        Ownership is client to account.
       operationId: get-group-graph
       parameters:
         - in: path
