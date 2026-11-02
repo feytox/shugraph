@@ -5,6 +5,8 @@ Summary: Аналитика: шаблон карточки для первой �
 - Assignee: goshayjakov
 - Parent: T-1
 - Depends on: T-2
+- Required for: T-9
+- Tags: analytics
 
 ~~~
 ## Описание

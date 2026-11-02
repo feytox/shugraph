@@ -5,6 +5,7 @@ Summary: graph-frontapp: переход с моков на API
 - Assignee: hereexe
 - Parent: T-1
 - Depends on: T-6, T-7
+- Tags: frontend
 
 ~~~
 ## Описание

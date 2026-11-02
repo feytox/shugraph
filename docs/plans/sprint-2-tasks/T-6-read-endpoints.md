@@ -5,6 +5,8 @@ Summary: graph-api: список, карточка и подграф на нас
 - Assignee: feytox
 - Parent: T-1
 - Depends on: GSD-14, GSD-18, T-4
+- Required for: T-10
+- Tags: backend
 
 ~~~
 ## Описание

@@ -5,6 +5,8 @@ Summary: graph-frontapp: граф группы
 - Assignee: Khasashin
 - Parent: T-1
 - Depends on: GSD-14
+- Required for: T-9
+- Tags: frontend
 
 ~~~
 ## Описание

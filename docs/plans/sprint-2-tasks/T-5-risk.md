@@ -5,6 +5,7 @@ Summary: graph-api: риск группы
 - Assignee: feytox
 - Parent: T-1
 - Depends on: T-4
+- Tags: backend
 
 ~~~
 ## Описание

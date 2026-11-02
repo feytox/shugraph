@@ -5,6 +5,7 @@ Summary: graph-frontapp: карточка группы и решение
 - Assignee: hereexe
 - Parent: T-1
 - Depends on: GSD-14, T-3, T-8
+- Tags: frontend
 
 ~~~
 ## Описание

@@ -5,6 +5,8 @@ Summary: graph-api: сборка групп первой схемы
 - Assignee: feytox
 - Parent: T-1
 - Depends on: GSD-19, T-2
+- Required for: T-5, T-6
+- Tags: backend
 
 ~~~
 ## Описание

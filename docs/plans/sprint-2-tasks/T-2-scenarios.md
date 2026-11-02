@@ -5,6 +5,8 @@ Summary: Аналитика: сценарии первой схемы с ожи�
 - Assignee: goshayjakov
 - Parent: T-1
 - Relates to: GSD-17
+- Required for: T-3, T-4, GSD-17
+- Tags: analytics
 
 ~~~
 ## Описание

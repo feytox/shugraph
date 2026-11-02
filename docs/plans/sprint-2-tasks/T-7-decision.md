@@ -5,6 +5,8 @@ Summary: graph-api: решение аналитика
 - Assignee: outsaiderka
 - Parent: T-1
 - Depends on: GSD-14, GSD-18
+- Required for: T-10
+- Tags: backend
 
 ~~~
 ## Описание

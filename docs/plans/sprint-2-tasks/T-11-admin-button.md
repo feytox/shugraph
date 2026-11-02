@@ -5,6 +5,7 @@ Summary: graph-admin-frontapp: запуск сценария
 - Assignee: hereexe
 - Parent: T-1
 - Depends on: GSD-17
+- Tags: frontend
 
 ~~~
 ## Описание

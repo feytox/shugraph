@@ -4,6 +4,7 @@ Summary: без изменений
 - Priority: Major
 - Parent: T-1 (вместо GSD-20)
 - Убрать дедлайны
+- Required for: T-4
 
 ~~~
 ## Описание
