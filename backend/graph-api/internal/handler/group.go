@@ -139,11 +139,11 @@ type GroupItem struct {
 	Status       GroupStatusType `json:"status" enum:"new,approved,declined"`
 	RiskLevel    GroupRiskType   `json:"risk_level" enum:"low,medium,high"`
 	RiskScore    int             `json:"risk_score" minimum:"0" maximum:"100"`
-	RiskParts    `json:"risk_parts" doc:"Scheme-specific contributions; their sum equals risk_score. Used to explain the finding."`
-	DetectedAt   time.Time `json:"detected_at" doc:"Server time of first detection; immutable."`
-	FirstEventAt time.Time `json:"first_event_at"`
-	LastEventAt  time.Time `json:"last_event_at"`
-	Features     Feature   `json:"features"`
+	RiskParts    RiskParts       `json:"risk_parts"`
+	DetectedAt   time.Time       `json:"detected_at" doc:"Server time of first detection; immutable."`
+	FirstEventAt time.Time       `json:"first_event_at"`
+	LastEventAt  time.Time       `json:"last_event_at"`
+	Features     Feature         `json:"features"`
 }
 
 type Decision struct {
