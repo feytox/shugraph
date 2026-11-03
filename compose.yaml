@@ -1,0 +1,113 @@
+name: shugraph
+
+x-graph-api-image: &graph-api-image
+  image: shugraph-graph-api:local
+  build:
+    context: ./backend/graph-api
+    args:
+      VERSION: ${VERSION:-dev}
+
+x-graph-admin-api-image: &graph-admin-api-image
+  image: shugraph-graph-admin-api:local
+  build:
+    context: ./backend/graph-admin-api
+    args:
+      VERSION: ${VERSION:-dev}
+
+x-log-env: &log-env
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  DEPLOYMENT_ENVIRONMENT: ${DEPLOYMENT_ENVIRONMENT:-local}
+
+x-graph-api-env: &graph-api-env
+  <<: *log-env
+  DATABASE_URL: postgres://graph_api:${GRAPH_API_DB_PASSWORD:?}@postgres:5432/graph_api?sslmode=disable
+
+x-graph-admin-api-env: &graph-admin-api-env
+  <<: *log-env
+  DATABASE_URL: postgres://graph_admin_api:${GRAPH_ADMIN_API_DB_PASSWORD:?}@postgres:5432/graph_admin_api?sslmode=disable
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+      GRAPH_API_DB_PASSWORD: ${GRAPH_API_DB_PASSWORD:?}
+      GRAPH_ADMIN_API_DB_PASSWORD: ${GRAPH_ADMIN_API_DB_PASSWORD:?}
+    ports:
+      - 127.0.0.1:${POSTGRES_PORT:-5432}:5432
+    volumes:
+      - postgres-data:/var/lib/postgresql
+      - ./infra/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U "$$POSTGRES_USER" -d postgres]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  graph-api-migrate:
+    <<: *graph-api-image
+    command: [migrate]
+    environment:
+      <<: *graph-api-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  graph-api:
+    <<: *graph-api-image
+    command: [serve]
+    environment:
+      <<: *graph-api-env
+      PORT: 8080
+      SERVICE_NAME: graph-api
+    ports:
+      - 127.0.0.1:${GRAPH_API_PORT:-8080}:8080
+    depends_on:
+      graph-api-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, /usr/local/bin/graph-api, healthcheck]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    stop_grace_period: 20s
+    restart: unless-stopped
+
+  graph-admin-api-migrate:
+    <<: *graph-admin-api-image
+    command: [migrate]
+    environment:
+      <<: *graph-admin-api-env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  # От graph-api не зависит: без него admin-api должен жить и отвечать 502.
+  graph-admin-api:
+    <<: *graph-admin-api-image
+    command: [serve]
+    environment:
+      <<: *graph-admin-api-env
+      PORT: 8081
+      SERVICE_NAME: graph-admin-api
+      GRAPH_API_URL: http://graph-api:8080
+    ports:
+      - 127.0.0.1:${GRAPH_ADMIN_API_PORT:-8081}:8081
+    depends_on:
+      graph-admin-api-migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, /usr/local/bin/graph-admin-api, healthcheck]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    stop_grace_period: 20s
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
