@@ -18,8 +18,8 @@ RETURNING id, text, created_at
 `
 
 type CreateNoteParams struct {
-	ID   uuid.UUID
-	Text string
+	ID   uuid.UUID `db:"id"`
+	Text string    `db:"text"`
 }
 
 func (q *Queries) CreateNote(ctx context.Context, arg CreateNoteParams) (Note, error) {

@@ -9,8 +9,8 @@ import (
 )
 
 type ProxiedNote struct {
-	ID          int64
-	GraphNoteID string
-	Text        string
-	CreatedAt   time.Time
+	ID          int64     `db:"id"`
+	GraphNoteID string    `db:"graph_note_id"`
+	Text        string    `db:"text"`
+	CreatedAt   time.Time `db:"created_at"`
 }

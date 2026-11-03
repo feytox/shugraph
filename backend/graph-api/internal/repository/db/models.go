@@ -12,70 +12,70 @@ import (
 )
 
 type Account struct {
-	ID       string
-	ClientID string
+	ID       string `db:"id"`
+	ClientID string `db:"client_id"`
 }
 
 type Client struct {
-	ID string
+	ID string `db:"id"`
 }
 
 type Device struct {
-	DeviceID string
+	DeviceID string `db:"device_id"`
 }
 
 type Event struct {
-	EventID    string
-	Type       string
-	OccurredAt time.Time
+	EventID    string    `db:"event_id"`
+	Type       string    `db:"type"`
+	OccurredAt time.Time `db:"occurred_at"`
 }
 
 type Group struct {
-	ID              uuid.UUID
-	Scheme          string
-	Status          string
-	RiskScore       int32
-	RiskParts       []byte
-	DetectedAt      time.Time
-	FirstEventAt    time.Time
-	LastEventAt     time.Time
-	AccountsCount   int32
-	TotalAmount     int64
-	IsFrozen        bool
-	DecisionComment pgtype.Text
-	DecidedAt       pgtype.Timestamptz
+	ID              uuid.UUID          `db:"id"`
+	Scheme          string             `db:"scheme"`
+	Status          string             `db:"status"`
+	RiskScore       int32              `db:"risk_score"`
+	RiskParts       []byte             `db:"risk_parts"`
+	DetectedAt      time.Time          `db:"detected_at"`
+	FirstEventAt    time.Time          `db:"first_event_at"`
+	LastEventAt     time.Time          `db:"last_event_at"`
+	AccountsCount   int32              `db:"accounts_count"`
+	TotalAmount     int64              `db:"total_amount"`
+	IsFrozen        bool               `db:"is_frozen"`
+	DecisionComment pgtype.Text        `db:"decision_comment"`
+	DecidedAt       pgtype.Timestamptz `db:"decided_at"`
 }
 
 type GroupEvent struct {
-	GroupID uuid.UUID
-	EventID string
+	GroupID uuid.UUID `db:"group_id"`
+	EventID string    `db:"event_id"`
 }
 
 type GroupMember struct {
-	GroupID   uuid.UUID
-	AccountID string
+	GroupID   uuid.UUID `db:"group_id"`
+	AccountID string    `db:"account_id"`
 }
 
 type LoginEvent struct {
-	EventID   string
-	AccountID string
-	DeviceID  string
-	AddressID string
+	EventID   string `db:"event_id"`
+	AccountID string `db:"account_id"`
+	DeviceID  string `db:"device_id"`
+	AddressID string `db:"address_id"`
 }
 
 type NetworkAddress struct {
-	AddressID string
+	AddressID string `db:"address_id"`
 }
 
 type Note struct {
-	ID        uuid.UUID
-	Text      string
-	CreatedAt time.Time
+	ID        uuid.UUID `db:"id"`
+	Text      string    `db:"text"`
+	CreatedAt time.Time `db:"created_at"`
 }
 
 type Transfer struct {
-	EventID       string
-	FromAccountID string
-	ToAccountID   string
-	Amount        int64
+	EventID       string `db:"event_id"`
+	FromAccountID string `db:"from_account_id"`
+	ToAccountID   string `db:"to_account_id"`
+	Amount        int64  `db:"amount"`
 }
