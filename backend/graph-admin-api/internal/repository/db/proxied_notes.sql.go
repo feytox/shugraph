@@ -16,8 +16,8 @@ RETURNING id, graph_note_id, text, created_at
 `
 
 type CreateProxiedNoteParams struct {
-	GraphNoteID string
-	Text        string
+	GraphNoteID string `db:"graph_note_id"`
+	Text        string `db:"text"`
 }
 
 func (q *Queries) CreateProxiedNote(ctx context.Context, arg CreateProxiedNoteParams) (ProxiedNote, error) {

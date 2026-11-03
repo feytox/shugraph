@@ -39,7 +39,8 @@ erDiagram
         enum scheme
         enum status
         integer risk_score
-        json risk_parts
+        jsonb risk_parts
+        timestamp detected_at
         timestamp first_event_at
         timestamp last_event_at
         integer accounts_count
@@ -126,17 +127,18 @@ erDiagram
 | Поле | Тип | Откуда берётся | Пример |
 |---|---|---|---|
 | `id` | uuid | системное | `b5f2a1c4-3d6e-4f7a-8b9c-0d1e2f3a4b5c` |
-| `scheme` | enum: ферма / адрес / цепочка / кольцо | вычисление | `цепочка` |
-| `status` | enum: новая / подтверждена / отклонена | по умолчанию `новая`, дальше действия аналитика| `подтверждена` |
+| `scheme` | enum: `farm` (ферма) / `address` (адрес) / `chain` (цепочка) / `ring` (кольцо) | вычисление | `chain` |
+| `status` | enum: `new` (новая) / `approved` (подтверждена) / `declined` (отклонена) | по умолчанию `new`, дальше действия аналитика| `approved` |
 | `risk_score` | integer | вычисление | `85` |
-| `risk_parts` | json | вычисление (значения переменных формулы риска) | `{"scheme": 55, "speed": 15, "hops": 10, "preserved": 5}` |
+| `risk_parts` | jsonb | вычисление (значения переменных формулы риска) | `{"scheme": 55, "speed": 15, "hops": 10, "preserved": 5}` |
+| `detected_at` | timestamp | системное: время, когда группа найдена; не меняется | `2026-10-12T18:15:00Z` |
 | `first_event_at` | timestamp | вычисляется в приложении на основе событий | `2026-10-12T18:03:00Z` |
 | `last_event_at` | timestamp | вычисляется в приложении на основе событий | `2026-10-12T18:14:00Z` |
 | `accounts_count` | integer | вычисление | `5` |
 | `total_amount` | bigint | вычисление (сумма в копейках) | `32450000` |
 | `is_frozen` | boolean | решение аналитика или пришло событие с `occurred_at` позже `last_event_at + 24 ч` | `true` |
-| `decision_comment` | string, nullable | действие аналитика, NULL пока "новая" | `транзит за 11 минут, подтверждаю` |
-| `decided_at` | timestamp, nullable | действие аналитика (Ф6), NULL пока "новая" | `2026-10-12T18:40:00Z` |
+| `decision_comment` | string, nullable | действие аналитика, NULL пока статус `new` | `транзит за 11 минут, подтверждаю` |
+| `decided_at` | timestamp, nullable | действие аналитика (Ф6), NULL пока статус `new` | `2026-10-12T18:40:00Z` |
 
 Примечание по `total_amount`: это оборот в копейках, т.е. сумма всех переводов группы по `group_events` (повторы кругов суммируются).
 
