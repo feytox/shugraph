@@ -2,11 +2,8 @@ package repository
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"time"
 
-	"github.com/google/uuid"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
 
@@ -14,23 +11,7 @@ import (
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository/db"
 )
 
-type groupRow struct {
-	ID              uuid.UUID       `db:"id"`
-	Scheme          string          `db:"scheme"`
-	Status          string          `db:"status"`
-	RiskScore       int32           `db:"risk_score"`
-	RiskParts       json.RawMessage `db:"risk_parts"`
-	DetectedAt      time.Time       `db:"detected_at"`
-	FirstEventAt    time.Time       `db:"first_event_at"`
-	LastEventAt     time.Time       `db:"last_event_at"`
-	AccountsCount   int32           `db:"accounts_count"`
-	TotalAmount     int64           `db:"total_amount"`
-	IsFrozen        bool            `db:"is_frozen"`
-	DecisionComment *string         `db:"decision_comment"`
-	DecidedAt       *time.Time      `db:"decided_at"`
-}
-
-var groupStruct = sqlbuilder.NewStruct(new(groupRow)).For(sqlbuilder.PostgreSQL)
+var groupStruct = sqlbuilder.NewStruct(new(db.Group)).For(sqlbuilder.PostgreSQL)
 
 type PgGroupRepository struct {
 	pool db.DBTX
@@ -60,7 +41,10 @@ func (p *PgGroupRepository) List(ctx context.Context, filter domain.GroupFilter)
 	}
 
 	if filter.After != nil {
-		sb.Where(fmt.Sprintf("(detected_at, id) < (%s, %s)", sb.Var(filter.After.DetectedAt), sb.Var(filter.After.ID)))
+		sb.Where(sb.LessThan(
+			sqlbuilder.TupleNames("detected_at", "id"),
+			sqlbuilder.Tuple(filter.After.DetectedAt, filter.After.ID),
+		))
 	}
 
 	query, args := sb.Build()
@@ -70,38 +54,38 @@ func (p *PgGroupRepository) List(ctx context.Context, filter domain.GroupFilter)
 		return nil, fmt.Errorf("select groups: %w", err)
 	}
 
-	records, err := pgx.CollectRows(rows, pgx.RowToStructByName[groupRow])
+	records, err := pgx.CollectRows(rows, pgx.RowToStructByName[db.Group])
 	if err != nil {
 		return nil, fmt.Errorf("scan groups: %w", err)
 	}
 
 	groups := make([]domain.Group, 0, len(records))
 	for _, record := range records {
-		groups = append(groups, groupFromRow(record))
+		groups = append(groups, groupFromRecord(record))
 	}
 
 	return groups, nil
 }
 
-func groupFromRow(row groupRow) domain.Group {
+func groupFromRecord(record db.Group) domain.Group {
 	group := domain.Group{
-		ID:            row.ID,
-		Scheme:        domain.GroupScheme(row.Scheme),
-		Status:        domain.GroupStatus(row.Status),
-		RiskScore:     int(row.RiskScore),
-		RiskParts:     row.RiskParts,
-		DetectedAt:    row.DetectedAt,
-		FirstEventAt:  row.FirstEventAt,
-		LastEventAt:   row.LastEventAt,
-		AccountsCount: int(row.AccountsCount),
-		TotalAmount:   row.TotalAmount,
-		IsFrozen:      row.IsFrozen,
+		ID:            record.ID,
+		Scheme:        domain.GroupScheme(record.Scheme),
+		Status:        domain.GroupStatus(record.Status),
+		RiskScore:     int(record.RiskScore),
+		RiskParts:     record.RiskParts,
+		DetectedAt:    record.DetectedAt,
+		FirstEventAt:  record.FirstEventAt,
+		LastEventAt:   record.LastEventAt,
+		AccountsCount: int(record.AccountsCount),
+		TotalAmount:   record.TotalAmount,
+		IsFrozen:      record.IsFrozen,
 	}
 
-	if row.DecidedAt != nil {
+	if record.DecidedAt.Valid {
 		group.Decision = &domain.Decision{
-			Comment:   *row.DecisionComment,
-			DecidedAt: *row.DecidedAt,
+			Comment:   record.DecisionComment.String,
+			DecidedAt: record.DecidedAt.Time,
 		}
 	}
 
