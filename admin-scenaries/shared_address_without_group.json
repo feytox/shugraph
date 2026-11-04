@@ -1,0 +1,67 @@
+{
+  "name": "shared_address_without_group",
+  "description": "Один адрес, но только три клиента: порог схемы «Один адрес на толпу» не достигается, группы нет.",
+  "scheme": "address",
+  "events": [
+    {
+      "event_id": "evt-sa-without-0001",
+      "type": "login",
+      "occurred_at": "2026-11-11T09:00:00Z",
+      "account_id": "acc-dmitry",
+      "client_id": "cli-dmitry",
+      "device_id": "dev-dmitry",
+      "address_id": "203.0.113.25"
+    },
+    {
+      "event_id": "evt-sa-without-0002",
+      "type": "login",
+      "occurred_at": "2026-11-11T09:04:00Z",
+      "account_id": "acc-elena",
+      "client_id": "cli-elena",
+      "device_id": "dev-elena",
+      "address_id": "203.0.113.25"
+    },
+    {
+      "event_id": "evt-sa-without-0003",
+      "type": "login",
+      "occurred_at": "2026-11-11T09:07:00Z",
+      "account_id": "acc-fyodor",
+      "client_id": "cli-fyodor",
+      "device_id": "dev-fyodor",
+      "address_id": "203.0.113.25"
+    },
+    {
+      "event_id": "evt-sa-without-0004",
+      "type": "transfer",
+      "occurred_at": "2026-11-11T09:20:00Z",
+      "from_account_id": "acc-dmitry",
+      "from_client_id": "cli-dmitry",
+      "to_account_id": "acc-merchant-1",
+      "to_client_id": "cli-merchant-1",
+      "amount": 120000
+    },
+    {
+      "event_id": "evt-sa-without-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-11T09:35:00Z",
+      "from_account_id": "acc-elena",
+      "from_client_id": "cli-elena",
+      "to_account_id": "acc-merchant-2",
+      "to_client_id": "cli-merchant-2",
+      "amount": 98000
+    },
+    {
+      "event_id": "evt-sa-without-0006",
+      "type": "transfer",
+      "occurred_at": "2026-11-11T09:50:00Z",
+      "from_account_id": "acc-fyodor",
+      "from_client_id": "cli-fyodor",
+      "to_account_id": "acc-merchant-3",
+      "to_client_id": "cli-merchant-3",
+      "amount": 145000
+    }
+  ],
+  "expected": {
+    "groups": []
+  }
+}

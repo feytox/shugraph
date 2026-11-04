@@ -1,0 +1,175 @@
+{
+  "name": "device_farm_with_group",
+  "description": "Одно устройство на толпу: три клиента входят с одного устройства и переводят деньги на общий счёт вывода; вокруг идёт обычный поток событий.",
+  "scheme": "farm",
+  "events": [
+    {
+      "event_id": "evt-df-with-noise-0001",
+      "type": "login",
+      "occurred_at": "2026-11-12T09:42:00Z",
+      "account_id": "acc-maria",
+      "client_id": "cli-maria",
+      "device_id": "dev-maria",
+      "address_id": "203.0.113.41"
+    },
+    {
+      "event_id": "evt-df-with-noise-0002",
+      "type": "login",
+      "occurred_at": "2026-11-12T09:55:00Z",
+      "account_id": "acc-oleg",
+      "client_id": "cli-oleg",
+      "device_id": "dev-oleg",
+      "address_id": "203.0.113.42"
+    },
+    {
+      "event_id": "evt-df-with-noise-0003",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T09:58:00Z",
+      "from_account_id": "acc-maria",
+      "from_client_id": "cli-maria",
+      "to_account_id": "acc-noise-w-1",
+      "to_client_id": "cli-noise-w-1",
+      "amount": 350000
+    },
+    {
+      "event_id": "evt-df-with-0001",
+      "type": "login",
+      "occurred_at": "2026-11-12T10:01:00Z",
+      "account_id": "acc-ravil",
+      "client_id": "cli-ravil",
+      "device_id": "dev-common",
+      "address_id": "198.51.100.21"
+    },
+    {
+      "event_id": "evt-df-with-noise-0004",
+      "type": "login",
+      "occurred_at": "2026-11-12T10:05:00Z",
+      "account_id": "acc-nina",
+      "client_id": "cli-nina",
+      "device_id": "dev-nina",
+      "address_id": "203.0.113.43"
+    },
+    {
+      "event_id": "evt-df-with-0002",
+      "type": "login",
+      "occurred_at": "2026-11-12T10:09:00Z",
+      "account_id": "acc-sasha",
+      "client_id": "cli-sasha",
+      "device_id": "dev-common",
+      "address_id": "198.51.100.22"
+    },
+    {
+      "event_id": "evt-df-with-noise-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T10:12:00Z",
+      "from_account_id": "acc-oleg",
+      "from_client_id": "cli-oleg",
+      "to_account_id": "acc-noise-w-2",
+      "to_client_id": "cli-noise-w-2",
+      "amount": 780000
+    },
+    {
+      "event_id": "evt-df-with-0003",
+      "type": "login",
+      "occurred_at": "2026-11-12T10:16:00Z",
+      "account_id": "acc-dima",
+      "client_id": "cli-dima",
+      "device_id": "dev-common",
+      "address_id": "198.51.100.23"
+    },
+    {
+      "event_id": "evt-df-with-0004",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T10:20:00Z",
+      "from_account_id": "acc-ravil",
+      "from_client_id": "cli-ravil",
+      "to_account_id": "acc-collector",
+      "to_client_id": "cli-organizer",
+      "amount": 5200000
+    },
+    {
+      "event_id": "evt-df-with-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T10:24:00Z",
+      "from_account_id": "acc-sasha",
+      "from_client_id": "cli-sasha",
+      "to_account_id": "acc-collector",
+      "to_client_id": "cli-organizer",
+      "amount": 4200000
+    },
+    {
+      "event_id": "evt-df-with-0006",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T10:29:00Z",
+      "from_account_id": "acc-dima",
+      "from_client_id": "cli-dima",
+      "to_account_id": "acc-collector",
+      "to_client_id": "cli-organizer",
+      "amount": 6700000
+    },
+    {
+      "event_id": "evt-df-with-noise-0006",
+      "type": "login",
+      "occurred_at": "2026-11-12T10:35:00Z",
+      "account_id": "acc-pavel",
+      "client_id": "cli-pavel",
+      "device_id": "dev-pavel",
+      "address_id": "203.0.113.44"
+    },
+    {
+      "event_id": "evt-df-with-noise-0007",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T10:44:00Z",
+      "from_account_id": "acc-nina",
+      "from_client_id": "cli-nina",
+      "to_account_id": "acc-noise-w-3",
+      "to_client_id": "cli-noise-w-3",
+      "amount": 210000
+    },
+    {
+      "event_id": "evt-df-with-noise-0008",
+      "type": "login",
+      "occurred_at": "2026-11-12T11:03:00Z",
+      "account_id": "acc-maria",
+      "client_id": "cli-maria",
+      "device_id": "dev-maria",
+      "address_id": "203.0.113.41"
+    },
+    {
+      "event_id": "evt-df-with-noise-0009",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T11:10:00Z",
+      "from_account_id": "acc-pavel",
+      "from_client_id": "cli-pavel",
+      "to_account_id": "acc-noise-w-4",
+      "to_client_id": "cli-noise-w-4",
+      "amount": 99000
+    },
+    {
+      "event_id": "evt-df-with-noise-0010",
+      "type": "login",
+      "occurred_at": "2026-11-12T11:20:00Z",
+      "account_id": "acc-oleg",
+      "client_id": "cli-oleg",
+      "device_id": "dev-oleg",
+      "address_id": "203.0.113.42"
+    }
+  ],
+  "expected": {
+    "groups": [
+      {
+        "scheme": "farm",
+        "client_ids": [
+          "cli-ravil",
+          "cli-sasha",
+          "cli-dima"
+        ],
+        "collector_account_ids": [
+          "acc-collector"
+        ],
+        "risk_score": 75,
+        "risk_level": "high"
+      }
+    ]
+  }
+}

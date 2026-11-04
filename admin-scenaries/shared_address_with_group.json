@@ -1,0 +1,102 @@
+{
+  "name": "shared_address_with_group",
+  "description": "Один адрес на толпу: четыре клиента входят с одного сетевого адреса, деньги уходят на два счёта вывода.",
+  "scheme": "address",
+  "events": [
+    {
+      "event_id": "evt-sa-with-0001",
+      "type": "login",
+      "occurred_at": "2026-11-10T18:00:00Z",
+      "account_id": "acc-anna",
+      "client_id": "cli-anna",
+      "device_id": "dev-anna",
+      "address_id": "84.17.52.10"
+    },
+    {
+      "event_id": "evt-sa-with-0002",
+      "type": "login",
+      "occurred_at": "2026-11-10T18:04:00Z",
+      "account_id": "acc-boris",
+      "client_id": "cli-boris",
+      "device_id": "dev-boris",
+      "address_id": "84.17.52.10"
+    },
+    {
+      "event_id": "evt-sa-with-0003",
+      "type": "login",
+      "occurred_at": "2026-11-10T18:07:00Z",
+      "account_id": "acc-vera",
+      "client_id": "cli-vera",
+      "device_id": "dev-vera",
+      "address_id": "84.17.52.10"
+    },
+    {
+      "event_id": "evt-sa-with-0004",
+      "type": "login",
+      "occurred_at": "2026-11-10T18:10:00Z",
+      "account_id": "acc-vova",
+      "client_id": "cli-vova",
+      "device_id": "dev-vera",
+      "address_id": "84.17.52.10"
+    },
+    {
+      "event_id": "evt-sa-with-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-10T18:25:00Z",
+      "from_account_id": "acc-anna",
+      "from_client_id": "cli-anna",
+      "to_account_id": "acc-out-1",
+      "to_client_id": "cli-organizer",
+      "amount": 5000000
+    },
+    {
+      "event_id": "evt-sa-with-0006",
+      "type": "transfer",
+      "occurred_at": "2026-11-10T18:30:00Z",
+      "from_account_id": "acc-boris",
+      "from_client_id": "cli-boris",
+      "to_account_id": "acc-out-1",
+      "to_client_id": "cli-organizer",
+      "amount": 4200000
+    },
+    {
+      "event_id": "evt-sa-with-0007",
+      "type": "transfer",
+      "occurred_at": "2026-11-10T18:35:00Z",
+      "from_account_id": "acc-vera",
+      "from_client_id": "cli-vera",
+      "to_account_id": "acc-out-2",
+      "to_client_id": "cli-organizer",
+      "amount": 6700000
+    },
+    {
+      "event_id": "evt-sa-with-0008",
+      "type": "transfer",
+      "occurred_at": "2026-11-10T18:40:00Z",
+      "from_account_id": "acc-vova",
+      "from_client_id": "cli-vova",
+      "to_account_id": "acc-out-2",
+      "to_client_id": "cli-organizer",
+      "amount": 5200000
+    }
+  ],
+  "expected": {
+    "groups": [
+      {
+        "scheme": "address",
+        "client_ids": [
+          "cli-anna",
+          "cli-boris",
+          "cli-vera",
+          "cli-vova"
+        ],
+        "collector_account_ids": [
+          "acc-out-1",
+          "acc-out-2"
+        ],
+        "risk_score": 65,
+        "risk_level": "medium"
+      }
+    ]
+  }
+}
