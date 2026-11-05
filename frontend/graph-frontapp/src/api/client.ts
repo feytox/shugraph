@@ -18,3 +18,6 @@ export type CreateNoteInputBody = components['schemas']['CreateNoteInputBody'];
 export type CreateNoteRequest = CreateNoteInputBody;
 export type ErrorModel = components['schemas']['ErrorModel'];
 export type ProblemDetails = ErrorModel;
+
+export type GroupItem = components['schemas']['GroupItem'];
+export type GroupListResponse = components['schemas']['GroupListOutputBody'];

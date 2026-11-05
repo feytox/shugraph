@@ -1,85 +1,30 @@
-import { http, HttpResponse } from 'msw';
-import type { Note } from '@/api/client';
-import type { operations } from '@/api/v1';
+import { delay, http, HttpResponse } from 'msw';
+import type { GroupItem, GroupListResponse } from '@/api/client';
 
-type ListNotesResponse =
-  operations['get-all-notes']['responses'][200]['content']['application/json'];
-type CreateNoteBody = operations['create-note']['requestBody']['content']['application/json'];
-type CreateNoteResponse =
-  operations['create-note']['responses'][201]['content']['application/json'];
-type CreateNoteError =
-  operations['create-note']['responses']['default']['content']['application/problem+json'];
-
-const validationError = (message: string, location: string, value: unknown) =>
-  HttpResponse.json<CreateNoteError>(
-    {
-      type: 'about:blank',
-      title: 'Unprocessable Entity',
-      status: 422,
-      detail: 'validation failed',
-      errors: [{ message, location, value }],
-    },
-    { status: 422, headers: { 'Content-Type': 'application/problem+json' } }
-  );
-
-let inMemoryNotes: Note[] = [
-  {
-    id: 'note-1',
-    text: 'Тестовая операция: перевод со счета 123 на 456',
-    created_at: '2026-10-07T10:00:00.000Z',
-  },
-  {
-    id: 'note-2',
-    text: 'Вход с подозрительного IP 192.168.1.1',
-    created_at: '2026-10-07T10:05:00.000Z',
-  },
-];
-
-export const resetMockNotes = () => {
-  inMemoryNotes = [
-    {
-      id: 'note-1',
-      text: 'Тестовая операция: перевод со счета 123 на 456',
-      created_at: '2026-10-07T10:00:00.000Z',
-    },
-    {
-      id: 'note-2',
-      text: 'Вход с подозрительного IP 192.168.1.1',
-      created_at: '2026-10-07T10:05:00.000Z',
-    },
-  ];
+const demoGroup: GroupItem = {
+  id: '00000000-0000-4000-8000-000000000001',
+  scheme: 'farm',
+  status: 'new',
+  risk_level: 'high',
+  risk_score: 87,
+  risk_parts: {},
+  detected_at: '2026-10-07T10:00:00Z',
+  first_event_at: '2026-10-07T10:00:00Z',
+  last_event_at: '2026-10-07T10:30:45Z',
+  features: { accounts_count: 7, total_amount: 12345, span_minutes: 30 },
 };
 
 export const handlers = [
-  http.get<never, never, ListNotesResponse>('*/api/v1/notes', () => {
-    return HttpResponse.json<ListNotesResponse>({ notes: inMemoryNotes }, { status: 200 });
-  }),
-
-  http.post<never, CreateNoteBody, CreateNoteResponse | CreateNoteError>(
-    '*/api/v1/notes',
-    async ({ request }) => {
-      let body: Partial<CreateNoteBody> | null;
-      try {
-        body = (await request.json()) as Partial<CreateNoteBody> | null;
-      } catch {
-        return validationError('request body is required', 'body', null);
-      }
-
-      if (typeof body?.text !== 'string') {
-        return validationError('expected required property text to be present', 'body', body);
-      }
-      if (body.text.length < 1) {
-        return validationError('expected length >= 1', 'body.text', body.text);
-      }
-
-      const newNote: Note = {
-        id: crypto.randomUUID(),
-        text: body.text,
-        created_at: new Date().toISOString(),
-      };
-
-      inMemoryNotes.push(newNote);
-      return HttpResponse.json<CreateNoteResponse>(newNote, { status: 201 });
+  http.get('*/api/v1/groups', async () => {
+    switch (import.meta.env.VITE_GROUPS_MOCK_STATE) {
+      case 'loading':
+        await delay('infinite');
+        break;
+      case 'error':
+        return new HttpResponse(null, { status: 500 });
+      case 'empty':
+        return HttpResponse.json<GroupListResponse>({ items: [], next_cursor: null });
     }
-  ),
+    return HttpResponse.json<GroupListResponse>({ items: [demoGroup], next_cursor: null });
+  }),
 ];
