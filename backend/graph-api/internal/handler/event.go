@@ -2,15 +2,27 @@ package handler
 
 import (
 	"context"
+	"errors"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
+
+	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
 )
 
 const eventsTag = "Events"
 
-type eventHandlers struct{}
+type EventService interface {
+	AcceptLogin(ctx context.Context, event domain.LoginEvent) (created bool, err error)
+	AcceptTransfer(ctx context.Context, event domain.TransferEvent) (created bool, err error)
+}
+
+type eventHandlers struct {
+	events EventService
+	log    *slog.Logger
+}
 
 func registerEvents(api huma.API, h *eventHandlers) {
 	huma.Register(api, huma.Operation{
@@ -87,9 +99,58 @@ type TransferEvent struct {
 	TransferPayload
 }
 
-func (h *eventHandlers) login(context.Context, *LoginInput) (*struct{}, error) {
-	return nil, huma.Error501NotImplemented("Event ingestion is not implemented yet.")
+type EventAcceptedOutput struct {
+	Status int
 }
-func (h *eventHandlers) transfer(context.Context, *TransferInput) (*struct{}, error) {
-	return nil, huma.Error501NotImplemented("Event ingestion is not implemented yet.")
+
+func (h *eventHandlers) login(ctx context.Context, in *LoginInput) (*EventAcceptedOutput, error) {
+	created, err := h.events.AcceptLogin(ctx, domain.LoginEvent{
+		EventID:    in.EventID,
+		OccurredAt: in.Body.OccurredAt,
+		AccountID:  in.Body.AccountID,
+		ClientID:   in.Body.ClientID,
+		DeviceID:   in.Body.DeviceID,
+		AddressID:  in.Body.AddressID,
+	})
+	if err != nil {
+		return nil, h.eventProblem(ctx, err)
+	}
+
+	return eventAccepted(created), nil
+}
+
+func (h *eventHandlers) transfer(ctx context.Context, in *TransferInput) (*EventAcceptedOutput, error) {
+	created, err := h.events.AcceptTransfer(ctx, domain.TransferEvent{
+		EventID:       in.EventID,
+		OccurredAt:    in.Body.OccurredAt,
+		FromAccountID: in.Body.FromAccountID,
+		FromClientID:  in.Body.FromClientID,
+		ToAccountID:   in.Body.ToAccountID,
+		ToClientID:    in.Body.ToClientID,
+		Amount:        in.Body.Amount,
+	})
+	if err != nil {
+		return nil, h.eventProblem(ctx, err)
+	}
+
+	return eventAccepted(created), nil
+}
+
+func eventAccepted(created bool) *EventAcceptedOutput {
+	if created {
+		return &EventAcceptedOutput{Status: http.StatusCreated}
+	}
+
+	return &EventAcceptedOutput{Status: http.StatusNoContent}
+}
+
+func (h *eventHandlers) eventProblem(ctx context.Context, err error) error {
+	switch {
+	case errors.Is(err, domain.ErrEventConflict):
+		return huma.Error409Conflict(err.Error())
+	case errors.Is(err, domain.ErrAccountOwnerMismatch), errors.Is(err, domain.ErrSameAccounts):
+		return huma.Error422UnprocessableEntity(err.Error())
+	default:
+		return problem(ctx, h.log, err)
+	}
 }
