@@ -36,7 +36,6 @@ func registerEvents(api huma.API, h *eventHandlers) {
 			http.StatusBadRequest,
 			http.StatusConflict,
 			http.StatusUnprocessableEntity,
-			http.StatusNotImplemented,
 		},
 		Responses: map[string]*huma.Response{
 			"204": {Description: "Identical event already accepted; no changes"},
@@ -54,7 +53,6 @@ func registerEvents(api huma.API, h *eventHandlers) {
 			http.StatusBadRequest,
 			http.StatusConflict,
 			http.StatusUnprocessableEntity,
-			http.StatusNotImplemented,
 		},
 		Responses: map[string]*huma.Response{
 			"204": {Description: "Identical event already accepted; no changes"},

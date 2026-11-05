@@ -1525,8 +1525,6 @@ type LoginEventResponse struct {
 	ApplicationproblemJSON422 *ErrorModel
 	// ApplicationproblemJSON500 the response for an HTTP 500 `application/problem+json` response
 	ApplicationproblemJSON500 *ErrorModel
-	// ApplicationproblemJSON501 the response for an HTTP 501 `application/problem+json` response
-	ApplicationproblemJSON501 *ErrorModel
 }
 
 // GetApplicationproblemJSON400 returns the response for an HTTP 400 `application/problem+json` response
@@ -1547,11 +1545,6 @@ func (r LoginEventResponse) GetApplicationproblemJSON422() *ErrorModel {
 // GetApplicationproblemJSON500 returns the response for an HTTP 500 `application/problem+json` response
 func (r LoginEventResponse) GetApplicationproblemJSON500() *ErrorModel {
 	return r.ApplicationproblemJSON500
-}
-
-// GetApplicationproblemJSON501 returns the response for an HTTP 501 `application/problem+json` response
-func (r LoginEventResponse) GetApplicationproblemJSON501() *ErrorModel {
-	return r.ApplicationproblemJSON501
 }
 
 // GetBody returns the raw response body bytes
@@ -1594,8 +1587,6 @@ type TransferEventResponse struct {
 	ApplicationproblemJSON422 *ErrorModel
 	// ApplicationproblemJSON500 the response for an HTTP 500 `application/problem+json` response
 	ApplicationproblemJSON500 *ErrorModel
-	// ApplicationproblemJSON501 the response for an HTTP 501 `application/problem+json` response
-	ApplicationproblemJSON501 *ErrorModel
 }
 
 // GetApplicationproblemJSON400 returns the response for an HTTP 400 `application/problem+json` response
@@ -1616,11 +1607,6 @@ func (r TransferEventResponse) GetApplicationproblemJSON422() *ErrorModel {
 // GetApplicationproblemJSON500 returns the response for an HTTP 500 `application/problem+json` response
 func (r TransferEventResponse) GetApplicationproblemJSON500() *ErrorModel {
 	return r.ApplicationproblemJSON500
-}
-
-// GetApplicationproblemJSON501 returns the response for an HTTP 501 `application/problem+json` response
-func (r TransferEventResponse) GetApplicationproblemJSON501() *ErrorModel {
-	return r.ApplicationproblemJSON501
 }
 
 // GetBody returns the raw response body bytes
@@ -2385,13 +2371,6 @@ func ParseLoginEventResponse(rsp *http.Response) (*LoginEventResponse, error) {
 		}
 		response.ApplicationproblemJSON500 = &dest
 
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 501:
-		var dest ErrorModel
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.ApplicationproblemJSON501 = &dest
-
 	}
 
 	return response, nil
@@ -2444,13 +2423,6 @@ func ParseTransferEventResponse(rsp *http.Response) (*TransferEventResponse, err
 			return nil, err
 		}
 		response.ApplicationproblemJSON500 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 501:
-		var dest ErrorModel
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.ApplicationproblemJSON501 = &dest
 
 	}
 
