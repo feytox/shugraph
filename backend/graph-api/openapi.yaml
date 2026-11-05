@@ -449,16 +449,24 @@ components:
       properties:
         account_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         address_id:
           description: Source IP/network address; retained as a source identifier.
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         client_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         device_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         event_id:
           minLength: 1
@@ -479,16 +487,24 @@ components:
       properties:
         account_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         address_id:
           description: Source IP/network address; retained as a source identifier.
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         client_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         device_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         occurred_at:
           format: date-time
@@ -629,18 +645,26 @@ components:
           type: string
         from_account_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         from_client_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         occurred_at:
           format: date-time
           type: string
         to_account_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         to_client_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
       required:
         - event_id
@@ -661,18 +685,26 @@ components:
           type: integer
         from_account_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         from_client_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         occurred_at:
           format: date-time
           type: string
         to_account_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
         to_client_id:
           minLength: 1
+          pattern: ^[^\x00]*$
+          patternDescription: text without null bytes
           type: string
       required:
         - occurred_at
@@ -696,6 +728,8 @@ paths:
           required: true
           schema:
             minLength: 1
+            pattern: ^[^\x00]*$
+            patternDescription: text without null bytes
             type: string
       requestBody:
         content:
@@ -744,6 +778,8 @@ paths:
           required: true
           schema:
             minLength: 1
+            pattern: ^[^\x00]*$
+            patternDescription: text without null bytes
             type: string
       requestBody:
         content:

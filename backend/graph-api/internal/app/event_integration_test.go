@@ -154,6 +154,36 @@ func TestEvents_BrokenEventWritesNothing(t *testing.T) {
 			path: loginsPath + "login-2",
 			body: map[string]string{"account_id": "account-new"},
 		},
+		{
+			name: "LoginWithNullByteInField",
+			path: loginsPath + "login-2",
+			body: func() handler.LoginPayload {
+				login := newLogin()
+				login.DeviceID = "device\x00new"
+
+				return login
+			}(),
+		},
+		{
+			name: "TransferWithNullByteInField",
+			path: transfersPath + "transfer-1",
+			body: func() handler.TransferPayload {
+				transfer := newTransfer()
+				transfer.ToClientID = "client\x00new"
+
+				return transfer
+			}(),
+		},
+		{
+			name: "LoginWithNullByteInEventID",
+			path: loginsPath + "login%00new",
+			body: newLogin(),
+		},
+		{
+			name: "TransferWithNullByteInEventID",
+			path: transfersPath + "transfer%00new",
+			body: newTransfer(),
+		},
 	}
 
 	for _, tc := range tests {
