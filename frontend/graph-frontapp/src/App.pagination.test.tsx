@@ -5,20 +5,15 @@ import { http, HttpResponse } from 'msw';
 import { App } from '@/App';
 import { server } from '@/mocks/server';
 import type { GroupItem, GroupListResponse } from '@/api/client';
+import { groupItem } from '@/test/groupItem';
 
 afterEach(() => vi.unstubAllEnvs());
 
 const items: GroupItem[] = Array.from({ length: 25 }, (_, index) => ({
+  ...groupItem,
   id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
-  scheme: 'farm',
-  status: 'new',
-  risk_level: 'high',
   risk_score: index + 1,
-  risk_parts: {},
-  detected_at: '2026-10-07T10:00:00Z',
-  first_event_at: '2026-10-07T10:00:00Z',
-  last_event_at: '2026-10-07T10:30:00Z',
-  features: { accounts_count: index + 1, total_amount: 100, span_minutes: 30 },
+  features: { ...groupItem.features, accounts_count: index + 1 },
 }));
 const cursor = 'opaque/+next-page==';
 
