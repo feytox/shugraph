@@ -17,6 +17,8 @@ export function useGroups() {
     },
     getNextPageParam: (page) => page.next_cursor ?? undefined,
     retry: false,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: 'always',
   });
   return {
     ...query,

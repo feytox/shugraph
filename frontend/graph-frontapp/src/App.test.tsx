@@ -122,8 +122,8 @@ it('сохраняет отличие ошибки от пустого отве�
 
 it('по умолчанию получает демонстрационную группу через MSW', async () => {
   renderWithClient();
-  expect(await screen.findByText('Ферма')).toBeVisible();
-  expect(screen.getByText('Новая')).toBeVisible();
+  expect((await screen.findAllByText('Ферма'))[0]).toBeVisible();
+  expect(screen.getAllByText('Новая')).toHaveLength(20);
 });
 
 it.each(['empty', 'error', 'loading'])(

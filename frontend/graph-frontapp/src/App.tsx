@@ -76,6 +76,9 @@ function GroupsScreen() {
             </Stack>
           </Alert>
         )}
+        {groups.isRefetchError && !groups.isFetchNextPageError && groups.data && (
+          <Alert color="red">Не удалось обновить список</Alert>
+        )}
         {groups.isPending && (
           <Group role="status">
             <Loader size="sm" />
