@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { focusManager, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient, type GroupListResponse } from '@/api/client';
 
 const queryKey = ['groups'];
@@ -19,6 +19,13 @@ export function useGroups() {
   const client = useQueryClient();
   const [isRefetchError, setRefetchError] = useState(false);
   const next = useMutation({
+    onMutate: () => {
+      const refresh = { needed: false };
+      const unsubscribe = focusManager.subscribe((focused) => {
+        if (focused) refresh.needed = true;
+      });
+      return { refresh, unsubscribe };
+    },
     mutationFn: async () => {
       // A focus refresh may already be in flight. Its stale response must not replace this page.
       await client.cancelQueries({ queryKey });
@@ -34,6 +41,13 @@ export function useGroups() {
         ],
         next_cursor: data.next_cursor,
       }));
+    },
+    onSettled: (_data, _error, _variables, context) => {
+      context?.unsubscribe();
+      if (context?.refresh.needed) {
+        // Re-enabling the query must refresh even after pagination marks the cache fresh.
+        void client.invalidateQueries({ queryKey, refetchType: 'none' });
+      }
     },
   });
   const query = useQuery({

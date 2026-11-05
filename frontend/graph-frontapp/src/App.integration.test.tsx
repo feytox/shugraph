@@ -17,7 +17,10 @@ const original: GroupItem[] = Array.from({ length: 65 }, (_, index) => ({
 }));
 
 beforeEach(() => vi.useFakeTimers());
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+});
 async function advance(ms = 1) {
   await act(async () => {
     await vi.advanceTimersByTimeAsync(ms);
@@ -79,9 +82,14 @@ it('сохраняет загруженные группы при поступл
   expect(counts()).toEqual(['100', ...Array.from({ length: 60 }, (_, i) => String(i + 1))]);
 });
 
-it.each([false, true])(
-  'сохраняет строки при пересечении дозагрузки с polling и фокусом (ошибка страницы: %s)',
-  async (fail) => {
+it.each([
+  { fail: false, elapsed: 100 },
+  { fail: true, elapsed: 100 },
+  { fail: false, elapsed: 3000 },
+  { fail: true, elapsed: 3000 },
+])(
+  'обновляет список сразу после дозагрузки при возврате на вкладку (ошибка: $fail, задержка: $elapsed)',
+  async ({ fail, elapsed }) => {
     let items = original;
     let finish!: () => void;
     let pending = false;
@@ -102,18 +110,21 @@ it.each([false, true])(
     await more();
     pending = true;
     await more();
+    const visibility = vi.spyOn(document, 'visibilityState', 'get');
+    visibility.mockReturnValue('hidden');
+    fireEvent(document, new Event('visibilitychange', { bubbles: true }));
     items = [
       { ...original[0], id: 'arrival', features: { ...original[0].features, accounts_count: 100 } },
       ...original,
     ];
+    await advance(elapsed);
+    visibility.mockReturnValue('visible');
     fireEvent(document, new Event('visibilitychange', { bubbles: true }));
-    await advance(3000);
+    await advance();
     expect(counts()).toEqual(Array.from({ length: 40 }, (_, i) => String(i + 1)));
     expect(screen.getByRole('button')).toBeDisabled();
     finish();
     await advance();
-    expect(counts().length).toBeGreaterThanOrEqual(fail ? 40 : 60);
-    await advance(3000);
     expect(counts()).toEqual([
       '100',
       ...Array.from({ length: fail ? 40 : 60 }, (_, i) => String(i + 1)),
