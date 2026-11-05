@@ -23,6 +23,73 @@ func (q *Queries) GetAccountOwner(ctx context.Context, id string) (string, error
 	return client_id, err
 }
 
+const getStoredLogin = `-- name: GetStoredLogin :one
+SELECT e.occurred_at, l.account_id, a.client_id, l.device_id, l.address_id
+FROM events e
+JOIN login_events l ON l.event_id = e.event_id
+JOIN accounts a ON a.id = l.account_id
+WHERE e.event_id = $1
+`
+
+type GetStoredLoginRow struct {
+	OccurredAt time.Time `db:"occurred_at"`
+	AccountID  string    `db:"account_id"`
+	ClientID   string    `db:"client_id"`
+	DeviceID   string    `db:"device_id"`
+	AddressID  string    `db:"address_id"`
+}
+
+func (q *Queries) GetStoredLogin(ctx context.Context, eventID string) (GetStoredLoginRow, error) {
+	row := q.db.QueryRow(ctx, getStoredLogin, eventID)
+	var i GetStoredLoginRow
+	err := row.Scan(
+		&i.OccurredAt,
+		&i.AccountID,
+		&i.ClientID,
+		&i.DeviceID,
+		&i.AddressID,
+	)
+	return i, err
+}
+
+const getStoredTransfer = `-- name: GetStoredTransfer :one
+SELECT
+    e.occurred_at,
+    t.from_account_id,
+    from_account.client_id AS from_client_id,
+    t.to_account_id,
+    to_account.client_id AS to_client_id,
+    t.amount
+FROM events e
+JOIN transfers t ON t.event_id = e.event_id
+JOIN accounts from_account ON from_account.id = t.from_account_id
+JOIN accounts to_account ON to_account.id = t.to_account_id
+WHERE e.event_id = $1
+`
+
+type GetStoredTransferRow struct {
+	OccurredAt    time.Time `db:"occurred_at"`
+	FromAccountID string    `db:"from_account_id"`
+	FromClientID  string    `db:"from_client_id"`
+	ToAccountID   string    `db:"to_account_id"`
+	ToClientID    string    `db:"to_client_id"`
+	Amount        int64     `db:"amount"`
+}
+
+func (q *Queries) GetStoredTransfer(ctx context.Context, eventID string) (GetStoredTransferRow, error) {
+	row := q.db.QueryRow(ctx, getStoredTransfer, eventID)
+	var i GetStoredTransferRow
+	err := row.Scan(
+		&i.OccurredAt,
+		&i.FromAccountID,
+		&i.FromClientID,
+		&i.ToAccountID,
+		&i.ToClientID,
+		&i.Amount,
+	)
+	return i, err
+}
+
 const insertAccount = `-- name: InsertAccount :exec
 INSERT INTO accounts (id, client_id)
 VALUES ($1, $2)

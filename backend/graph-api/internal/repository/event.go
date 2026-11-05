@@ -3,6 +3,7 @@ package repository
 import (
 	"cmp"
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 	"time"
@@ -25,21 +26,25 @@ func NewPgEventRepository(pool *pgxpool.Pool) *PgEventRepository {
 func (p *PgEventRepository) SaveLogin(ctx context.Context, event domain.LoginEvent) (created bool, err error) {
 	params := eventParams(event.EventID, domain.EventTypeLogin, event.OccurredAt)
 
-	return saveEvent(ctx, p.pool, params, event, insertLoginDetails)
+	return saveEvent(ctx, p.pool, params, event, insertLoginDetails, ensureSameAsStoredLogin)
 }
 
 func (p *PgEventRepository) SaveTransfer(ctx context.Context, event domain.TransferEvent) (created bool, err error) {
 	params := eventParams(event.EventID, domain.EventTypeTransfer, event.OccurredAt)
 
-	return saveEvent(ctx, p.pool, params, event, insertTransferDetails)
+	return saveEvent(ctx, p.pool, params, event, insertTransferDetails, ensureSameAsStoredTransfer)
 }
 
 func eventParams(eventID string, eventType domain.EventType, occurredAt time.Time) db.InsertEventParams {
 	return db.InsertEventParams{
 		EventID:    eventID,
 		Type:       string(eventType),
-		OccurredAt: occurredAt.Truncate(time.Microsecond),
+		OccurredAt: toStoredPrecision(occurredAt),
 	}
+}
+
+func toStoredPrecision(t time.Time) time.Time {
+	return t.Truncate(time.Microsecond)
 }
 
 func saveEvent[Event any](
@@ -48,6 +53,7 @@ func saveEvent[Event any](
 	params db.InsertEventParams,
 	event Event,
 	insertDetails func(context.Context, *db.Queries, Event) error,
+	ensureSameAsStored func(context.Context, *db.Queries, Event) error,
 ) (created bool, err error) {
 	tx, err := pool.Begin(ctx)
 	if err != nil {
@@ -63,7 +69,7 @@ func saveEvent[Event any](
 	}
 
 	if rows == 0 {
-		return false, nil
+		return false, ensureSameAsStored(ctx, q, event)
 	}
 
 	if err := insertDetails(ctx, q, event); err != nil {
@@ -125,6 +131,49 @@ func insertTransferDetails(ctx context.Context, q *db.Queries, event domain.Tran
 	})
 	if err != nil {
 		return fmt.Errorf("insert transfer: %w", err)
+	}
+
+	return nil
+}
+
+func ensureSameAsStoredLogin(ctx context.Context, q *db.Queries, event domain.LoginEvent) error {
+	stored, err := q.GetStoredLogin(ctx, event.EventID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.ErrEventConflict
+	}
+
+	if err != nil {
+		return fmt.Errorf("get stored login: %w", err)
+	}
+
+	if !stored.OccurredAt.Equal(toStoredPrecision(event.OccurredAt)) ||
+		stored.AccountID != event.AccountID ||
+		stored.ClientID != event.ClientID ||
+		stored.DeviceID != event.DeviceID ||
+		stored.AddressID != event.AddressID {
+		return domain.ErrEventConflict
+	}
+
+	return nil
+}
+
+func ensureSameAsStoredTransfer(ctx context.Context, q *db.Queries, event domain.TransferEvent) error {
+	stored, err := q.GetStoredTransfer(ctx, event.EventID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.ErrEventConflict
+	}
+
+	if err != nil {
+		return fmt.Errorf("get stored transfer: %w", err)
+	}
+
+	if !stored.OccurredAt.Equal(toStoredPrecision(event.OccurredAt)) ||
+		stored.FromAccountID != event.FromAccountID ||
+		stored.FromClientID != event.FromClientID ||
+		stored.ToAccountID != event.ToAccountID ||
+		stored.ToClientID != event.ToClientID ||
+		stored.Amount != event.Amount {
+		return domain.ErrEventConflict
 	}
 
 	return nil

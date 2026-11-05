@@ -35,3 +35,24 @@ VALUES ($1, $2, $3, $4);
 -- name: InsertLoginEvent :exec
 INSERT INTO login_events (event_id, account_id, device_id, address_id)
 VALUES ($1, $2, $3, $4);
+
+-- name: GetStoredLogin :one
+SELECT e.occurred_at, l.account_id, a.client_id, l.device_id, l.address_id
+FROM events e
+JOIN login_events l ON l.event_id = e.event_id
+JOIN accounts a ON a.id = l.account_id
+WHERE e.event_id = $1;
+
+-- name: GetStoredTransfer :one
+SELECT
+    e.occurred_at,
+    t.from_account_id,
+    from_account.client_id AS from_client_id,
+    t.to_account_id,
+    to_account.client_id AS to_client_id,
+    t.amount
+FROM events e
+JOIN transfers t ON t.event_id = e.event_id
+JOIN accounts from_account ON from_account.id = t.from_account_id
+JOIN accounts to_account ON to_account.id = t.to_account_id
+WHERE e.event_id = $1;
