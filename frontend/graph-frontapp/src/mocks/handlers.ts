@@ -1,5 +1,6 @@
 import { delay, http, HttpResponse } from 'msw';
 import type { GroupItem, GroupListResponse } from '@/api/client';
+import { groupsPage } from '@/mocks/groupsPage';
 
 const demoGroup: GroupItem = {
   id: '00000000-0000-4000-8000-000000000001',
@@ -15,7 +16,7 @@ const demoGroup: GroupItem = {
 };
 
 export const handlers = [
-  http.get('*/api/v1/groups', async () => {
+  http.get('*/api/v1/groups', async ({ request }) => {
     switch (import.meta.env.VITE_GROUPS_MOCK_STATE) {
       case 'loading':
         await delay('infinite');
@@ -24,6 +25,19 @@ export const handlers = [
         return new HttpResponse(null, { status: 500 });
       case 'empty':
         return HttpResponse.json<GroupListResponse>({ items: [], next_cursor: null });
+    }
+    if (['pagination', 'next-page-error'].includes(import.meta.env.VITE_GROUPS_MOCK_STATE)) {
+      if (
+        import.meta.env.VITE_GROUPS_MOCK_STATE === 'next-page-error' &&
+        new URL(request.url).searchParams.has('cursor')
+      ) {
+        return new HttpResponse(null, { status: 500 });
+      }
+      const items = Array.from({ length: 25 }, (_, index) => ({
+        ...demoGroup,
+        id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+      }));
+      return HttpResponse.json<GroupListResponse>(groupsPage(items, request));
     }
     return HttpResponse.json<GroupListResponse>({ items: [demoGroup], next_cursor: null });
   }),

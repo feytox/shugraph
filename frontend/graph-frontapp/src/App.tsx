@@ -90,6 +90,18 @@ function GroupsScreen() {
               Подозрительных групп пока нет. Запустите сценарий через Swagger graph-admin-api
             </Text>
           ))}
+        {groups.isFetchNextPageError && (
+          <Alert color="red">Не удалось загрузить следующую страницу</Alert>
+        )}
+        {groups.hasNextPage && (
+          <Button
+            onClick={() => groups.fetchNextPage()}
+            loading={groups.isFetchingNextPage}
+            disabled={groups.isFetching}
+          >
+            {groups.isFetchNextPageError ? 'Повторить загрузку' : 'Показать ещё'}
+          </Button>
+        )}
       </Stack>
     </Container>
   );
