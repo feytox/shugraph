@@ -16,3 +16,5 @@
 - **Domain**: Strictly view layer. Zero client-side risk scoring or graph traversals (fetch pre-calculated from API).
 - **Dates**: Strict UTC via `dayjs.utc()`.
 - **Environment**: Proxy `/api` -> `:8080` (override: `VITE_API_PROXY_TARGET`) or MSW (`VITE_USE_MOCKS=true`).
+
+- **Mock states** (`VITE_USE_MOCKS=true`): `VITE_GROUPS_MOCK_STATE=loading|error|empty|polling-error|next-page-error`. Unset for normal paginated live updates.
