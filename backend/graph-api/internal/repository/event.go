@@ -3,10 +3,8 @@ package repository
 import (
 	"cmp"
 	"context"
-	"errors"
 	"fmt"
 	"slices"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -87,10 +85,6 @@ func (p *PgEventRepository) SaveTransfer(ctx context.Context, event domain.Trans
 	return created, nil
 }
 
-func toStoredPrecision(t time.Time) time.Time {
-	return t.Truncate(time.Microsecond)
-}
-
 func insertLoginDetails(ctx context.Context, q *db.Queries, event domain.LoginEvent) error {
 	err := ensureAccounts(ctx, q, accountOwner{accountID: event.AccountID, clientID: event.ClientID})
 	if err != nil {
@@ -141,20 +135,19 @@ func insertTransferDetails(ctx context.Context, q *db.Queries, event domain.Tran
 }
 
 func ensureSameAsStoredLogin(ctx context.Context, q *db.Queries, event domain.LoginEvent) error {
-	stored, err := q.GetStoredLogin(ctx, event.EventID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return domain.ErrEventConflict
-	}
-
+	same, err := q.IsSameLoginStored(ctx, db.IsSameLoginStoredParams{
+		EventID:    event.EventID,
+		OccurredAt: event.OccurredAt,
+		AccountID:  event.AccountID,
+		ClientID:   event.ClientID,
+		DeviceID:   event.DeviceID,
+		AddressID:  event.AddressID,
+	})
 	if err != nil {
-		return fmt.Errorf("get stored login: %w", err)
+		return fmt.Errorf("compare stored login: %w", err)
 	}
 
-	if !stored.OccurredAt.Equal(toStoredPrecision(event.OccurredAt)) ||
-		stored.AccountID != event.AccountID ||
-		stored.ClientID != event.ClientID ||
-		stored.DeviceID != event.DeviceID ||
-		stored.AddressID != event.AddressID {
+	if !same {
 		return domain.ErrEventConflict
 	}
 
@@ -162,21 +155,20 @@ func ensureSameAsStoredLogin(ctx context.Context, q *db.Queries, event domain.Lo
 }
 
 func ensureSameAsStoredTransfer(ctx context.Context, q *db.Queries, event domain.TransferEvent) error {
-	stored, err := q.GetStoredTransfer(ctx, event.EventID)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return domain.ErrEventConflict
-	}
-
+	same, err := q.IsSameTransferStored(ctx, db.IsSameTransferStoredParams{
+		EventID:       event.EventID,
+		OccurredAt:    event.OccurredAt,
+		FromAccountID: event.FromAccountID,
+		FromClientID:  event.FromClientID,
+		ToAccountID:   event.ToAccountID,
+		ToClientID:    event.ToClientID,
+		Amount:        event.Amount,
+	})
 	if err != nil {
-		return fmt.Errorf("get stored transfer: %w", err)
+		return fmt.Errorf("compare stored transfer: %w", err)
 	}
 
-	if !stored.OccurredAt.Equal(toStoredPrecision(event.OccurredAt)) ||
-		stored.FromAccountID != event.FromAccountID ||
-		stored.FromClientID != event.FromClientID ||
-		stored.ToAccountID != event.ToAccountID ||
-		stored.ToClientID != event.ToClientID ||
-		stored.Amount != event.Amount {
+	if !same {
 		return domain.ErrEventConflict
 	}
 

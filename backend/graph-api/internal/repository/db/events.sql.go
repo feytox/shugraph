@@ -23,73 +23,6 @@ func (q *Queries) GetAccountOwner(ctx context.Context, id string) (string, error
 	return client_id, err
 }
 
-const getStoredLogin = `-- name: GetStoredLogin :one
-SELECT e.occurred_at, l.account_id, a.client_id, l.device_id, l.address_id
-FROM events e
-JOIN login_events l ON l.event_id = e.event_id
-JOIN accounts a ON a.id = l.account_id
-WHERE e.event_id = $1
-`
-
-type GetStoredLoginRow struct {
-	OccurredAt time.Time `db:"occurred_at"`
-	AccountID  string    `db:"account_id"`
-	ClientID   string    `db:"client_id"`
-	DeviceID   string    `db:"device_id"`
-	AddressID  string    `db:"address_id"`
-}
-
-func (q *Queries) GetStoredLogin(ctx context.Context, eventID string) (GetStoredLoginRow, error) {
-	row := q.db.QueryRow(ctx, getStoredLogin, eventID)
-	var i GetStoredLoginRow
-	err := row.Scan(
-		&i.OccurredAt,
-		&i.AccountID,
-		&i.ClientID,
-		&i.DeviceID,
-		&i.AddressID,
-	)
-	return i, err
-}
-
-const getStoredTransfer = `-- name: GetStoredTransfer :one
-SELECT
-    e.occurred_at,
-    t.from_account_id,
-    from_account.client_id AS from_client_id,
-    t.to_account_id,
-    to_account.client_id AS to_client_id,
-    t.amount
-FROM events e
-JOIN transfers t ON t.event_id = e.event_id
-JOIN accounts from_account ON from_account.id = t.from_account_id
-JOIN accounts to_account ON to_account.id = t.to_account_id
-WHERE e.event_id = $1
-`
-
-type GetStoredTransferRow struct {
-	OccurredAt    time.Time `db:"occurred_at"`
-	FromAccountID string    `db:"from_account_id"`
-	FromClientID  string    `db:"from_client_id"`
-	ToAccountID   string    `db:"to_account_id"`
-	ToClientID    string    `db:"to_client_id"`
-	Amount        int64     `db:"amount"`
-}
-
-func (q *Queries) GetStoredTransfer(ctx context.Context, eventID string) (GetStoredTransferRow, error) {
-	row := q.db.QueryRow(ctx, getStoredTransfer, eventID)
-	var i GetStoredTransferRow
-	err := row.Scan(
-		&i.OccurredAt,
-		&i.FromAccountID,
-		&i.FromClientID,
-		&i.ToAccountID,
-		&i.ToClientID,
-		&i.Amount,
-	)
-	return i, err
-}
-
 const insertAccount = `-- name: InsertAccount :exec
 INSERT INTO accounts (id, client_id)
 VALUES ($1, $2)
@@ -201,4 +134,84 @@ func (q *Queries) InsertTransfer(ctx context.Context, arg InsertTransferParams) 
 		arg.Amount,
 	)
 	return err
+}
+
+const isSameLoginStored = `-- name: IsSameLoginStored :one
+SELECT EXISTS (
+    SELECT 1
+    FROM events e
+    JOIN login_events l ON l.event_id = e.event_id
+    JOIN accounts a ON a.id = l.account_id
+    WHERE e.event_id = $1
+      AND e.occurred_at = $2
+      AND l.account_id = $3
+      AND a.client_id = $4
+      AND l.device_id = $5
+      AND l.address_id = $6
+)
+`
+
+type IsSameLoginStoredParams struct {
+	EventID    string    `db:"event_id"`
+	OccurredAt time.Time `db:"occurred_at"`
+	AccountID  string    `db:"account_id"`
+	ClientID   string    `db:"client_id"`
+	DeviceID   string    `db:"device_id"`
+	AddressID  string    `db:"address_id"`
+}
+
+func (q *Queries) IsSameLoginStored(ctx context.Context, arg IsSameLoginStoredParams) (bool, error) {
+	row := q.db.QueryRow(ctx, isSameLoginStored,
+		arg.EventID,
+		arg.OccurredAt,
+		arg.AccountID,
+		arg.ClientID,
+		arg.DeviceID,
+		arg.AddressID,
+	)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
+}
+
+const isSameTransferStored = `-- name: IsSameTransferStored :one
+SELECT EXISTS (
+    SELECT 1
+    FROM events e
+    JOIN transfers t ON t.event_id = e.event_id
+    JOIN accounts from_account ON from_account.id = t.from_account_id
+    JOIN accounts to_account ON to_account.id = t.to_account_id
+    WHERE e.event_id = $1
+      AND e.occurred_at = $2
+      AND t.from_account_id = $3
+      AND from_account.client_id = $4
+      AND t.to_account_id = $5
+      AND to_account.client_id = $6
+      AND t.amount = $7
+)
+`
+
+type IsSameTransferStoredParams struct {
+	EventID       string    `db:"event_id"`
+	OccurredAt    time.Time `db:"occurred_at"`
+	FromAccountID string    `db:"from_account_id"`
+	FromClientID  string    `db:"from_client_id"`
+	ToAccountID   string    `db:"to_account_id"`
+	ToClientID    string    `db:"to_client_id"`
+	Amount        int64     `db:"amount"`
+}
+
+func (q *Queries) IsSameTransferStored(ctx context.Context, arg IsSameTransferStoredParams) (bool, error) {
+	row := q.db.QueryRow(ctx, isSameTransferStored,
+		arg.EventID,
+		arg.OccurredAt,
+		arg.FromAccountID,
+		arg.FromClientID,
+		arg.ToAccountID,
+		arg.ToClientID,
+		arg.Amount,
+	)
+	var exists bool
+	err := row.Scan(&exists)
+	return exists, err
 }
