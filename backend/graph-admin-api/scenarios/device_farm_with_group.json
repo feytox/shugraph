@@ -159,16 +159,30 @@
     "groups": [
       {
         "scheme": "farm",
-        "client_ids": [
-          "cli-ravil",
-          "cli-sasha",
-          "cli-dima"
-        ],
-        "collector_account_ids": [
+        "member_account_ids": [
+          "acc-ravil",
+          "acc-sasha",
+          "acc-dima",
           "acc-collector"
         ],
+        "event_ids": [
+          "evt-df-with-0001",
+          "evt-df-with-0002",
+          "evt-df-with-0003",
+          "evt-df-with-0004",
+          "evt-df-with-0005",
+          "evt-df-with-0006"
+        ],
         "risk_score": 75,
-        "risk_level": "high"
+        "risk_level": "high",
+        "risk_parts": {
+          "farm": {
+            "scheme": 50,
+            "speed": 15,
+            "clients": 0,
+            "collector": 10
+          }
+        }
       }
     ]
   }
