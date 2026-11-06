@@ -17,11 +17,15 @@ import (
 	pgdb "github.com/feytox/shugraph/backend/graph-api/internal/postgres"
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository"
 	"github.com/feytox/shugraph/backend/graph-api/internal/service"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 )
 
-var serverURL string
+var (
+	serverURL string
+	testPool  *pgxpool.Pool
+)
 
 func TestMain(m *testing.M) {
 	os.Exit(run(m))
@@ -63,17 +67,18 @@ func run(m *testing.M) int {
 		return 1
 	}
 
-	pool, err := pgdb.Connect(ctx, dbCfg)
+	testPool, err = pgdb.Connect(ctx, dbCfg)
 	if err != nil {
 		slog.Error("Could not connect to postgres", "err", err)
 		return 1
 	}
-	defer pool.Close()
+	defer testPool.Close()
 
-	repo := repository.NewPgNoteRepository(pool)
+	repo := repository.NewPgNoteRepository(testPool)
 	noteService := service.NewNoteService(repo)
+	eventService := service.NewEventService(repository.NewPgEventRepository(testPool))
 
-	errMigrate := pgdb.Migrate(ctx, pool, slog.Default())
+	errMigrate := pgdb.Migrate(ctx, testPool, slog.Default())
 	if errMigrate != nil {
 		slog.Error("could not migrate", "err", errMigrate)
 		return 1
@@ -81,7 +86,8 @@ func run(m *testing.M) int {
 
 	server := httptest.NewServer(handler.New(handler.Deps{
 		Notes:    noteService,
-		Database: pool,
+		Events:   eventService,
+		Database: testPool,
 		Log:      slog.Default(),
 	}))
 	defer server.Close()

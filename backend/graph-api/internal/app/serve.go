@@ -49,11 +49,13 @@ func newServer(ctx context.Context, cfg config.Serve, log *slog.Logger) (*server
 	}
 
 	notes := service.NewNoteService(repository.NewPgNoteRepository(pool))
+	events := service.NewEventService(repository.NewPgEventRepository(pool))
 
 	httpServer := &http.Server{
 		Addr: net.JoinHostPort("", strconv.Itoa(cfg.HTTP.Port)),
 		Handler: handler.New(handler.Deps{
 			Notes:    notes,
+			Events:   events,
 			Database: pool,
 			Log:      log,
 		}),
