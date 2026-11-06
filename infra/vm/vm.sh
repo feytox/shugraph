@@ -3,7 +3,7 @@
 # Нужны yc с ролью compute.operator на ВМ, jq и для up SSH-ключ (SSH_KEY).
 set -euo pipefail
 
-VM_ID=bg0af7vedpk63jlidobu
+VM_ID=${VM_ID:-$(gh variable get VM_ID --env vm)}
 SSH_USER=shugraph
 SSH_KEY=${SSH_KEY:-$HOME/.ssh/shugraph-ci}
 

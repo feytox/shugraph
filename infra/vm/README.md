@@ -18,7 +18,7 @@
 
 - Спеки упираются в квоты облака: на зону 2 vCPU, 20 ГБ HDD, 10 ГБ SSD. Больше только через поддержку.
 - Прерываемая ВМ выключается сама минимум раз в сутки. Данные на диске сохраняются, k3s поднимается сам при запуске.
-- Включение и выключение: workflow `up` и `down` или локально `./vm.sh up|down` (если есть ключ).
+- Включение и выключение: workflow `up` и `down` или локально `./vm.sh up|down` (если есть ключ). ID ВМ оба берут из переменной `VM_ID` окружения `vm` на GitHub, поэтому после пересоздания ВМ код менять не нужно.
 
 ## Доступ для разработчиков
 
@@ -40,7 +40,7 @@
 
 ## Поднять с нуля
 
-Раздел нужен, только чтобы пересоздать ВМ проекта. Шаг 5 заменяет секреты, с которыми работают `up` и `down`, поэтому, если проверяешь инструкцию в своём облаке, делай это в своём форке, а у `gh secret set` укажи `-R <ник>/shugraph`.
+Раздел нужен, только чтобы пересоздать ВМ проекта. Шаг 4 заменяет секреты и переменную, с которыми работают `up` и `down`, поэтому, если проверяешь инструкцию в своём облаке, делай это в своём форке, а у `gh secret set` и `gh variable set` укажи `-R <ник>/shugraph`.
 
 Нужны `yc` (профиль с правами на каталог), `jq` и `gh`. Команды запускаются из `infra/vm/`.
 
@@ -57,27 +57,24 @@ yc vpc subnet create --name default-ru-central1-e --zone ru-central1-e --network
    ```bash
    ./create-vm.sh
    ```
-3. Вписать ID новой ВМ в `VM_ID` в `vm.sh`:
-   ```bash
-   yc compute instance get --name shucluster-vm --format json | jq -r .id
-   ```
-4. Создать сервисный аккаунт для CI с правом только запускать и останавливать эту ВМ:
+3. Создать сервисный аккаунт для CI с правом только запускать и останавливать эту ВМ:
    ```bash
    yc iam service-account create --name shugraph-ci
    yc compute instance add-access-binding --name shucluster-vm --role compute.operator --service-account-name shugraph-ci
    yc iam key create --service-account-name shugraph-ci --output key.json > /dev/null
    ```
-5. Положить ключи в секреты окружения `vm` и удалить `key.json`. Это может сделать только владелец репозитория, секреты обычным коллабораторам недоступны:
+4. Положить ключи в секреты окружения `vm`, ID ВМ в его переменную `VM_ID` и удалить `key.json`. Это может сделать только владелец репозитория, секреты обычным коллабораторам недоступны:
    ```bash
    gh api -X PUT 'repos/{owner}/{repo}/environments/vm' > /dev/null
    gh secret set YC_SA_KEY --env vm < key.json && rm key.json
    gh secret set SSH_PRIVATE_KEY --env vm < ~/.ssh/shugraph-ci
+   gh variable set VM_ID --env vm --body "$(yc compute instance get --name shucluster-vm --format json | jq -r .id)"
    ```
-6. Проверить: `./vm.sh up` должен вывести ноду в статусе `Ready` и IP. После проверки выключить ВМ: `./vm.sh down`.
+5. Проверить: `./vm.sh up` должен вывести ноду в статусе `Ready` и IP. После проверки выключить ВМ: `./vm.sh down`.
 
 ## Удалить
 
-Если `create-vm.sh` упал на середине или ВМ нужно пересоздать, удалить созданное (диск удаляется вместе с ВМ, сервисный аккаунт есть, только если дошли до шага 4):
+Если `create-vm.sh` упал на середине или ВМ нужно пересоздать, удалить созданное (диск удаляется вместе с ВМ, сервисный аккаунт есть, только если дошли до шага 3):
 ```bash
 yc compute instance delete shucluster-vm
 yc vpc security-group delete shucluster-group
