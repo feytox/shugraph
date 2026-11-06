@@ -35,6 +35,7 @@ up() {
       "${ssh[@]}" 'sudo k3s kubectl get nodes'
       echo "IP: $ip"
       [[ -n ${GITHUB_STEP_SUMMARY:-} ]] && echo "IP ВМ: \`$ip\`" >> "$GITHUB_STEP_SUMMARY"
+      [[ -n ${GITHUB_OUTPUT:-} ]] && echo "ip=$ip" >> "$GITHUB_OUTPUT"
       return 0
     fi
     sleep 10
