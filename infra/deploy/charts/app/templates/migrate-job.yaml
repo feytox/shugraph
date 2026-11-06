@@ -5,6 +5,7 @@ metadata:
   name: {{ .Release.Name }}-migrate
   labels:
     {{- include "app.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migrate
   annotations:
     helm.sh/hook: pre-install,pre-upgrade
     helm.sh/hook-delete-policy: before-hook-creation
@@ -14,8 +15,8 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ .Release.Name }}-migrate
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- include "app.labels" . | nindent 8 }}
+        app.kubernetes.io/component: migrate
     spec:
       restartPolicy: Never
       containers:

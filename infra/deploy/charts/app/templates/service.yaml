@@ -6,7 +6,7 @@ metadata:
     {{- include "app.labels" . | nindent 4 }}
 spec:
   selector:
-    {{- include "app.selectorLabels" . | nindent 4 }}
+    {{- include "app.serverSelectorLabels" . | nindent 4 }}
   ports:
     - name: http
       port: {{ .Values.port }}

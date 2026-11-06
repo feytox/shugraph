@@ -3,6 +3,11 @@ app.kubernetes.io/name: {{ .Release.Name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
+{{- define "app.serverSelectorLabels" -}}
+{{ include "app.selectorLabels" . }}
+app.kubernetes.io/component: server
+{{- end }}
+
 {{- define "app.labels" -}}
 {{ include "app.selectorLabels" . }}
 app.kubernetes.io/version: {{ .Values.image.tag | quote }}
