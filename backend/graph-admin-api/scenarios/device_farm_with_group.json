@@ -1,6 +1,6 @@
 {
   "name": "device_farm_with_group",
-  "description": "Одно устройство на толпу: три клиента входят с одного устройства и переводят деньги на общий счёт вывода; вокруг идёт обычный поток событий.",
+  "description": "Одно устройство на толпу: три клиента входят с одного устройства и переводят деньги на общий счёт вывода; вокруг идёт обычный поток событий. Входящие переводы жертв на счета дропов до 10:01 — контекст, а не события группы: SRD-3 смотрит только на входы с общего устройства, поэтому span и бонус за скорость считаются по 10:01–10:29. Счёт сборщика включён в участники группы, чтобы карточка показывала полный состав схемы; его роль задаёт risk_parts.farm.collector.",
   "scheme": "farm",
   "events": [
     {
@@ -13,6 +13,16 @@
       "address_id": "203.0.113.41"
     },
     {
+      "event_id": "evt-df-with-in-0001",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T09:50:00Z",
+      "from_account_id": "acc-victim-w-1",
+      "from_client_id": "cli-victim-w-1",
+      "to_account_id": "acc-ravil",
+      "to_client_id": "cli-ravil",
+      "amount": 5300000
+    },
+    {
       "event_id": "evt-df-with-noise-0002",
       "type": "login",
       "occurred_at": "2026-11-12T09:55:00Z",
@@ -20,6 +30,16 @@
       "client_id": "cli-oleg",
       "device_id": "dev-oleg",
       "address_id": "203.0.113.42"
+    },
+    {
+      "event_id": "evt-df-with-in-0002",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T09:56:00Z",
+      "from_account_id": "acc-victim-w-2",
+      "from_client_id": "cli-victim-w-2",
+      "to_account_id": "acc-sasha",
+      "to_client_id": "cli-sasha",
+      "amount": 4300000
     },
     {
       "event_id": "evt-df-with-noise-0003",
@@ -30,6 +50,16 @@
       "to_account_id": "acc-noise-w-1",
       "to_client_id": "cli-noise-w-1",
       "amount": 350000
+    },
+    {
+      "event_id": "evt-df-with-in-0003",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T09:59:00Z",
+      "from_account_id": "acc-victim-w-3",
+      "from_client_id": "cli-victim-w-3",
+      "to_account_id": "acc-dima",
+      "to_client_id": "cli-dima",
+      "amount": 6800000
     },
     {
       "event_id": "evt-df-with-0001",
