@@ -66,26 +66,26 @@ type Account struct {
 }
 type LoginPayload struct {
 	OccurredAt time.Time `json:"occurred_at"`
-	AccountID  string    `json:"account_id" minLength:"1" pattern:"^[^\\x00]*$" patternDescription:"text without null bytes"`
-	ClientID   string    `json:"client_id" minLength:"1" pattern:"^[^\\x00]*$" patternDescription:"text without null bytes"`
-	DeviceID   string    `json:"device_id" minLength:"1" pattern:"^[^\\x00]*$" patternDescription:"text without null bytes"`
-	AddressID  string    `json:"address_id" minLength:"1" pattern:"^[^\\x00]*$" patternDescription:"text without null bytes" doc:"Source IP/network address; retained as a source identifier."`
+	AccountID  string    `json:"account_id" minLength:"1"`
+	ClientID   string    `json:"client_id" minLength:"1"`
+	DeviceID   string    `json:"device_id" minLength:"1"`
+	AddressID  string    `json:"address_id" minLength:"1" doc:"Source IP/network address; retained as a source identifier."`
 }
 type TransferPayload struct {
 	OccurredAt    time.Time `json:"occurred_at"`
-	FromAccountID string    `json:"from_account_id" minLength:"1" pattern:"^[^\\x00]*$" patternDescription:"text without null bytes"`
-	FromClientID  string    `json:"from_client_id" minLength:"1" pattern:"^[^\\x00]*$" patternDescription:"text without null bytes"`
-	ToAccountID   string    `json:"to_account_id" minLength:"1" pattern:"^[^\\x00]*$" patternDescription:"text without null bytes"`
-	ToClientID    string    `json:"to_client_id" minLength:"1" pattern:"^[^\\x00]*$" patternDescription:"text without null bytes"`
+	FromAccountID string    `json:"from_account_id" minLength:"1"`
+	FromClientID  string    `json:"from_client_id" minLength:"1"`
+	ToAccountID   string    `json:"to_account_id" minLength:"1"`
+	ToClientID    string    `json:"to_client_id" minLength:"1"`
 	Amount        int64     `json:"amount" minimum:"1" doc:"Amount in kopecks."`
 }
 type LoginInput struct {
-	EventID string `path:"event_id" minLength:"1" pattern:"^[^\\x00]*$" patternDescription:"text without null bytes"`
+	EventID string `path:"event_id" minLength:"1"`
 	Body    LoginPayload
 }
 
 type TransferInput struct {
-	EventID string `path:"event_id" minLength:"1" pattern:"^[^\\x00]*$" patternDescription:"text without null bytes"`
+	EventID string `path:"event_id" minLength:"1"`
 	Body    TransferPayload
 }
 type LoginEvent struct {
