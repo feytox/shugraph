@@ -108,6 +108,7 @@ jobs:
           build-args: VERSION=${{ github.sha }}
           tags: ${{ env.REGISTRY }}/${{ matrix.service.name }}:${{ github.sha }}
           push: true
+          provenance: false
           cache-from: type=gha,scope=${{ matrix.service.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
 
