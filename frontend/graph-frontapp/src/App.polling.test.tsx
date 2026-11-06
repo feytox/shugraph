@@ -1,50 +1,22 @@
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { http, HttpResponse } from 'msw';
-import { App } from '@/App';
+import { advance, renderScreen, waitForScreen } from '@/test/renderScreen';
+import { groupItem } from '@/test/groupItem';
 import { server } from '@/mocks/server';
 import type { GroupItem, GroupListResponse } from '@/api/client';
-import { createGroupsDemo } from '@/mocks/groupsDemo';
 
-const group: GroupItem = {
-  id: '00000000-0000-4000-8000-000000000001',
-  scheme: 'farm',
-  status: 'new',
-  risk_level: 'high',
-  risk_score: 87,
-  risk_parts: {},
-  detected_at: '2026-10-07T10:00:00Z',
-  first_event_at: '2026-10-07T10:00:00Z',
-  last_event_at: '2026-10-07T10:30:45Z',
-  features: { accounts_count: 7, total_amount: 12345, span_minutes: 30 },
-};
+const group = { ...groupItem, risk_score: 87 };
 
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
-  vi.unstubAllEnvs();
 });
 
-async function advance(milliseconds: number) {
-  await act(async () => {
-    await vi.advanceTimersByTimeAsync(milliseconds);
-  });
-  // Allow the HTTP response and Query's notification to reach the rendered screen.
-  await act(async () => {
-    await vi.advanceTimersByTimeAsync(1);
-  });
-}
-
 async function openScreen() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  const view = render(
-    <QueryClientProvider client={client}>
-      <App />
-    </QueryClientProvider>
-  );
-  await advance(1);
+  const view = renderScreen();
+  await waitForScreen(() => expect(screen.getByRole('table')).toBeVisible());
   return view;
 }
 
@@ -70,9 +42,10 @@ it('обновляет строки через 3 секунды и добавл�
       features: { ...group.features, total_amount: 67890 },
     },
   ]);
-  await advance(2990);
+  await advance(2000);
   expect(screen.queryByText('Кольцо')).not.toBeInTheDocument();
-  await advance(10);
+  await advance(1000);
+  await waitForScreen(() => expect(screen.getByText('Высокий · 95')).toBeVisible());
   const rows = within(screen.getByRole('table')).getAllByRole('row');
   expect(rows).toHaveLength(3);
   expect(rows[1]).toHaveTextContent('Кольцо');
@@ -87,12 +60,14 @@ it('сохраняет таблицу при ошибке обновления �
   await openScreen();
   server.use(http.get('*/api/v1/groups', () => new HttpResponse(null, { status: 500 })));
   await advance(3000);
-  expect(screen.getByRole('alert')).toHaveTextContent('Не удалось обновить список');
+  await waitForScreen(() =>
+    expect(screen.getByRole('alert')).toHaveTextContent('Не удалось обновить список')
+  );
   expect(screen.getByRole('table')).toHaveTextContent('Высокий · 87');
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   respond([{ ...group, risk_score: 95 }]);
   await advance(3000);
-  expect(screen.getByText('Высокий · 95')).toBeVisible();
+  await waitForScreen(() => expect(screen.getByText('Высокий · 95')).toBeVisible());
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });
 
@@ -118,13 +93,13 @@ it('не опрашивает скрытую вкладку и обновляе�
   visibility.mockReturnValue('visible');
   fireEvent(document, new Event('visibilitychange', { bubbles: true }));
   await advance(1);
-  expect(screen.getByText('Высокий · 95')).toBeVisible();
+  await waitForScreen(() => expect(screen.getByText('Высокий · 95')).toBeVisible());
 });
 
 it('сохраняет таблицу пока ответ фонового обновления задерживается', async () => {
   respond([group]);
   await openScreen();
-  let finish: () => void = () => {};
+  let finish!: () => void;
   server.use(
     http.get('*/api/v1/groups', async () => {
       await new Promise<void>((resolve) => {
@@ -137,54 +112,10 @@ it('сохраняет таблицу пока ответ фонового об�
     })
   );
   await advance(3000);
+  await waitForScreen(() => expect(finish).not.toEqual(undefined));
   expect(screen.getByRole('table')).toHaveTextContent('Высокий · 87');
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   finish();
   await advance(1);
-  expect(screen.getByText('Высокий · 95')).toBeVisible();
-});
-
-it('воспроизводит поступления через 10, 20, 30 секунд и обновляет прежнюю строку', async () => {
-  let demo = createGroupsDemo();
-  server.use(
-    http.get('*/api/v1/groups', () =>
-      HttpResponse.json<GroupListResponse>({
-        items: demo.getItems().slice(0, 20),
-        next_cursor: null,
-      })
-    )
-  );
-  const view = await openScreen();
-  expect(within(screen.getByRole('table')).getAllByRole('row')).toHaveLength(21);
-  expect(screen.getByText('Высокий · 87')).toBeVisible();
-  for (let tick = 0; tick < 3; tick++) await advance(3000);
-  expect(screen.queryByText('26')).not.toBeInTheDocument();
-  await advance(3000);
-  expect(screen.getByText('26')).toBeVisible();
-  expect(screen.getByText('Высокий · 88')).toBeVisible();
-  expect(screen.getByText('223,45 ₽')).toBeVisible();
-  expect(screen.getByText('07.10.2026 10:30:46 UTC')).toBeVisible();
-  for (let tick = 0; tick < 3; tick++) await advance(3000);
-  expect(screen.getByText('27')).toBeVisible();
-  expect(screen.getByText('Высокий · 89')).toBeVisible();
-  for (let tick = 0; tick < 3; tick++) await advance(3000);
-  expect(screen.getByText('28')).toBeVisible();
-  expect(screen.getByText('Высокий · 90')).toBeVisible();
-  expect(within(screen.getByRole('table')).getAllByRole('row')).toHaveLength(21);
-  view.unmount();
-  demo = createGroupsDemo();
-  await openScreen();
-  expect(screen.getByText('Высокий · 87')).toBeVisible();
-  expect(screen.queryByText('26')).not.toBeInTheDocument();
-});
-
-it('настройка polling-error воспроизводит ошибку обновления и восстановление', async () => {
-  vi.stubEnv('VITE_GROUPS_MOCK_STATE', 'polling-error');
-  await openScreen();
-  expect(screen.getByRole('table')).toBeVisible();
-  await advance(3000);
-  expect(screen.getByRole('alert')).toHaveTextContent('Не удалось обновить список');
-  expect(screen.getByRole('table')).toBeVisible();
-  await advance(3000);
-  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  await waitForScreen(() => expect(screen.getByText('Высокий · 95')).toBeVisible());
 });

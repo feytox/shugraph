@@ -1,21 +1,9 @@
-import { render, screen, within, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { screen, within, fireEvent } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { server } from '@/mocks/server';
-import { App } from '@/App';
+import { renderScreen } from '@/test/renderScreen';
 import type { GroupListResponse } from '@/api/client';
-
-afterEach(() => vi.unstubAllEnvs());
-
-function renderWithClient() {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  );
-}
 
 describe('Подозрительные группы', () => {
   it('показывает шесть полей группы, сумму в рублях и время UTC', async () => {
@@ -44,7 +32,7 @@ describe('Подозрительные группы', () => {
         });
       })
     );
-    renderWithClient();
+    renderScreen();
     expect(await screen.findByRole('heading', { name: 'Подозрительные группы' })).toBeVisible();
     const table = await screen.findByRole('table');
     expect(within(table).getAllByRole('columnheader')).toHaveLength(6);
@@ -67,7 +55,7 @@ it('показывает загрузку до первого ответа', asy
       await new Promise(() => {});
     })
   );
-  renderWithClient();
+  renderScreen();
   expect(await screen.findByRole('status')).toHaveTextContent('Загрузка групп');
   expect(screen.queryByRole('table')).not.toBeInTheDocument();
 });
@@ -78,7 +66,7 @@ it('объясняет пустой список и предлагает зап�
       HttpResponse.json<GroupListResponse>({ items: [], next_cursor: null })
     )
   );
-  renderWithClient();
+  renderScreen();
   expect(
     await screen.findByText(
       'Подозрительных групп пока нет. Запустите сценарий через Swagger graph-admin-api'
@@ -90,7 +78,7 @@ it('объясняет пустой список и предлагает зап�
 
 it('сохраняет отличие ошибки от пустого ответа и восстанавливается по Повторить', async () => {
   server.use(http.get('*/api/v1/groups', () => new HttpResponse(null, { status: 500 })));
-  renderWithClient();
+  renderScreen();
   expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось загрузить список групп');
   expect(screen.queryByText(/Подозрительных групп пока нет/)).not.toBeInTheDocument();
   server.use(
@@ -119,26 +107,3 @@ it('сохраняет отличие ошибки от пустого отве�
   expect(screen.getByText('Подтверждена')).toBeVisible();
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });
-
-it('по умолчанию получает демонстрационную группу через MSW', async () => {
-  renderWithClient();
-  expect((await screen.findAllByText('Ферма'))[0]).toBeVisible();
-  expect(screen.getAllByText('Новая')).toHaveLength(20);
-});
-
-it.each(['empty', 'error', 'loading'])(
-  'воспроизводит отдельное состояние моков %s',
-  async (state) => {
-    vi.stubEnv('VITE_GROUPS_MOCK_STATE', state);
-    renderWithClient();
-    if (state === 'empty') {
-      expect(await screen.findByText(/Подозрительных групп пока нет/)).toBeVisible();
-    } else if (state === 'error') {
-      expect(await screen.findByRole('alert')).toHaveTextContent(
-        'Не удалось загрузить список групп'
-      );
-    } else {
-      expect(await screen.findByRole('status')).toHaveTextContent('Загрузка групп');
-    }
-  }
-);

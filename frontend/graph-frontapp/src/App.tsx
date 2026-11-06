@@ -1,6 +1,5 @@
 import {
   Badge,
-  Box,
   Container,
   MantineProvider,
   Stack,
@@ -24,39 +23,35 @@ const riskColors = { low: 'green', medium: 'yellow', high: 'red' };
 const statuses = { new: 'Новая', approved: 'Подтверждена', declined: 'Отклонена' };
 const money = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' });
 
-export function GroupsList({ items }: { items: GroupItem[] }) {
+function GroupsList({ items }: { items: GroupItem[] }) {
   return (
-    <Box>
-      <Table striped withTableBorder>
-        <Table.Thead>
-          <Table.Tr>
-            {['Тип схемы', 'Риск', 'Число счетов', 'Сумма', 'Последнее событие', 'Статус'].map(
-              (label) => (
-                <Table.Th key={label}>{label}</Table.Th>
-              )
-            )}
+    <Table striped withTableBorder>
+      <Table.Thead>
+        <Table.Tr>
+          {['Тип схемы', 'Риск', 'Число счетов', 'Сумма', 'Последнее событие', 'Статус'].map(
+            (label) => (
+              <Table.Th key={label}>{label}</Table.Th>
+            )
+          )}
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        {items.map((group) => (
+          <Table.Tr key={group.id}>
+            <Table.Td>{schemes[group.scheme]}</Table.Td>
+            <Table.Td>
+              <Badge color={riskColors[group.risk_level]} variant="light">
+                {risks[group.risk_level]} · {group.risk_score}
+              </Badge>
+            </Table.Td>
+            <Table.Td>{group.features.accounts_count}</Table.Td>
+            <Table.Td>{money.format(group.features.total_amount / 100)}</Table.Td>
+            <Table.Td>{dayjs.utc(group.last_event_at).format('DD.MM.YYYY HH:mm:ss')} UTC</Table.Td>
+            <Table.Td>{statuses[group.status]}</Table.Td>
           </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {items.map((group) => (
-            <Table.Tr key={group.id}>
-              <Table.Td>{schemes[group.scheme]}</Table.Td>
-              <Table.Td>
-                <Badge color={riskColors[group.risk_level]} variant="light">
-                  {risks[group.risk_level]} · {group.risk_score}
-                </Badge>
-              </Table.Td>
-              <Table.Td>{group.features.accounts_count}</Table.Td>
-              <Table.Td>{money.format(group.features.total_amount / 100)}</Table.Td>
-              <Table.Td>
-                {dayjs.utc(group.last_event_at).format('DD.MM.YYYY HH:mm:ss')} UTC
-              </Table.Td>
-              <Table.Td>{statuses[group.status]}</Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
-    </Box>
+        ))}
+      </Table.Tbody>
+    </Table>
   );
 }
 
@@ -97,11 +92,7 @@ function GroupsScreen() {
           <Alert color="red">Не удалось загрузить следующую страницу</Alert>
         )}
         {groups.hasNextPage && (
-          <Button
-            onClick={() => groups.fetchNextPage()}
-            loading={groups.isFetchingNextPage}
-            disabled={groups.isFetching}
-          >
+          <Button onClick={() => groups.fetchNextPage()} loading={groups.isFetchingNextPage}>
             {groups.isFetchNextPageError ? 'Повторить загрузку' : 'Показать ещё'}
           </Button>
         )}

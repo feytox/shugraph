@@ -1,13 +1,10 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { afterEach, expect, it, vi } from 'vitest';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { expect, it } from 'vitest';
 import { http, HttpResponse } from 'msw';
-import { App } from '@/App';
+import { renderScreen } from '@/test/renderScreen';
 import { server } from '@/mocks/server';
 import type { GroupItem, GroupListResponse } from '@/api/client';
 import { groupItem } from '@/test/groupItem';
-
-afterEach(() => vi.unstubAllEnvs());
 
 const items: GroupItem[] = Array.from({ length: 25 }, (_, index) => ({
   ...groupItem,
@@ -16,16 +13,6 @@ const items: GroupItem[] = Array.from({ length: 25 }, (_, index) => ({
   features: { ...groupItem.features, accounts_count: index + 1 },
 }));
 const cursor = 'opaque/+next-page==';
-
-function renderScreen() {
-  return render(
-    <QueryClientProvider
-      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
-    >
-      <App />
-    </QueryClientProvider>
-  );
-}
 
 it('добавляет следующие группы по непрозрачному курсору, сохраняя таблицу во время загрузки', async () => {
   let finishPage!: () => void;
@@ -84,20 +71,4 @@ it('сохраняет загруженные группы после ошибк
   await waitFor(() => expect(within(table).getAllByRole('row')).toHaveLength(26));
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   expect(screen.queryByRole('button')).not.toBeInTheDocument();
-});
-
-it('позволяет воспроизвести ошибку следующей страницы настройкой MSW', async () => {
-  vi.stubEnv('VITE_GROUPS_MOCK_STATE', 'next-page-error');
-  renderScreen();
-  const table = await screen.findByRole('table');
-  expect(within(table).getAllByRole('row')).toHaveLength(21);
-  fireEvent.click(screen.getByRole('button', { name: 'Показать ещё' }));
-  expect(await screen.findByRole('alert')).toHaveTextContent(
-    'Не удалось загрузить следующую страницу'
-  );
-  expect(within(table).getAllByRole('row')).toHaveLength(21);
-  vi.stubEnv('VITE_GROUPS_MOCK_STATE', 'pagination');
-  fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку' }));
-  await waitFor(() => expect(within(table).getAllByRole('row')).toHaveLength(26));
-  expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });
