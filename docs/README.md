@@ -19,3 +19,7 @@
 RFC:
 
 - [RFC 01: нулевой RFC](rfc/01-zeroth-rfc/README.md)
+
+Планы спринтов:
+
+- [plans/sprint-2.md](plans/sprint-2.md) - план спринта 2

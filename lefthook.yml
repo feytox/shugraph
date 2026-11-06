@@ -1,3 +1,6 @@
+output:
+  - failure
+
 commit-msg:
   scripts:
     "branch-prefix.sh":
