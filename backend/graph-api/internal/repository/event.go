@@ -24,67 +24,71 @@ func NewPgEventRepository(pool *pgxpool.Pool) *PgEventRepository {
 }
 
 func (p *PgEventRepository) SaveLogin(ctx context.Context, event domain.LoginEvent) (created bool, err error) {
-	params := eventParams(event.EventID, domain.EventTypeLogin, event.OccurredAt)
+	err = pgx.BeginFunc(ctx, p.pool, func(tx pgx.Tx) error {
+		q := db.New(tx)
 
-	return saveEvent(ctx, p.pool, params, event, insertLoginDetails, ensureSameAsStoredLogin)
+		rows, err := q.InsertEvent(ctx, db.InsertEventParams{
+			EventID:    event.EventID,
+			Type:       string(domain.EventTypeLogin),
+			OccurredAt: event.OccurredAt,
+		})
+		if err != nil {
+			return fmt.Errorf("insert event: %w", err)
+		}
+
+		if rows == 0 {
+			return ensureSameAsStoredLogin(ctx, q, event)
+		}
+
+		if err := insertLoginDetails(ctx, q, event); err != nil {
+			return err
+		}
+
+		created = true
+
+		return nil
+	})
+	if err != nil {
+		return false, err
+	}
+
+	return created, nil
 }
 
 func (p *PgEventRepository) SaveTransfer(ctx context.Context, event domain.TransferEvent) (created bool, err error) {
-	params := eventParams(event.EventID, domain.EventTypeTransfer, event.OccurredAt)
+	err = pgx.BeginFunc(ctx, p.pool, func(tx pgx.Tx) error {
+		q := db.New(tx)
 
-	return saveEvent(ctx, p.pool, params, event, insertTransferDetails, ensureSameAsStoredTransfer)
-}
+		rows, err := q.InsertEvent(ctx, db.InsertEventParams{
+			EventID:    event.EventID,
+			Type:       string(domain.EventTypeTransfer),
+			OccurredAt: event.OccurredAt,
+		})
+		if err != nil {
+			return fmt.Errorf("insert event: %w", err)
+		}
 
-func eventParams(eventID string, eventType domain.EventType, occurredAt time.Time) db.InsertEventParams {
-	return db.InsertEventParams{
-		EventID:    eventID,
-		Type:       string(eventType),
-		OccurredAt: toStoredPrecision(occurredAt),
+		if rows == 0 {
+			return ensureSameAsStoredTransfer(ctx, q, event)
+		}
+
+		if err := insertTransferDetails(ctx, q, event); err != nil {
+			return err
+		}
+
+		created = true
+
+		return nil
+	})
+	if err != nil {
+		return false, err
 	}
+
+	return created, nil
 }
 
 func toStoredPrecision(t time.Time) time.Time {
 	return t.Truncate(time.Microsecond)
-}
-
-func saveEvent[Event any](
-	ctx context.Context,
-	pool *pgxpool.Pool,
-	params db.InsertEventParams,
-	event Event,
-	insertDetails func(context.Context, *db.Queries, Event) error,
-	ensureSameAsStored func(context.Context, *db.Queries, Event) error,
-) (created bool, err error) {
-	tx, err := pool.Begin(ctx)
-	if err != nil {
-		return false, fmt.Errorf("begin transaction: %w", err)
-	}
-	defer rollback(ctx, tx)
-
-	q := db.New(tx)
-
-	rows, err := q.InsertEvent(ctx, params)
-	if err != nil {
-		return false, fmt.Errorf("insert event: %w", err)
-	}
-
-	if rows == 0 {
-		return false, ensureSameAsStored(ctx, q, event)
-	}
-
-	if err := insertDetails(ctx, q, event); err != nil {
-		return false, err
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return false, fmt.Errorf("commit transaction: %w", err)
-	}
-
-	return true, nil
-}
-
-func rollback(ctx context.Context, tx pgx.Tx) {
-	_ = tx.Rollback(ctx)
 }
 
 func insertLoginDetails(ctx context.Context, q *db.Queries, event domain.LoginEvent) error {
