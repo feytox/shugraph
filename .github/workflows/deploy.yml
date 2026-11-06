@@ -35,9 +35,9 @@ jobs:
           INPUTS: ${{ toJson(inputs) }}
         run: |
           services=$(jq -c '. as $in | [
-            {name: "graph-api", context: "backend/graph-api", dockerfile: "backend/graph-api/Dockerfile"},
-            {name: "graph-admin-api", context: "backend/graph-admin-api", dockerfile: "backend/graph-admin-api/Dockerfile"},
-            {name: "graph-frontapp", context: "frontend", dockerfile: "frontend/graph-frontapp/Dockerfile"}
+            {name: "graph-api", kind: "go", context: "backend/graph-api", dockerfile: "backend/graph-api/Dockerfile"},
+            {name: "graph-admin-api", kind: "go", context: "backend/graph-admin-api", dockerfile: "backend/graph-admin-api/Dockerfile"},
+            {name: "graph-frontapp", kind: "node", context: "frontend", dockerfile: "frontend/graph-frontapp/Dockerfile"}
           ] | map(select($in[.name] == true))' <<< "$INPUTS")
           if [[ $services == "[]" ]]; then
             echo "Не выбран ни один сервис" >&2
@@ -55,30 +55,30 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - if: matrix.service.context != 'frontend'
+      - if: matrix.service.kind == 'go'
         uses: actions/setup-go@v7
         with:
           go-version-file: ${{ matrix.service.context }}/go.mod
           cache-dependency-path: ${{ matrix.service.context }}/go.sum
 
-      - if: matrix.service.context != 'frontend'
+      - if: matrix.service.kind == 'go'
         working-directory: ${{ matrix.service.context }}
         run: make test
 
-      - if: matrix.service.context == 'frontend'
+      - if: matrix.service.kind == 'node'
         uses: pnpm/action-setup@v6
         with:
-          package_json_file: frontend/package.json
+          package_json_file: ${{ matrix.service.context }}/package.json
 
-      - if: matrix.service.context == 'frontend'
+      - if: matrix.service.kind == 'node'
         uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm
-          cache-dependency-path: frontend/pnpm-lock.yaml
+          cache-dependency-path: ${{ matrix.service.context }}/pnpm-lock.yaml
 
-      - if: matrix.service.context == 'frontend'
-        working-directory: frontend
+      - if: matrix.service.kind == 'node'
+        working-directory: ${{ matrix.service.context }}
         run: |
           pnpm install --frozen-lockfile
           pnpm --filter ${{ matrix.service.name }} test
