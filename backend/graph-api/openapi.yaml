@@ -857,7 +857,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Not Implemented
-      summary: List suspicious groups
+      summary: List suspicious groups (spec only)
       tags:
         - Groups
   /api/v1/groups/{group_id}:
