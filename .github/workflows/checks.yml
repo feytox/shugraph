@@ -222,7 +222,7 @@ jobs:
         with:
           go-version: ${{ env.GO_VERSION }}
           check-latest: true
-          cache-dependency-path: backend/${{ matrix.service }}/go.sum
+          cache: false
 
       - env:
           SERVICE: ${{ matrix.service }}
