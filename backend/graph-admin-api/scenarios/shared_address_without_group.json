@@ -1,0 +1,133 @@
+{
+  "name": "shared_address_without_group",
+  "description": "Один адрес на толпу: трое клиентов с разных устройств заходят с одного сетевого адреса на фоне обычного потока. До порога схемы (не меньше 4 клиентов с одного адреса) не хватает, группы нет.",
+  "scheme": "address",
+  "events": [
+    {
+      "event_id": "evt-sa-without-noise-0001",
+      "type": "login",
+      "occurred_at": "2026-11-12T13:00:00Z",
+      "account_id": "acc-oleg",
+      "client_id": "cli-oleg",
+      "device_id": "dev-oleg",
+      "address_id": "203.0.113.71"
+    },
+    {
+      "event_id": "evt-sa-without-noise-0002",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T13:10:00Z",
+      "from_account_id": "acc-oleg",
+      "from_client_id": "cli-oleg",
+      "to_account_id": "acc-noise-sa-wo-1",
+      "to_client_id": "cli-noise-sa-wo-1",
+      "amount": 310000
+    },
+    {
+      "event_id": "evt-sa-without-0001",
+      "type": "login",
+      "occurred_at": "2026-11-12T13:20:00Z",
+      "account_id": "acc-anna",
+      "client_id": "cli-anna",
+      "device_id": "dev-anna",
+      "address_id": "198.51.100.71"
+    },
+    {
+      "event_id": "evt-sa-without-0002",
+      "type": "login",
+      "occurred_at": "2026-11-12T13:25:00Z",
+      "account_id": "acc-boris",
+      "client_id": "cli-boris",
+      "device_id": "dev-boris",
+      "address_id": "198.51.100.71"
+    },
+    {
+      "event_id": "evt-sa-without-noise-0003",
+      "type": "login",
+      "occurred_at": "2026-11-12T13:30:00Z",
+      "account_id": "acc-nina",
+      "client_id": "cli-nina",
+      "device_id": "dev-nina",
+      "address_id": "203.0.113.72"
+    },
+    {
+      "event_id": "evt-sa-without-0003",
+      "type": "login",
+      "occurred_at": "2026-11-12T13:32:00Z",
+      "account_id": "acc-vera",
+      "client_id": "cli-vera",
+      "device_id": "dev-vera",
+      "address_id": "198.51.100.71"
+    },
+    {
+      "event_id": "evt-sa-without-0004",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T13:40:00Z",
+      "from_account_id": "acc-anna",
+      "from_client_id": "cli-anna",
+      "to_account_id": "acc-shop-1",
+      "to_client_id": "cli-shop-1",
+      "amount": 1200000
+    },
+    {
+      "event_id": "evt-sa-without-noise-0004",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T13:44:00Z",
+      "from_account_id": "acc-nina",
+      "from_client_id": "cli-nina",
+      "to_account_id": "acc-noise-sa-wo-2",
+      "to_client_id": "cli-noise-sa-wo-2",
+      "amount": 145000
+    },
+    {
+      "event_id": "evt-sa-without-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T13:48:00Z",
+      "from_account_id": "acc-boris",
+      "from_client_id": "cli-boris",
+      "to_account_id": "acc-shop-2",
+      "to_client_id": "cli-shop-2",
+      "amount": 900000
+    },
+    {
+      "event_id": "evt-sa-without-0006",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T13:55:00Z",
+      "from_account_id": "acc-vera",
+      "from_client_id": "cli-vera",
+      "to_account_id": "acc-shop-3",
+      "to_client_id": "cli-shop-3",
+      "amount": 700000
+    },
+    {
+      "event_id": "evt-sa-without-noise-0005",
+      "type": "login",
+      "occurred_at": "2026-11-12T14:20:00Z",
+      "account_id": "acc-oleg",
+      "client_id": "cli-oleg",
+      "device_id": "dev-oleg",
+      "address_id": "203.0.113.71"
+    },
+    {
+      "event_id": "evt-sa-without-noise-0006",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T14:35:00Z",
+      "from_account_id": "acc-anna",
+      "from_client_id": "cli-anna",
+      "to_account_id": "acc-noise-sa-wo-3",
+      "to_client_id": "cli-noise-sa-wo-3",
+      "amount": 95000
+    },
+    {
+      "event_id": "evt-sa-without-noise-0007",
+      "type": "login",
+      "occurred_at": "2026-11-12T14:50:00Z",
+      "account_id": "acc-nina",
+      "client_id": "cli-nina",
+      "device_id": "dev-nina",
+      "address_id": "203.0.113.72"
+    }
+  ],
+  "expected": {
+    "groups": []
+  }
+}
