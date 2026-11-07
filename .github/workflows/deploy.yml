@@ -18,6 +18,9 @@ on:
         type: boolean
         default: true
 
+permissions:
+  contents: read
+
 env:
   REGISTRY: cr.yandex/${{ vars.YC_REGISTRY_ID }}
   HELM_VERSION: v4.3.1
@@ -35,9 +38,9 @@ jobs:
           INPUTS: ${{ toJson(inputs) }}
         run: |
           services=$(jq -c '. as $in | [
-            {name: "graph-api", kind: "go", context: "backend/graph-api", dockerfile: "backend/graph-api/Dockerfile"},
-            {name: "graph-admin-api", kind: "go", context: "backend/graph-admin-api", dockerfile: "backend/graph-admin-api/Dockerfile"},
-            {name: "graph-frontapp", kind: "node", context: "frontend", dockerfile: "frontend/graph-frontapp/Dockerfile"}
+            {name: "graph-api", context: "backend/graph-api", dockerfile: "backend/graph-api/Dockerfile"},
+            {name: "graph-admin-api", context: "backend/graph-admin-api", dockerfile: "backend/graph-admin-api/Dockerfile"},
+            {name: "graph-frontapp", context: "frontend", dockerfile: "frontend/graph-frontapp/Dockerfile"}
           ] | map(select($in[.name] == true))' <<< "$INPUTS")
           if [[ $services == "[]" ]]; then
             echo "Не выбран ни один сервис" >&2
@@ -46,62 +49,38 @@ jobs:
           echo "services=$services" >> "$GITHUB_OUTPUT"
           echo "selectors=$(jq -r 'map("-l name=" + .name) | join(" ")' <<< "$services")" >> "$GITHUB_OUTPUT"
 
-  test:
+  checks:
     needs: plan
-    runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.plan.outputs.services) }}
-    steps:
-      - uses: actions/checkout@v7
-
-      - if: matrix.service.kind == 'go'
-        uses: actions/setup-go@v7
-        with:
-          go-version-file: ${{ matrix.service.context }}/go.mod
-          cache-dependency-path: ${{ matrix.service.context }}/go.sum
-
-      - if: matrix.service.kind == 'go'
-        working-directory: ${{ matrix.service.context }}
-        run: make test
-
-      - if: matrix.service.kind == 'node'
-        uses: pnpm/action-setup@v6
-        with:
-          package_json_file: ${{ matrix.service.context }}/package.json
-
-      - if: matrix.service.kind == 'node'
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: ${{ matrix.service.context }}/pnpm-lock.yaml
-
-      - if: matrix.service.kind == 'node'
-        working-directory: ${{ matrix.service.context }}
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm --filter ${{ matrix.service.name }} test
+    permissions:
+      contents: read
+      pull-requests: read
+    uses: ./.github/workflows/checks.yml # zizmor: ignore[self-repository]
+    with:
+      graph-api: ${{ inputs.graph-api }}
+      graph-admin-api: ${{ inputs.graph-admin-api }}
+      frontend: ${{ inputs.graph-frontapp }}
 
   build:
-    needs: [plan, test]
+    needs: [plan, checks]
     runs-on: ubuntu-24.04
     environment: vm
     strategy:
       matrix:
         service: ${{ fromJson(needs.plan.outputs.services) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: docker/setup-buildx-action@v4
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
-      - uses: docker/login-action@v4
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: cr.yandex
           username: json_key
           password: ${{ secrets.YC_SA_KEY }}
 
-      - uses: docker/build-push-action@v7
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: ${{ matrix.service.context }}
           file: ${{ matrix.service.dockerfile }}
@@ -120,7 +99,9 @@ jobs:
     env:
       VM_ID: ${{ vars.VM_ID }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Install yc
         timeout-minutes: 3

@@ -4,6 +4,108 @@
  */
 
 export interface paths {
+    "/api/v1/events/logins/{event_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Accept a login event */
+        put: operations["login-event"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/events/transfers/{event_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Accept a transfer event */
+        put: operations["transfer-event"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List suspicious groups */
+        get: operations["list-groups"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{group_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a suspicious group */
+        get: operations["get-group"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{group_id}/graph": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a group's evidence graph */
+        get: operations["get-group-graph"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/groups/{group_id}/solution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Confirm or decline a new group */
+        patch: operations["resolve-group"];
+        trace?: never;
+    };
     "/api/v1/notes": {
         parameters: {
             query?: never;
@@ -29,7 +131,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Checks the application's availability */
+        /** Check that the process is alive */
         get: operations["health"];
         put?: never;
         post?: never;
@@ -46,7 +148,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Checks the application's readiness for operation */
+        /** Check that the service can handle requests */
         get: operations["ready"];
         put?: never;
         post?: never;
@@ -60,24 +162,43 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        Account: {
+            client_id: string;
+            id: string;
+        };
+        AddressScheme: {
+            /** Format: int64 */
+            burst: number;
+            /** Format: int64 */
+            clients: number;
+            /** Format: int64 */
+            devices: number;
+            /** Format: int64 */
+            scheme: number;
+            /** Format: int64 */
+            speed: number;
+        };
         AllNoteOutputBody: {
-            /**
-             * Format: uri
-             * @description A URL to the JSON Schema for this object.
-             * @example https://example.com/schemas/AllNoteOutputBody.json
-             */
-            readonly $schema?: string;
             notes: components["schemas"]["Note"][] | null;
         };
+        ChainScheme: {
+            /** Format: int64 */
+            hops: number;
+            /** Format: int64 */
+            preserved: number;
+            /** Format: int64 */
+            scheme: number;
+            /** Format: int64 */
+            speed: number;
+        };
         CreateNoteInputBody: {
-            /**
-             * Format: uri
-             * @description A URL to the JSON Schema for this object.
-             * @example https://example.com/schemas/CreateNoteInputBody.json
-             */
-            readonly $schema?: string;
             /** @description Текст заметки */
             text: string;
+        };
+        Decision: {
+            comment: string;
+            /** Format: date-time */
+            decided_at: string;
         };
         ErrorDetail: {
             /** @description Where the error occurred, e.g. 'body.items[3].tags' or 'path.thing-id' */
@@ -88,12 +209,6 @@ export interface components {
             value?: unknown;
         };
         ErrorModel: {
-            /**
-             * Format: uri
-             * @description A URL to the JSON Schema for this object.
-             * @example https://example.com/schemas/ErrorModel.json
-             */
-            readonly $schema?: string;
             /**
              * @description A human-readable explanation specific to this occurrence of the problem.
              * @example Property foo is required but is missing.
@@ -126,43 +241,218 @@ export interface components {
              */
             type: string;
         };
-        HealthCheckOutputBody: {
+        FarmScheme: {
+            /** Format: int64 */
+            clients: number;
+            /** Format: int64 */
+            collector: number;
+            /** Format: int64 */
+            scheme: number;
+            /** Format: int64 */
+            speed: number;
+        };
+        Feature: {
+            /** Format: int64 */
+            accounts_count: number;
             /**
-             * Format: uri
-             * @description A URL to the JSON Schema for this object.
-             * @example https://example.com/schemas/HealthCheckOutputBody.json
+             * Format: int64
+             * @description Elapsed whole minutes between first and last evidence events.
              */
-            readonly $schema?: string;
+            span_minutes: number;
             /**
-             * @description Operational status
-             * @example ok
+             * Format: int64
+             * @description Turnover in kopecks: sum of all evidence transfers, including repeated rounds.
              */
-            status: string;
+            total_amount: number;
+        };
+        GraphNode: {
+            /** @description Original source identifier. */
+            entity_id: string;
+            /** @description Type-prefixed ID, e.g. account:acc-1. */
+            id: string;
+            /** @enum {string} */
+            type: "client" | "account" | "device" | "network_address";
+        };
+        Group: {
+            decision?: components["schemas"]["Decision"];
+            /**
+             * Format: date-time
+             * @description Server time of first detection; immutable.
+             */
+            detected_at: string;
+            features: components["schemas"]["Feature"];
+            /** Format: date-time */
+            first_event_at: string;
+            /** Format: uuid */
+            id: string;
+            is_frozen: boolean;
+            /** Format: date-time */
+            last_event_at: string;
+            logins: components["schemas"]["LoginEvent"][];
+            members: components["schemas"]["Account"][];
+            /** @enum {string} */
+            risk_level: "low" | "medium" | "high";
+            risk_parts: components["schemas"]["RiskParts"];
+            /** Format: int64 */
+            risk_score: number;
+            /** @enum {string} */
+            scheme: "farm" | "address" | "chain" | "ring";
+            /** @enum {string} */
+            status: "new" | "approved" | "declined";
+            transfers: components["schemas"]["TransferEvent"][];
+        };
+        GroupGraph: {
+            /** Format: uuid */
+            group_id: string;
+            logins: components["schemas"]["LoginEdge"][];
+            nodes: components["schemas"]["GraphNode"][];
+            ownerships: components["schemas"]["OwnershipEdge"][];
+            transfers: components["schemas"]["TransferEdge"][];
+        };
+        GroupItem: {
+            /**
+             * Format: date-time
+             * @description Server time of first detection; immutable.
+             */
+            detected_at: string;
+            features: components["schemas"]["Feature"];
+            /** Format: date-time */
+            first_event_at: string;
+            /** Format: uuid */
+            id: string;
+            /** Format: date-time */
+            last_event_at: string;
+            /** @enum {string} */
+            risk_level: "low" | "medium" | "high";
+            risk_parts: components["schemas"]["RiskParts"];
+            /** Format: int64 */
+            risk_score: number;
+            /** @enum {string} */
+            scheme: "farm" | "address" | "chain" | "ring";
+            /** @enum {string} */
+            status: "new" | "approved" | "declined";
+        };
+        GroupListOutputBody: {
+            items: components["schemas"]["GroupItem"][];
+            /** @description Pass unchanged as cursor; null on the last page. */
+            next_cursor: string | null;
+        };
+        GroupSolutionInputBody: {
+            decision_comment: string;
+            /** @enum {string} */
+            status: "approved" | "declined";
+        };
+        GroupSolutionOutputBody: {
+            decision: components["schemas"]["Decision"];
+            /** @enum {string} */
+            status: "approved" | "declined";
+        };
+        LoginEdge: {
+            event_id: string;
+            /** @description Unique type-prefixed edge ID. */
+            id: string;
+            /** Format: date-time */
+            occurred_at: string;
+            source: string;
+            target: string;
+        };
+        LoginEvent: {
+            account_id: string;
+            /** @description Source IP/network address; retained as a source identifier. */
+            address_id: string;
+            client_id: string;
+            device_id: string;
+            event_id: string;
+            /** Format: date-time */
+            occurred_at: string;
+        };
+        LoginPayload: {
+            account_id: string;
+            /** @description Source IP/network address; retained as a source identifier. */
+            address_id: string;
+            client_id: string;
+            device_id: string;
+            /** Format: date-time */
+            occurred_at: string;
         };
         Note: {
-            /**
-             * Format: uri
-             * @description A URL to the JSON Schema for this object.
-             * @example https://example.com/schemas/Note.json
-             */
-            readonly $schema?: string;
             /** Format: date-time */
             created_at: string;
             id: string;
             text: string;
         };
-        ReadyCheckOutputBody: {
-            /**
-             * Format: uri
-             * @description A URL to the JSON Schema for this object.
-             * @example https://example.com/schemas/ReadyCheckOutputBody.json
-             */
-            readonly $schema?: string;
-            /**
-             * @description Availability status
-             * @example ok
-             */
+        OwnershipEdge: {
+            /** @description Unique type-prefixed edge ID. */
+            id: string;
+            source: string;
+            target: string;
+        };
+        RingScheme: {
+            /** Format: int64 */
+            accounts: number;
+            /** Format: int64 */
+            preserved: number;
+            /** Format: int64 */
+            rounds: number;
+            /** Format: int64 */
+            scheme: number;
+            /** Format: int64 */
+            speed: number;
+        };
+        RiskParts: {
+            /** @description 'Address' Scheme Metrics */
+            address?: components["schemas"]["AddressScheme"];
+            /** @description 'Chain' scheme metrics */
+            chain?: components["schemas"]["ChainScheme"];
+            /** @description 'Farm' scheme metrics */
+            farm?: components["schemas"]["FarmScheme"];
+            /** @description 'Ring' scheme metrics */
+            ring?: components["schemas"]["RingScheme"];
+        };
+        StatusOutputBody: {
+            /** @example ok */
             status: string;
+        };
+        TransferEdge: {
+            /**
+             * Format: int64
+             * @description Amount in kopecks.
+             */
+            amount: number;
+            event_id: string;
+            /** @description Unique type-prefixed edge ID. */
+            id: string;
+            /** Format: date-time */
+            occurred_at: string;
+            source: string;
+            target: string;
+        };
+        TransferEvent: {
+            /**
+             * Format: int64
+             * @description Amount in kopecks.
+             */
+            amount: number;
+            event_id: string;
+            from_account_id: string;
+            from_client_id: string;
+            /** Format: date-time */
+            occurred_at: string;
+            to_account_id: string;
+            to_client_id: string;
+        };
+        TransferPayload: {
+            /**
+             * Format: int64
+             * @description Amount in kopecks.
+             */
+            amount: number;
+            from_account_id: string;
+            from_client_id: string;
+            /** Format: date-time */
+            occurred_at: string;
+            to_account_id: string;
+            to_client_id: string;
         };
     };
     responses: never;
@@ -173,6 +463,416 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "login-event": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginPayload"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Identical event already accepted; no changes */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "transfer-event": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                event_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TransferPayload"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Identical event already accepted; no changes */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "list-groups": {
+        parameters: {
+            query?: {
+                limit?: number;
+                /** @description Opaque continuation token. Omit for the first page. */
+                cursor?: string;
+                /** @description Status to filter groups to. */
+                status?: "new" | "approved" | "declined";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupListOutputBody"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Group"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "get-group-graph": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupGraph"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
+    "resolve-group": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                group_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GroupSolutionInputBody"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GroupSolutionOutputBody"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Not Implemented */
+            501: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+        };
+    };
     "get-all-notes": {
         parameters: {
             query?: never;
@@ -191,8 +891,8 @@ export interface operations {
                     "application/json": components["schemas"]["AllNoteOutputBody"];
                 };
             };
-            /** @description Error */
-            default: {
+            /** @description Internal Server Error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -224,8 +924,26 @@ export interface operations {
                     "application/json": components["schemas"]["Note"];
                 };
             };
-            /** @description Error */
-            default: {
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -250,7 +968,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["HealthCheckOutputBody"];
+                    "application/json": components["schemas"]["StatusOutputBody"];
                 };
             };
             /** @description Error */
@@ -279,11 +997,20 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ReadyCheckOutputBody"];
+                    "application/json": components["schemas"]["StatusOutputBody"];
                 };
             };
-            /** @description Error */
-            default: {
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ErrorModel"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };
