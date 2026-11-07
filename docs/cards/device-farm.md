@@ -54,3 +54,37 @@
 ```
 
 `total_amount_rub` — `features.total_amount / 100`, целые рубли с разделителем разрядов.
+
+## Сценарий `device_farm_with_group`
+
+Сценарий: [`backend/graph-admin-api/scenarios/device_farm_with_group.json`](../../backend/graph-admin-api/scenarios/device_farm_with_group.json). После запуска группа должна прийти с такими полями:
+
+| Поле | Значение |
+|---|---|
+| `scheme` | `farm` |
+| `risk_score` | `75` |
+| `risk_level` | `high` |
+| `risk_parts.farm` | `{"scheme": 50, "speed": 15, "clients": 0, "collector": 10}` |
+| `features.span_minutes` | `28` |
+| `features.accounts_count` | `4` |
+| `features.total_amount` | `16100000` |
+| `clients_count` | `3` (`4 - 1` сборщик) |
+
+Проверка чисел: `50 + 15 + 0 + 10 = 75`, уровень `high` — диапазон 75–100. `span_minutes` — 28 минут (10:01–10:29), `total_amount` — 16 100 000 копеек (52 000 + 42 000 + 67 000 ₽).
+
+Ожидаемый текст карточки:
+
+```text
+Риск: высокий (75/100)
+Счетов в группе: 4, оборот: 161 000 ₽.
+
+Причины:
+- Тип схемы «ферма»: +50.
+- Скорость: 28 мин от первого до последнего события — +15.
+- Клиентов на одном устройстве: 3 — +0.
+- Есть общий счёт для вывода денег: +10.
+
+Итого: 75/100 — высокий.
+```
+
+Фронт проверяет себя сравнением собранного текста с этим блоком.
