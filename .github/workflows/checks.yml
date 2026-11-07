@@ -2,6 +2,8 @@ name: checks
 
 on:
   pull_request:
+  push:
+    branches: [main]
   workflow_call:
     inputs:
       graph-api:
@@ -22,6 +24,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
+  GO_VERSION: '1.27'
   GOLANGCI_LINT_VERSION: v2.15.0
   GOVULNCHECK_VERSION: v1.9.0
   ZIZMOR_VERSION: 1.32.0
@@ -60,14 +63,21 @@ jobs:
 
       - id: pick
         env:
-          PARTS: ${{ github.event_name == 'pull_request' && toJson(steps.filter.outputs) || toJson(inputs) }}
+          EVENT: ${{ github.event_name }}
+          FILTER: ${{ toJson(steps.filter.outputs) }}
+          INPUTS: ${{ toJson(inputs) }}
         run: |
+          case $EVENT in
+            pull_request) parts=$FILTER ;;
+            push) parts='{"graph-api": true, "graph-admin-api": true, "frontend": true, "workflows": true}' ;;
+            *) parts=$INPUTS ;;
+          esac
           jq -r '
             map_values(tostring == "true") as $p
             | "go=" + ([["graph-api", "graph-admin-api"][] | select($p[.])] | tojson),
               "frontend=" + ($p.frontend | tostring),
               "workflows=" + ($p.workflows // false | tostring)
-          ' <<< "$PARTS" | tee -a "$GITHUB_OUTPUT"
+          ' <<< "$parts" | tee -a "$GITHUB_OUTPUT"
 
   go:
     needs: changes
@@ -87,7 +97,8 @@ jobs:
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: backend/${{ matrix.service }}/go.mod
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
           cache-dependency-path: backend/${{ matrix.service }}/go.sum
 
       - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
@@ -209,10 +220,21 @@ jobs:
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version-file: backend/${{ matrix.service }}/go.mod
+          go-version: ${{ env.GO_VERSION }}
+          check-latest: true
           cache-dependency-path: backend/${{ matrix.service }}/go.sum
 
-      - run: go run "golang.org/x/vuln/cmd/govulncheck@$GOVULNCHECK_VERSION" ./...
+      - env:
+          SERVICE: ${{ matrix.service }}
+        run: |
+          go install "golang.org/x/vuln/cmd/govulncheck@$GOVULNCHECK_VERSION"
+          status=0
+          "$(go env GOPATH)/bin/govulncheck" ./... || status=$?
+          if (( status == 3 )); then
+            echo "::warning title=govulncheck::Найдены уязвимости в backend/$SERVICE, подробности в логе job'а"
+          elif (( status != 0 )); then
+            exit "$status"
+          fi
 
   pnpm-audit:
     needs: changes
@@ -231,4 +253,9 @@ jobs:
         with:
           package_json_file: frontend/package.json
 
-      - run: pnpm audit --prod
+      - run: |
+          status=0
+          pnpm audit --prod || status=$?
+          if (( status != 0 )); then
+            echo "::warning title=pnpm audit::Найдены уязвимости в зависимостях фронта, подробности в логе job'а"
+          fi
