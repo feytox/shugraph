@@ -12,10 +12,8 @@ RUN pnpm --filter graph-frontapp build
 
 FROM nginx:alpine AS runner
 
-ENV API_UPSTREAM=http://graph-api:8080/api/
-
 COPY --from=builder /app/graph-frontapp/dist /usr/share/nginx/html
-COPY graph-frontapp/default.conf.template /etc/nginx/templates/default.conf.template
+COPY graph-frontapp/default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

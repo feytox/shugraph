@@ -1,0 +1,38 @@
+image:
+  repository: ""
+  tag: ""
+  pullPolicy: IfNotPresent
+
+replicas: 1
+args: []
+port: 8080
+terminationGracePeriodSeconds: 30
+
+env: {}
+secretEnv: {}
+
+probes:
+  liveness: /healthz
+  readiness: /readyz
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 500m
+    memory: 128Mi
+
+migrations:
+  enabled: false
+  args: [migrate]
+  activeDeadlineSeconds: 300
+
+route:
+  enabled: true
+  pathPrefix: /
+  hostnames: []
+  gateway:
+    name: traefik-gateway
+    namespace: kube-system
+    sectionName: web

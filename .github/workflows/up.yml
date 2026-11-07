@@ -8,6 +8,8 @@ jobs:
   up:
     runs-on: ubuntu-24.04
     environment: vm
+    env:
+      VM_ID: ${{ vars.VM_ID }}
     steps:
       - uses: actions/checkout@v7
 

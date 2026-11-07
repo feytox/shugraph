@@ -44,7 +44,7 @@ func registerNotes(api huma.API, h *noteHandlers) {
 		OperationID:   "proxy-note",
 		Summary:       "Create a note in graph-api",
 		Method:        http.MethodPost,
-		Path:          "/api/v1/notes/proxy",
+		Path:          "/admin-api/v1/notes/proxy",
 		Tags:          []string{notesTag},
 		DefaultStatus: http.StatusCreated,
 		Errors:        []int{http.StatusBadRequest, http.StatusUnprocessableEntity, http.StatusInternalServerError, http.StatusBadGateway},
