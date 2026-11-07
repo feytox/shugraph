@@ -1,0 +1,199 @@
+{
+  "name": "chain_and_ring",
+  "description": "Комбинация «цепочка + кольцо» на независимых счетах: Кирилл прогоняет деньги через Ладу и Марата к Нике (SRD-5), а позже Софья с Тимуром и Ульяной дважды прокручивают деньги по кругу (SRD-6). Группы не пересекаются ни счетами, ни событиями — проверяем, что в одном потоке находится больше одной группы разных типов. Вокруг идёт обычный поток событий.",
+  "scheme": "chain",
+  "events": [
+    {
+      "event_id": "evt-cr-noise-0001",
+      "type": "login",
+      "occurred_at": "2026-11-12T13:40:00Z",
+      "account_id": "acc-petr",
+      "client_id": "cli-petr",
+      "device_id": "dev-petr",
+      "address_id": "203.0.113.151"
+    },
+    {
+      "event_id": "evt-cr-noise-0002",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T13:50:00Z",
+      "from_account_id": "acc-petr",
+      "from_client_id": "cli-petr",
+      "to_account_id": "acc-noise-cr-1",
+      "to_client_id": "cli-noise-cr-1",
+      "amount": 150000
+    },
+    {
+      "event_id": "evt-cr-0001",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T14:00:00Z",
+      "from_account_id": "acc-kirill",
+      "from_client_id": "cli-kirill",
+      "to_account_id": "acc-lada",
+      "to_client_id": "cli-lada",
+      "amount": 9000000
+    },
+    {
+      "event_id": "evt-cr-0002",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T14:07:00Z",
+      "from_account_id": "acc-lada",
+      "from_client_id": "cli-lada",
+      "to_account_id": "acc-marat",
+      "to_client_id": "cli-marat",
+      "amount": 8800000
+    },
+    {
+      "event_id": "evt-cr-0003",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T14:14:00Z",
+      "from_account_id": "acc-marat",
+      "from_client_id": "cli-marat",
+      "to_account_id": "acc-nika",
+      "to_client_id": "cli-nika",
+      "amount": 8650000
+    },
+    {
+      "event_id": "evt-cr-noise-0003",
+      "type": "login",
+      "occurred_at": "2026-11-12T14:30:00Z",
+      "account_id": "acc-petr",
+      "client_id": "cli-petr",
+      "device_id": "dev-petr",
+      "address_id": "203.0.113.151"
+    },
+    {
+      "event_id": "evt-cr-0004",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T16:00:00Z",
+      "from_account_id": "acc-sofia",
+      "from_client_id": "cli-sofia",
+      "to_account_id": "acc-timur",
+      "to_client_id": "cli-timur",
+      "amount": 7000000
+    },
+    {
+      "event_id": "evt-cr-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T16:09:00Z",
+      "from_account_id": "acc-timur",
+      "from_client_id": "cli-timur",
+      "to_account_id": "acc-ulyana",
+      "to_client_id": "cli-ulyana",
+      "amount": 6850000
+    },
+    {
+      "event_id": "evt-cr-0006",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T16:18:00Z",
+      "from_account_id": "acc-ulyana",
+      "from_client_id": "cli-ulyana",
+      "to_account_id": "acc-sofia",
+      "to_client_id": "cli-sofia",
+      "amount": 6780000
+    },
+    {
+      "event_id": "evt-cr-0007",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T16:40:00Z",
+      "from_account_id": "acc-sofia",
+      "from_client_id": "cli-sofia",
+      "to_account_id": "acc-timur",
+      "to_client_id": "cli-timur",
+      "amount": 7000000
+    },
+    {
+      "event_id": "evt-cr-0008",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T16:49:00Z",
+      "from_account_id": "acc-timur",
+      "from_client_id": "cli-timur",
+      "to_account_id": "acc-ulyana",
+      "to_client_id": "cli-ulyana",
+      "amount": 6850000
+    },
+    {
+      "event_id": "evt-cr-0009",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T16:58:00Z",
+      "from_account_id": "acc-ulyana",
+      "from_client_id": "cli-ulyana",
+      "to_account_id": "acc-sofia",
+      "to_client_id": "cli-sofia",
+      "amount": 6780000
+    },
+    {
+      "event_id": "evt-cr-noise-0004",
+      "type": "login",
+      "occurred_at": "2026-11-12T17:15:00Z",
+      "account_id": "acc-petr",
+      "client_id": "cli-petr",
+      "device_id": "dev-petr",
+      "address_id": "203.0.113.151"
+    },
+    {
+      "event_id": "evt-cr-noise-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T17:25:00Z",
+      "from_account_id": "acc-petr",
+      "from_client_id": "cli-petr",
+      "to_account_id": "acc-noise-cr-2",
+      "to_client_id": "cli-noise-cr-2",
+      "amount": 130000
+    }
+  ],
+  "expected": {
+    "groups": [
+      {
+        "scheme": "chain",
+        "member_account_ids": [
+          "acc-kirill",
+          "acc-lada",
+          "acc-marat",
+          "acc-nika"
+        ],
+        "event_ids": [
+          "evt-cr-0001",
+          "evt-cr-0002",
+          "evt-cr-0003"
+        ],
+        "risk_score": 80,
+        "risk_level": "high",
+        "risk_parts": {
+          "chain": {
+            "scheme": 55,
+            "speed": 15,
+            "hops": 0,
+            "preserved": 10
+          }
+        }
+      },
+      {
+        "scheme": "ring",
+        "member_account_ids": [
+          "acc-sofia",
+          "acc-timur",
+          "acc-ulyana"
+        ],
+        "event_ids": [
+          "evt-cr-0004",
+          "evt-cr-0005",
+          "evt-cr-0006",
+          "evt-cr-0007",
+          "evt-cr-0008",
+          "evt-cr-0009"
+        ],
+        "risk_score": 85,
+        "risk_level": "high",
+        "risk_parts": {
+          "ring": {
+            "scheme": 65,
+            "speed": 10,
+            "rounds": 0,
+            "accounts": 0,
+            "preserved": 10
+          }
+        }
+      }
+    ]
+  }
+}
