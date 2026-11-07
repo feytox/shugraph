@@ -35,9 +35,9 @@ jobs:
           INPUTS: ${{ toJson(inputs) }}
         run: |
           services=$(jq -c '. as $in | [
-            {name: "graph-api", kind: "go", context: "backend/graph-api", dockerfile: "backend/graph-api/Dockerfile"},
-            {name: "graph-admin-api", kind: "go", context: "backend/graph-admin-api", dockerfile: "backend/graph-admin-api/Dockerfile"},
-            {name: "graph-frontapp", kind: "node", context: "frontend", dockerfile: "frontend/graph-frontapp/Dockerfile"}
+            {name: "graph-api", context: "backend/graph-api", dockerfile: "backend/graph-api/Dockerfile"},
+            {name: "graph-admin-api", context: "backend/graph-admin-api", dockerfile: "backend/graph-admin-api/Dockerfile"},
+            {name: "graph-frontapp", context: "frontend", dockerfile: "frontend/graph-frontapp/Dockerfile"}
           ] | map(select($in[.name] == true))' <<< "$INPUTS")
           if [[ $services == "[]" ]]; then
             echo "Не выбран ни один сервис" >&2
@@ -46,45 +46,19 @@ jobs:
           echo "services=$services" >> "$GITHUB_OUTPUT"
           echo "selectors=$(jq -r 'map("-l name=" + .name) | join(" ")' <<< "$services")" >> "$GITHUB_OUTPUT"
 
-  test:
+  checks:
     needs: plan
-    runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        service: ${{ fromJson(needs.plan.outputs.services) }}
-    steps:
-      - uses: actions/checkout@v7
-
-      - if: matrix.service.kind == 'go'
-        uses: actions/setup-go@v7
-        with:
-          go-version-file: ${{ matrix.service.context }}/go.mod
-          cache-dependency-path: ${{ matrix.service.context }}/go.sum
-
-      - if: matrix.service.kind == 'go'
-        working-directory: ${{ matrix.service.context }}
-        run: make test
-
-      - if: matrix.service.kind == 'node'
-        uses: pnpm/action-setup@v6
-        with:
-          package_json_file: ${{ matrix.service.context }}/package.json
-
-      - if: matrix.service.kind == 'node'
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: pnpm
-          cache-dependency-path: ${{ matrix.service.context }}/pnpm-lock.yaml
-
-      - if: matrix.service.kind == 'node'
-        working-directory: ${{ matrix.service.context }}
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm --filter ${{ matrix.service.name }} test
+    permissions:
+      contents: read
+      pull-requests: read
+    uses: ./.github/workflows/checks.yml # zizmor: ignore[self-repository]
+    with:
+      graph-api: ${{ inputs.graph-api }}
+      graph-admin-api: ${{ inputs.graph-admin-api }}
+      frontend: ${{ inputs.graph-frontapp }}
 
   build:
-    needs: [plan, test]
+    needs: [plan, checks]
     runs-on: ubuntu-24.04
     environment: vm
     strategy:
