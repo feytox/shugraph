@@ -3,3 +3,54 @@
 Шаблон текста карточки для [Ф5](../features.md#ф5-карточка-расследования), схема «ферма» (`scheme: farm`).
 
 Фронт собирает объяснение из `risk_parts.farm` и `features` группы, которые приходят в ответе graph-api. Документ описывает первую схему; шаблоны остальных схем добавляются отдельными документами.
+
+## Данные для сборки
+
+| Что | Откуда в ответе API | Пример |
+|---|---|---|
+| Уровень риска | `risk_level` | `high` |
+| Итоговый риск | `risk_score` | `75` |
+| Слагаемые риска | `risk_parts.farm` | `{"scheme": 50, "speed": 15, "clients": 0, "collector": 10}` |
+| Длительность | `features.span_minutes` | `28` |
+| Число счетов | `features.accounts_count` | `4` |
+| Оборот | `features.total_amount`, копейки | `16100000` |
+
+`risk_parts.farm` содержит баллы, а не исходные количества: `clients` — это баллы за число клиентов, `collector` — баллы за наличие общего счёта.
+
+Число клиентов для текста: `clients_count = features.accounts_count - 1`, если `risk_parts.farm.collector > 0`, иначе `clients_count = features.accounts_count`. Счёт сборщика входит в участники группы, но клиентом не является.
+
+Подписи уровня риска:
+
+| `risk_level` | Подпись |
+|---|---|
+| `low` | низкий |
+| `medium` | средний |
+| `high` | высокий |
+
+## Слагаемые риска
+
+| Слагаемое из [risk.md](../schemes/risk.md) | Что подставляем | Формулировка |
+|---|---|---|
+| Тип схемы «ферма» | `risk_parts.farm.scheme` | `Тип схемы «ферма»: +{scheme}.` |
+| Скорость | `features.span_minutes`, `risk_parts.farm.speed` | `Скорость: {span_minutes} мин от первого до последнего события — +{speed}.` |
+| Число клиентов | `clients_count`, `risk_parts.farm.clients` | `Клиентов на одном устройстве: {clients_count} — +{clients}.` |
+| Общий счёт для вывода | `risk_parts.farm.collector` | при `collector > 0`: `Есть общий счёт для вывода денег: +{collector}.`; при `collector == 0`: `Общего счёта для вывода денег нет: +0.` |
+
+Итог берётся из `risk_score`; для фермы сумма слагаемых не превышает 100, поэтому совпадает с итогом.
+
+## Шаблон текста
+
+```text
+Риск: {risk_level_label} ({risk_score}/100)
+Счетов в группе: {accounts_count}, оборот: {total_amount_rub} ₽.
+
+Причины:
+- Тип схемы «ферма»: +{scheme}.
+- Скорость: {span_minutes} мин от первого до последнего события — +{speed}.
+- Клиентов на одном устройстве: {clients_count} — +{clients}.
+- {collector_line}
+
+Итого: {risk_score}/100 — {risk_level_label}.
+```
+
+`total_amount_rub` — `features.total_amount / 100`, целые рубли с разделителем разрядов.
