@@ -26,6 +26,7 @@ env:
 jobs:
   plan:
     runs-on: ubuntu-24.04
+    timeout-minutes: 5
     outputs:
       services: ${{ steps.plan.outputs.services }}
       selectors: ${{ steps.plan.outputs.selectors }}
@@ -49,6 +50,7 @@ jobs:
   test:
     needs: plan
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     strategy:
       matrix:
         service: ${{ fromJson(needs.plan.outputs.services) }}
@@ -86,6 +88,7 @@ jobs:
   build:
     needs: [plan, test]
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     environment: vm
     strategy:
       matrix:
