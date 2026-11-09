@@ -33,6 +33,7 @@ env:
 jobs:
   changes:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     permissions:
       pull-requests: read
     outputs:
@@ -83,6 +84,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.go != '[]'
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
@@ -130,6 +132,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
@@ -174,6 +177,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.workflows == 'true'
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -194,6 +198,7 @@ jobs:
     if: always()
     needs: [changes, go, frontend, workflows]
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - env:
           RESULTS: ${{ toJson(needs) }}
@@ -206,6 +211,7 @@ jobs:
     if: needs.changes.outputs.go != '[]'
     continue-on-error: true
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -241,6 +247,7 @@ jobs:
     if: needs.changes.outputs.frontend == 'true'
     continue-on-error: true
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     defaults:
       run:
         working-directory: frontend
