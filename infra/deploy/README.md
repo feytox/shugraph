@@ -6,6 +6,32 @@
 - `charts/postgres` - один Postgres на площадку, в нём у каждого бэкенда своя база и свой пользователь.
 - `helmfile.yaml.gotmpl` - список release'ов: какой chart ставить для каждого сервиса и с какими настройками (образ, порт, переменные окружения, путь). Настройки площадок лежат в `environments/`, пока там только `prod`.
 
+Что получается в namespace `prod`:
+
+```mermaid
+flowchart LR
+    GW["Gateway traefik-gateway<br/>(kube-system)"]
+
+    subgraph prod
+        direction LR
+        GW -- "/" --> RF["HTTPRoute"] --> SF["Service"] --> DF["Deployment<br/>graph-frontapp"]
+        GW -- "/api" --> RA["HTTPRoute"] --> SA["Service"] --> DA["Deployment<br/>graph-api"]
+        GW -- "/admin-api" --> RAA["HTTPRoute"] --> SAA["Service"] --> DAA["Deployment<br/>graph-admin-api"]
+        DAA -- "GRAPH_API_URL" --> SA
+
+        JA["Job graph-api-migrate"] -. "до обновления" .-> DA
+        JAA["Job graph-admin-api-migrate"] -. "до обновления" .-> DAA
+
+        DA & DAA & JA & JAA --> SPG["Service postgres<br/>(headless)"] --> PG["StatefulSet postgres"]
+        SEC["Secret postgres"] -. "пароли" .-> PG
+        SEC -. "DB_PASSWORD" .-> DA & DAA
+        CM["ConfigMap postgres-init<br/>(init-databases.sh)"] --> PG
+        PG --> PVC["PVC data-postgres-0"]
+    end
+```
+
+У каждого сервиса Service, Deployment и HTTPRoute называются как release.
+
 ## Как выкатить
 
 1. На GitHub: Actions -> `deploy` -> Run workflow.
