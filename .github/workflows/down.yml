@@ -5,7 +5,9 @@ on: workflow_dispatch
 permissions:
   contents: read
 
-concurrency: vm
+concurrency:
+  group: vm
+  queue: max
 
 jobs:
   down:

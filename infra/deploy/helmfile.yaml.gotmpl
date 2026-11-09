@@ -22,7 +22,6 @@ releases:
           tag: {{ requiredEnv "IMAGE_TAG" }}
         args: [serve]
         port: 8080
-        terminationGracePeriodSeconds: 20
         migrations:
           enabled: true
         route:
@@ -45,7 +44,6 @@ releases:
           tag: {{ requiredEnv "IMAGE_TAG" }}
         args: [serve]
         port: 8081
-        terminationGracePeriodSeconds: 20
         migrations:
           enabled: true
         route:
@@ -66,7 +64,6 @@ releases:
       - image:
           repository: {{ requiredEnv "IMAGE_REGISTRY" }}/graph-frontapp
           tag: {{ requiredEnv "IMAGE_TAG" }}
-        port: 80
         probes:
           liveness: /
           readiness: /

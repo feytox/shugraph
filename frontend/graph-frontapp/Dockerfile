@@ -10,11 +10,11 @@ RUN pnpm install --frozen-lockfile
 COPY graph-frontapp/ ./graph-frontapp/
 RUN pnpm --filter graph-frontapp build
 
-FROM nginx:alpine AS runner
+FROM nginxinc/nginx-unprivileged:alpine AS runner
 
 COPY --from=builder /app/graph-frontapp/dist /usr/share/nginx/html
 COPY graph-frontapp/default.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]
