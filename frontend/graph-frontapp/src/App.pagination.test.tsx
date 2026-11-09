@@ -55,7 +55,7 @@ it('сохраняет загруженные группы после ошибк
           next_cursor: cursor,
         });
       if (query.get('cursor') !== cursor || failNextPage)
-        return new HttpResponse(null, { status: 500 });
+        return HttpResponse.json({ detail: 'Курсор страницы недействителен' }, { status: 400 });
       return HttpResponse.json<GroupListResponse>({ items: items.slice(20), next_cursor: null });
     })
   );
@@ -65,6 +65,7 @@ it('сохраняет загруженные группы после ошибк
   expect(await screen.findByRole('alert')).toHaveTextContent(
     'Не удалось загрузить следующую страницу'
   );
+  expect(screen.getByRole('alert')).toHaveTextContent('Курсор страницы недействителен');
   expect(within(table).getAllByRole('row')).toHaveLength(21);
   failNextPage = false;
   fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку' }));

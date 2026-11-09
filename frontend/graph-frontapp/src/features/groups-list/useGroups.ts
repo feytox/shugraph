@@ -11,7 +11,7 @@ export function useGroups() {
         signal,
       });
       if (!response.ok || error !== undefined || !data) {
-        throw new Error('Не удалось загрузить список групп');
+        throw new Error(error?.detail || 'Не удалось загрузить список групп');
       }
       return data;
     },

@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw';
 import { server } from '@/mocks/server';
 import { renderScreen } from '@/test/renderScreen';
 import type { GroupListResponse } from '@/api/client';
+import { groupItem } from '@/test/groupItem';
 
 describe('Подозрительные группы', () => {
   it('показывает шесть полей группы, сумму в рублях и время UTC', async () => {
@@ -16,14 +17,8 @@ describe('Подозрительные группы', () => {
         return HttpResponse.json<GroupListResponse>({
           items: [
             {
-              id: '00000000-0000-4000-8000-000000000001',
-              scheme: 'farm',
-              status: 'new',
-              risk_level: 'high',
+              ...groupItem,
               risk_score: 87,
-              risk_parts: {},
-              detected_at: '2026-10-07T10:00:00Z',
-              first_event_at: '2026-10-07T10:00:00Z',
               last_event_at: '2026-10-07T15:30:45+05:00',
               features: { accounts_count: 7, total_amount: 12345, span_minutes: 30 },
             },
@@ -77,23 +72,25 @@ it('объясняет пустой список и предлагает зап�
 });
 
 it('сохраняет отличие ошибки от пустого ответа и восстанавливается по Повторить', async () => {
-  server.use(http.get('*/api/v1/groups', () => new HttpResponse(null, { status: 500 })));
+  server.use(
+    http.get('*/api/v1/groups', () =>
+      HttpResponse.json({ detail: 'Хранилище групп временно недоступно' }, { status: 503 })
+    )
+  );
   renderScreen();
-  expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось загрузить список групп');
+  expect(await screen.findByRole('alert')).toHaveTextContent('Хранилище групп временно недоступно');
   expect(screen.queryByText(/Подозрительных групп пока нет/)).not.toBeInTheDocument();
   server.use(
     http.get('*/api/v1/groups', () =>
       HttpResponse.json<GroupListResponse>({
         items: [
           {
+            ...groupItem,
             id: '00000000-0000-4000-8000-000000000002',
             scheme: 'ring',
             status: 'approved',
             risk_level: 'low',
             risk_score: 15,
-            risk_parts: {},
-            detected_at: '2026-10-07T10:00:00Z',
-            first_event_at: '2026-10-07T10:00:00Z',
             last_event_at: '2026-10-07T10:30:00Z',
             features: { accounts_count: 3, total_amount: 100, span_minutes: 30 },
           },

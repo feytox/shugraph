@@ -58,11 +58,16 @@ it('обновляет строки через 3 секунды и добавл�
 it('сохраняет таблицу при ошибке обновления и восстанавливается следующим опросом', async () => {
   respond([group]);
   await openScreen();
-  server.use(http.get('*/api/v1/groups', () => new HttpResponse(null, { status: 500 })));
+  server.use(
+    http.get('*/api/v1/groups', () =>
+      HttpResponse.json({ detail: 'Обновление временно недоступно' }, { status: 503 })
+    )
+  );
   await advance(3000);
   await waitForScreen(() =>
     expect(screen.getByRole('alert')).toHaveTextContent('Не удалось обновить список')
   );
+  expect(screen.getByRole('alert')).toHaveTextContent('Обновление временно недоступно');
   expect(screen.getByRole('table')).toHaveTextContent('Высокий · 87');
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   respond([{ ...group, risk_score: 95 }]);

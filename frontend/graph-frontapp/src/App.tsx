@@ -14,7 +14,7 @@ import {
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { GroupItem } from '@/api/client';
-import { useGroups } from '@/groups/useGroups';
+import { useGroups } from '@/features/groups-list/useGroups';
 
 dayjs.extend(utc);
 const schemes = { farm: 'Ферма', address: 'Адрес', chain: 'Цепочка', ring: 'Кольцо' };
@@ -72,7 +72,9 @@ function GroupsScreen() {
           </Alert>
         )}
         {groups.isRefetchError && groups.data && (
-          <Alert color="red">Не удалось обновить список</Alert>
+          <Alert color="red" title="Не удалось обновить список">
+            {groups.error.message}
+          </Alert>
         )}
         {groups.isPending && (
           <Group role="status">
@@ -89,7 +91,9 @@ function GroupsScreen() {
             </Text>
           ))}
         {groups.isFetchNextPageError && (
-          <Alert color="red">Не удалось загрузить следующую страницу</Alert>
+          <Alert color="red" title="Не удалось загрузить следующую страницу">
+            {groups.error.message}
+          </Alert>
         )}
         {groups.hasNextPage && (
           <Button onClick={() => groups.fetchNextPage()} loading={groups.isFetchingNextPage}>
