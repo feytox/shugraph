@@ -2,7 +2,9 @@ name: down
 
 on: workflow_dispatch
 
-concurrency: vm
+concurrency:
+  group: vm
+  queue: max
 
 jobs:
   down:

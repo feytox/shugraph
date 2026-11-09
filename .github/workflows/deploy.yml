@@ -116,7 +116,10 @@ jobs:
     needs: [plan, build]
     runs-on: ubuntu-24.04
     environment: vm
-    concurrency: vm
+    concurrency:
+      group: vm
+      queue: max
+    timeout-minutes: 15
     env:
       VM_ID: ${{ vars.VM_ID }}
     steps:
@@ -156,7 +159,7 @@ jobs:
         env:
           IP: ${{ steps.up.outputs.ip }}
         run: |
-          ssh_opts=(-i "$RUNNER_TEMP/ssh-key" -o BatchMode=yes -o StrictHostKeyChecking=accept-new)
+          ssh_opts=(-i "$RUNNER_TEMP/ssh-key" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10)
           ssh "${ssh_opts[@]}" "shugraph@$IP" 'sudo cat /etc/rancher/k3s/k3s.yaml' > "$RUNNER_TEMP/kubeconfig"
           chmod 600 "$RUNNER_TEMP/kubeconfig"
           echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
