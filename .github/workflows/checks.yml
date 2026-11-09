@@ -190,7 +190,7 @@ jobs:
           version: ${{ env.ZIZMOR_VERSION }}
           advanced-security: false
 
-  checks-ok:
+  required-ok:
     if: always()
     needs: [changes, go, frontend, workflows]
     runs-on: ubuntu-24.04
