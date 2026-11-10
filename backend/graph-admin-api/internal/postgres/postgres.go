@@ -61,7 +61,7 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool, log *slog.Logger) error {
 
 	sqlDB := stdlib.OpenDBFromPool(pool)
 
-	provider, err := goose.NewProvider(goose.DialectPostgres, sqlDB, migrations.FS, goose.WithSessionLocker(locker))
+	provider, err := goose.NewProvider(goose.DialectPostgres, sqlDB, migrations.FS, goose.WithSessionLocker(locker), goose.WithAllowOutofOrder(true))
 	if err != nil {
 		_ = sqlDB.Close()
 		return fmt.Errorf("create migration provider: %w", err)

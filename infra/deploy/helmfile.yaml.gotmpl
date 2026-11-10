@@ -1,0 +1,78 @@
+environments:
+  prod:
+    values:
+      - environments/prod.yaml
+---
+helmDefaults:
+  wait: true
+  timeout: 300
+
+releases:
+  - name: postgres
+    namespace: {{ .Values.namespace }}
+    chart: ./charts/postgres
+
+  - name: graph-api
+    namespace: {{ .Values.namespace }}
+    chart: ./charts/app
+    needs: [postgres]
+    values:
+      - image:
+          repository: {{ requiredEnv "IMAGE_REGISTRY" }}/graph-api
+          tag: {{ requiredEnv "IMAGE_TAG" }}
+        args: [serve]
+        port: 8080
+        migrations:
+          enabled: true
+        route:
+          pathPrefix: /api
+        secretEnv:
+          DB_PASSWORD: {secret: postgres, key: GRAPH_API_DB_PASSWORD}
+        env:
+          DATABASE_URL: postgres://graph_api:$(DB_PASSWORD)@postgres:5432/graph_api?sslmode=disable
+          PORT: 8080
+          SERVICE_NAME: graph-api
+          DEPLOYMENT_ENVIRONMENT: {{ .Environment.Name }}
+
+  - name: graph-admin-api
+    namespace: {{ .Values.namespace }}
+    chart: ./charts/app
+    needs: [postgres]
+    values:
+      - image:
+          repository: {{ requiredEnv "IMAGE_REGISTRY" }}/graph-admin-api
+          tag: {{ requiredEnv "IMAGE_TAG" }}
+        args: [serve]
+        port: 8081
+        migrations:
+          enabled: true
+        route:
+          pathPrefix: /admin-api
+        secretEnv:
+          DB_PASSWORD: {secret: postgres, key: GRAPH_ADMIN_API_DB_PASSWORD}
+        env:
+          DATABASE_URL: postgres://graph_admin_api:$(DB_PASSWORD)@postgres:5432/graph_admin_api?sslmode=disable
+          PORT: 8081
+          SERVICE_NAME: graph-admin-api
+          DEPLOYMENT_ENVIRONMENT: {{ .Environment.Name }}
+          GRAPH_API_URL: http://graph-api:8080
+
+  - name: graph-frontapp
+    namespace: {{ .Values.namespace }}
+    chart: ./charts/app
+    values:
+      - image:
+          repository: {{ requiredEnv "IMAGE_REGISTRY" }}/graph-frontapp
+          tag: {{ requiredEnv "IMAGE_TAG" }}
+        probes:
+          liveness: /
+          readiness: /
+        resources:
+          requests:
+            cpu: 5m
+            memory: 16Mi
+          limits:
+            cpu: 200m
+            memory: 64Mi
+        route:
+          pathPrefix: /
