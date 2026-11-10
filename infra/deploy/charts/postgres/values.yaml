@@ -1,0 +1,18 @@
+image: postgres:18-alpine
+
+passwords:
+  - POSTGRES_PASSWORD
+  - GRAPH_API_DB_PASSWORD
+  - GRAPH_ADMIN_API_DB_PASSWORD
+
+storage:
+  size: 2Gi
+  storageClassName: local-path
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: "1"
+    memory: 512Mi

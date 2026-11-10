@@ -2,12 +2,17 @@ name: up
 
 on: workflow_dispatch
 
-concurrency: vm
+concurrency:
+  group: vm
+  queue: max
 
 jobs:
   up:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     environment: vm
+    env:
+      VM_ID: ${{ vars.VM_ID }}
     steps:
       - uses: actions/checkout@v7
 

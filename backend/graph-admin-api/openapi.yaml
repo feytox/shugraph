@@ -96,7 +96,7 @@ info:
   version: 1.0.0
 openapi: 3.1.0
 paths:
-  /api/v1/notes/proxy:
+  /admin-api/v1/notes/proxy:
     post:
       operationId: proxy-note
       requestBody:
