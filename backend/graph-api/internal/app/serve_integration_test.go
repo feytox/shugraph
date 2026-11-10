@@ -74,9 +74,15 @@ func run(m *testing.M) int {
 	}
 	defer testPool.Close()
 
+	groupsCfg, err := config.Load[config.Groups]()
+	if err != nil {
+		slog.Error("could not parse groups config", "err", err)
+		return 1
+	}
+
 	repo := repository.NewPgNoteRepository(testPool)
 	noteService := service.NewNoteService(repo)
-	eventService := service.NewEventService(repository.NewPgEventRepository(testPool))
+	eventService := service.NewEventService(repository.NewPgEventRepository(testPool, groupsCfg.Rules()))
 
 	errMigrate := pgdb.Migrate(ctx, testPool, slog.Default())
 	if errMigrate != nil {

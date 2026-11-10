@@ -14,11 +14,12 @@ import (
 )
 
 type PgEventRepository struct {
-	pool *pgxpool.Pool
+	pool   *pgxpool.Pool
+	groups groupAssembler
 }
 
-func NewPgEventRepository(pool *pgxpool.Pool) *PgEventRepository {
-	return &PgEventRepository{pool: pool}
+func NewPgEventRepository(pool *pgxpool.Pool, rules domain.GroupRules) *PgEventRepository {
+	return &PgEventRepository{pool: pool, groups: groupAssembler{rules: rules}}
 }
 
 func (p *PgEventRepository) SaveLogin(ctx context.Context, event domain.LoginEvent) (created bool, err error) {
@@ -39,6 +40,10 @@ func (p *PgEventRepository) SaveLogin(ctx context.Context, event domain.LoginEve
 		}
 
 		if err := insertLoginDetails(ctx, q, event); err != nil {
+			return err
+		}
+
+		if err := p.groups.afterLogin(ctx, q, event); err != nil {
 			return err
 		}
 
@@ -71,6 +76,10 @@ func (p *PgEventRepository) SaveTransfer(ctx context.Context, event domain.Trans
 		}
 
 		if err := insertTransferDetails(ctx, q, event); err != nil {
+			return err
+		}
+
+		if err := p.groups.afterTransfer(ctx, q, event); err != nil {
 			return err
 		}
 
