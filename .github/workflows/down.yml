@@ -22,7 +22,7 @@ jobs:
           persist-credentials: false
 
       - name: Install yc
-        timeout-minutes: 3
+        timeout-minutes: 10
         run: |
           curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i /opt/yc -n
           echo /opt/yc/bin >> "$GITHUB_PATH"
