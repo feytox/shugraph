@@ -1,0 +1,161 @@
+{
+  "name": "device_farm_without_group",
+  "description": "Общее устройство у двух клиентов на фоне обычного потока: порог схемы «Одно устройство на толпу» не достигается, группы нет.",
+  "scheme": "farm",
+  "events": [
+    {
+      "event_id": "evt-df-without-noise-0001",
+      "type": "login",
+      "occurred_at": "2026-11-12T13:20:00Z",
+      "account_id": "acc-sofia",
+      "client_id": "cli-sofia",
+      "device_id": "dev-sofia",
+      "address_id": "203.0.113.51"
+    },
+    {
+      "event_id": "evt-df-without-noise-0002",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T13:31:00Z",
+      "from_account_id": "acc-sofia",
+      "from_client_id": "cli-sofia",
+      "to_account_id": "acc-noise-wo-1",
+      "to_client_id": "cli-noise-wo-1",
+      "amount": 175000
+    },
+    {
+      "event_id": "evt-df-without-noise-0003",
+      "type": "login",
+      "occurred_at": "2026-11-12T13:45:00Z",
+      "account_id": "acc-timur",
+      "client_id": "cli-timur",
+      "device_id": "dev-timur",
+      "address_id": "203.0.113.52"
+    },
+    {
+      "event_id": "evt-df-without-noise-0004",
+      "type": "login",
+      "occurred_at": "2026-11-12T13:52:00Z",
+      "account_id": "acc-ulyana",
+      "client_id": "cli-ulyana",
+      "device_id": "dev-ulyana",
+      "address_id": "203.0.113.53"
+    },
+    {
+      "event_id": "evt-df-without-0001",
+      "type": "login",
+      "occurred_at": "2026-11-12T14:00:00Z",
+      "account_id": "acc-ivan",
+      "client_id": "cli-ivan",
+      "device_id": "dev-tablet",
+      "address_id": "198.51.100.31"
+    },
+    {
+      "event_id": "evt-df-without-noise-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T14:03:00Z",
+      "from_account_id": "acc-timur",
+      "from_client_id": "cli-timur",
+      "to_account_id": "acc-noise-wo-2",
+      "to_client_id": "cli-noise-wo-2",
+      "amount": 260000
+    },
+    {
+      "event_id": "evt-df-without-0002",
+      "type": "login",
+      "occurred_at": "2026-11-12T14:06:00Z",
+      "account_id": "acc-olga",
+      "client_id": "cli-olga",
+      "device_id": "dev-tablet",
+      "address_id": "198.51.100.32"
+    },
+    {
+      "event_id": "evt-df-without-0003",
+      "type": "login",
+      "occurred_at": "2026-11-12T14:12:00Z",
+      "account_id": "acc-petr",
+      "client_id": "cli-petr",
+      "device_id": "dev-petr",
+      "address_id": "198.51.100.33"
+    },
+    {
+      "event_id": "evt-df-without-noise-0006",
+      "type": "login",
+      "occurred_at": "2026-11-12T14:15:00Z",
+      "account_id": "acc-sofia",
+      "client_id": "cli-sofia",
+      "device_id": "dev-sofia",
+      "address_id": "203.0.113.51"
+    },
+    {
+      "event_id": "evt-df-without-0004",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T14:20:00Z",
+      "from_account_id": "acc-ivan",
+      "from_client_id": "cli-ivan",
+      "to_account_id": "acc-shop-1",
+      "to_client_id": "cli-shop-1",
+      "amount": 120000
+    },
+    {
+      "event_id": "evt-df-without-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T14:26:00Z",
+      "from_account_id": "acc-olga",
+      "from_client_id": "cli-olga",
+      "to_account_id": "acc-shop-2",
+      "to_client_id": "cli-shop-2",
+      "amount": 98000
+    },
+    {
+      "event_id": "evt-df-without-0006",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T14:32:00Z",
+      "from_account_id": "acc-petr",
+      "from_client_id": "cli-petr",
+      "to_account_id": "acc-shop-3",
+      "to_client_id": "cli-shop-3",
+      "amount": 145000
+    },
+    {
+      "event_id": "evt-df-without-noise-0007",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T14:40:00Z",
+      "from_account_id": "acc-ulyana",
+      "from_client_id": "cli-ulyana",
+      "to_account_id": "acc-noise-wo-3",
+      "to_client_id": "cli-noise-wo-3",
+      "amount": 88000
+    },
+    {
+      "event_id": "evt-df-without-noise-0008",
+      "type": "login",
+      "occurred_at": "2026-11-12T14:55:00Z",
+      "account_id": "acc-timur",
+      "client_id": "cli-timur",
+      "device_id": "dev-timur",
+      "address_id": "203.0.113.52"
+    },
+    {
+      "event_id": "evt-df-without-noise-0009",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T15:05:00Z",
+      "from_account_id": "acc-sofia",
+      "from_client_id": "cli-sofia",
+      "to_account_id": "acc-noise-wo-4",
+      "to_client_id": "cli-noise-wo-4",
+      "amount": 120000
+    },
+    {
+      "event_id": "evt-df-without-noise-0010",
+      "type": "login",
+      "occurred_at": "2026-11-12T15:20:00Z",
+      "account_id": "acc-ulyana",
+      "client_id": "cli-ulyana",
+      "device_id": "dev-ulyana",
+      "address_id": "203.0.113.53"
+    }
+  ],
+  "expected": {
+    "groups": []
+  }
+}

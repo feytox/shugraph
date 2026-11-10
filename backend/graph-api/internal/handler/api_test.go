@@ -23,16 +23,6 @@ func TestContractRoutes(t *testing.T) {
 		{http.MethodGet, groupPath, ""},
 		{http.MethodGet, groupPath + "/graph", ""},
 		{http.MethodPatch, groupPath + "/solution", `{"status":"approved","decision_comment":"Confirmed"}`},
-		{http.MethodPut, "/api/v1/events/logins/login-1", `{
-			"occurred_at":"2026-10-26T12:00:00Z",
-			"account_id":"account-1","client_id":"client-1",
-			"device_id":"device-1","address_id":"127.0.0.1"
-		}`},
-		{http.MethodPut, "/api/v1/events/transfers/transfer-1", `{
-			"occurred_at":"2026-10-26T12:00:00Z",
-			"from_account_id":"account-1","from_client_id":"client-1",
-			"to_account_id":"account-2","to_client_id":"client-2","amount":100
-		}`},
 	}
 
 	handler := New(Deps{Log: slog.New(slog.DiscardHandler)})

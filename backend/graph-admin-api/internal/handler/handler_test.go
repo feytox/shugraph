@@ -34,7 +34,7 @@ func TestProxyNote(t *testing.T) {
 		return domain.ProxiedNote{ID: 7, GraphNoteID: "note-1", Text: text, CreatedAt: createdAt}, nil
 	})
 
-	rec := serve(t, Deps{Notes: notes}, http.MethodPost, "/api/v1/notes/proxy", `{"text":"hello"}`)
+	rec := serve(t, Deps{Notes: notes}, http.MethodPost, "/admin-api/v1/notes/proxy", `{"text":"hello"}`)
 
 	assert.Equal(t, http.StatusCreated, rec.Code)
 	assert.JSONEq(t, `{"id":7,"graph_note_id":"note-1","text":"hello","created_at":"2026-10-16T10:00:00Z"}`, rec.Body.String())
@@ -63,7 +63,7 @@ func TestProxyNoteErrors(t *testing.T) {
 				return domain.ProxiedNote{}, tt.err
 			})
 
-			rec := serve(t, Deps{Notes: notes}, http.MethodPost, "/api/v1/notes/proxy", `{"text":"hello"}`)
+			rec := serve(t, Deps{Notes: notes}, http.MethodPost, "/admin-api/v1/notes/proxy", `{"text":"hello"}`)
 
 			assert.Equal(t, tt.wantStatus, rec.Code)
 			assert.Contains(t, rec.Body.String(), `"detail":"`+tt.wantDetail+`"`)
@@ -77,7 +77,7 @@ func TestProxyNoteEmptyText(t *testing.T) {
 		return domain.ProxiedNote{}, nil
 	})
 
-	rec := serve(t, Deps{Notes: notes}, http.MethodPost, "/api/v1/notes/proxy", `{"text":""}`)
+	rec := serve(t, Deps{Notes: notes}, http.MethodPost, "/admin-api/v1/notes/proxy", `{"text":""}`)
 
 	assert.Equal(t, http.StatusUnprocessableEntity, rec.Code)
 }

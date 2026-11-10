@@ -1,0 +1,181 @@
+name: deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Площадка
+        type: choice
+        options: [prod]
+        default: prod
+      graph-api:
+        type: boolean
+        default: true
+      graph-admin-api:
+        type: boolean
+        default: true
+      graph-frontapp:
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: cr.yandex/${{ vars.YC_REGISTRY_ID }}
+  HELM_VERSION: v4.3.1
+  HELMFILE_VERSION: 1.8.3
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      services: ${{ steps.plan.outputs.services }}
+      selectors: ${{ steps.plan.outputs.selectors }}
+    steps:
+      - id: plan
+        env:
+          INPUTS: ${{ toJson(inputs) }}
+        run: |
+          services=$(jq -c '. as $in | [
+            {name: "graph-api", context: "backend/graph-api", dockerfile: "backend/graph-api/Dockerfile"},
+            {name: "graph-admin-api", context: "backend/graph-admin-api", dockerfile: "backend/graph-admin-api/Dockerfile"},
+            {name: "graph-frontapp", context: "frontend", dockerfile: "frontend/graph-frontapp/Dockerfile"}
+          ] | map(select($in[.name] == true))' <<< "$INPUTS")
+          if [[ $services == "[]" ]]; then
+            echo "Не выбран ни один сервис" >&2
+            exit 1
+          fi
+          echo "services=$services" >> "$GITHUB_OUTPUT"
+          echo "selectors=$(jq -r 'map("-l name=" + .name) | join(" ")' <<< "$services")" >> "$GITHUB_OUTPUT"
+
+  checks:
+    needs: plan
+    permissions:
+      contents: read
+      pull-requests: read
+    uses: ./.github/workflows/checks.yml # zizmor: ignore[self-repository]
+    with:
+      graph-api: ${{ inputs.graph-api }}
+      graph-admin-api: ${{ inputs.graph-admin-api }}
+      frontend: ${{ inputs.graph-frontapp }}
+
+  build:
+    needs: [plan, checks]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: vm
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.plan.outputs.services) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: cr.yandex
+          username: json_key
+          password: ${{ secrets.YC_SA_KEY }}
+
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: ${{ matrix.service.context }}
+          file: ${{ matrix.service.dockerfile }}
+          build-args: VERSION=${{ github.sha }}
+          tags: ${{ env.REGISTRY }}/${{ matrix.service.name }}:${{ github.sha }}
+          push: true
+          provenance: false
+          cache-from: type=gha,scope=${{ matrix.service.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
+
+  deploy:
+    needs: [plan, build]
+    runs-on: ubuntu-24.04
+    environment: vm
+    concurrency:
+      group: vm
+      queue: max
+    timeout-minutes: 15
+    env:
+      VM_ID: ${{ vars.VM_ID }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install yc
+        timeout-minutes: 10
+        run: |
+          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i /opt/yc -n
+          echo /opt/yc/bin >> "$GITHUB_PATH"
+
+      - name: Install helm and helmfile
+        run: |
+          curl -sSL "https://get.helm.sh/helm-$HELM_VERSION-linux-amd64.tar.gz" | sudo tar -xz -C /usr/local/bin --strip-components=1 linux-amd64/helm
+          curl -sSL "https://github.com/helmfile/helmfile/releases/download/v$HELMFILE_VERSION/helmfile_${HELMFILE_VERSION}_linux_amd64.tar.gz" | sudo tar -xz -C /usr/local/bin helmfile
+          helm version
+          helmfile version
+
+      - name: Auth yc
+        env:
+          YC_SA_KEY: ${{ secrets.YC_SA_KEY }}
+        run: |
+          printf '%s' "$YC_SA_KEY" > "$RUNNER_TEMP/yc-key.json"
+          yc config set service-account-key "$RUNNER_TEMP/yc-key.json"
+          yc iam create-token > /dev/null
+
+      - name: Up
+        id: up
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          install -m 600 /dev/null "$RUNNER_TEMP/ssh-key"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/ssh-key"
+          SSH_KEY="$RUNNER_TEMP/ssh-key" infra/vm/vm.sh up
+
+      - name: Connect to cluster
+        env:
+          IP: ${{ steps.up.outputs.ip }}
+        run: |
+          ssh_opts=(-i "$RUNNER_TEMP/ssh-key" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10)
+          ssh "${ssh_opts[@]}" "shugraph@$IP" 'sudo cat /etc/rancher/k3s/k3s.yaml' > "$RUNNER_TEMP/kubeconfig"
+          chmod 600 "$RUNNER_TEMP/kubeconfig"
+          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
+          ssh "${ssh_opts[@]}" -f -N -L 6443:127.0.0.1:6443 "shugraph@$IP"
+          for _ in $(seq 10); do
+            KUBECONFIG="$RUNNER_TEMP/kubeconfig" kubectl get --raw /readyz > /dev/null 2>&1 && exit 0
+            sleep 2
+          done
+          echo "API кластера недоступен через туннель" >&2
+          exit 1
+
+      - name: Apply cluster config
+        run: kubectl apply -f infra/k3s/
+
+      - name: Deploy
+        working-directory: infra/deploy
+        env:
+          IMAGE_REGISTRY: ${{ env.REGISTRY }}
+          IMAGE_TAG: ${{ github.sha }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          SELECTORS: ${{ needs.plan.outputs.selectors }}
+        run: |
+          read -ra selectors <<< "$SELECTORS"
+          helmfile -e "$ENVIRONMENT" -l name=postgres "${selectors[@]}" sync
+
+      - name: Summary
+        env:
+          IP: ${{ steps.up.outputs.ip }}
+          ENVIRONMENT: ${{ inputs.environment }}
+          SERVICES: ${{ needs.plan.outputs.services }}
+        run: |
+          {
+            echo "Выкачено на \`$ENVIRONMENT\`: $(jq -r 'map(.name) | join(", ")' <<< "$SERVICES"), коммит \`$GITHUB_SHA\`"
+            echo
+            echo "Адрес: http://$IP/"
+          } >> "$GITHUB_STEP_SUMMARY"
