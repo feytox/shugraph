@@ -16,6 +16,11 @@ const (
 	GroupSchemeRing    GroupScheme = "ring"
 )
 
+type GroupRules struct {
+	Window time.Duration
+	Farm   FarmRules
+}
+
 type GroupStatus string
 
 const (
