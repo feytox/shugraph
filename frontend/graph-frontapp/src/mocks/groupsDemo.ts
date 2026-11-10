@@ -1,4 +1,5 @@
 import type { GroupItem } from '@/api/client';
+import { mockGroups } from '@/mocks/groupGraphs';
 
 export function createGroupsDemo() {
   let startedAt: number | undefined;
@@ -10,7 +11,7 @@ export function createGroupsDemo() {
   return {
     getItems(): GroupItem[] {
       const step = Math.min(3, Math.floor(elapsed() / 10000));
-      return Array.from({ length: 25 + step }, (_, index) => {
+      const generated: GroupItem[] = Array.from({ length: 25 + step }, (_, index) => {
         const number = 25 + step - index;
         const updated = number === 25;
         return {
@@ -32,6 +33,7 @@ export function createGroupsDemo() {
           },
         };
       });
+      return [...mockGroups.map((group) => group.item), ...generated];
     },
     isRefreshError: () => elapsed() >= 3000 && elapsed() < 6000,
   };
