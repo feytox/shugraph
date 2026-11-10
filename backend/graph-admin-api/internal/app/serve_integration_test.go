@@ -35,7 +35,7 @@ func TestProxyNoteIntegration(t *testing.T) {
 	t.Run("note is saved", func(t *testing.T) {
 		graphAPIStatus.Store(http.StatusCreated)
 
-		rec := request(t, srv, http.MethodPost, "/api/v1/notes/proxy", `{"text":"hello"}`)
+		rec := request(t, srv, http.MethodPost, "/admin-api/v1/notes/proxy", `{"text":"hello"}`)
 		require.Equal(t, http.StatusCreated, rec.Code)
 
 		var resp struct {
@@ -57,7 +57,7 @@ func TestProxyNoteIntegration(t *testing.T) {
 
 		before := countNotes(t, srv)
 
-		rec := request(t, srv, http.MethodPost, "/api/v1/notes/proxy", `{"text":"lost"}`)
+		rec := request(t, srv, http.MethodPost, "/admin-api/v1/notes/proxy", `{"text":"lost"}`)
 
 		assert.Equal(t, http.StatusBadGateway, rec.Code)
 		assert.Equal(t, before, countNotes(t, srv))

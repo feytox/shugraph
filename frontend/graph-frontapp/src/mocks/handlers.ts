@@ -8,7 +8,7 @@ type CreateNoteBody = operations['create-note']['requestBody']['content']['appli
 type CreateNoteResponse =
   operations['create-note']['responses'][201]['content']['application/json'];
 type CreateNoteError =
-  operations['create-note']['responses']['default']['content']['application/problem+json'];
+  operations['create-note']['responses'][422]['content']['application/problem+json'];
 
 const validationError = (message: string, location: string, value: unknown) =>
   HttpResponse.json<CreateNoteError>(
