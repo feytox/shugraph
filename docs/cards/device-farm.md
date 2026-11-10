@@ -29,12 +29,14 @@
 
 ## Слагаемые риска
 
-| Слагаемое из [risk.md](../schemes/risk.md) | Что подставляем | Формулировка |
-|---|---|---|
-| Тип схемы «ферма» | `risk_parts.farm.scheme` | `Тип схемы «ферма»: +{scheme}.` |
-| Скорость | `features.span_minutes`, `risk_parts.farm.speed` | `Скорость: {span_minutes} мин от первого до последнего события — +{speed}.` |
-| Число клиентов | `clients_count`, `risk_parts.farm.clients` | `Клиентов на одном устройстве: {clients_count} — +{clients}.` |
-| Общий счёт для вывода | `risk_parts.farm.collector` | при `collector > 0`: `Есть общий счёт для вывода денег: +{collector}.`; при `collector == 0`: `Общего счёта для вывода денег нет: +0.` |
+| Слагаемое из [risk.md](../schemes/risk.md) | Плейсхолдер в шаблоне | Что подставляем | Формулировка |
+|---|---|---|---|
+| Тип схемы «ферма» | `scheme_line` | `risk_parts.farm.scheme` | `Тип схемы «ферма»: +{scheme}.` |
+| Скорость | `speed_line` | `features.span_minutes`, `risk_parts.farm.speed` | `Скорость: {span_minutes} мин от первого до последнего события — +{speed}.` |
+| Число клиентов | `clients_line` | `clients_count`, `risk_parts.farm.clients` | `Клиентов на одном устройстве: {clients_count} — +{clients}.` |
+| Общий счёт для вывода | `collector_line` | `risk_parts.farm.collector` | при `collector > 0`: `Есть общий счёт для вывода денег: +{collector}.`; при `collector == 0`: `Общего счёта для вывода денег нет: +0.` |
+
+Строки обоснования собираются по таблице; шаблон только подставляет соответствующие плейсхолдеры.
 
 Итог берётся из `risk_score`; для фермы сумма слагаемых не превышает 100, поэтому совпадает с итогом.
 
@@ -48,9 +50,9 @@
 {scheme_summary}
 
 Обоснование риска:
-- Тип схемы «ферма»: +{scheme}.
-- Скорость: {span_minutes} мин от первого до последнего события — +{speed}.
-- Клиентов на одном устройстве: {clients_count} — +{clients}.
+- {scheme_line}
+- {speed_line}
+- {clients_line}
 - {collector_line}
 
 Итого: {risk_score}/100 — {risk_level_label}.
