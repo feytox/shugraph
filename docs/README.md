@@ -15,6 +15,7 @@
   - [schemes/ring.md](schemes/ring.md) - схема 4: кольцо
   - [schemes/risk.md](schemes/risk.md) - подсчёт риска
   - [schemes/legal.md](schemes/legal.md) - правовые приложения к схемам
+- [cards/device-farm.md](cards/device-farm.md) - тексты карточки расследования для схемы 1
 
 RFC:
 
