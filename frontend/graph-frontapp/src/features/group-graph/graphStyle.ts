@@ -1,38 +1,18 @@
 import type { MantineTheme } from '@mantine/core';
 import type { Css, StylesheetJson } from 'cytoscape';
-import type { GraphNode } from '@/api/client';
 import { fadedClass } from '@/features/group-graph/graphHighlight';
+import { nodeKinds, shownNodeTypes, type ShownNodeType } from '@/features/group-graph/nodeKinds';
 
-export type ShownNodeType = Exclude<GraphNode['type'], 'client'>;
+const graphSizesPx = {
+  nodeHeight: 30,
+  nodeLabelFont: 12,
+  nodeLabelGap: 6,
+  edgeLabelFont: 10,
+  edgeWidth: 2,
+};
+const fadedNodeOpacity = 0.15;
 
-const nodeHeightPx = 30;
-const regularHexagonWidthToHeight = 2 / Math.sqrt(3);
-
-export const nodeKinds = {
-  account: {
-    label: 'счёт',
-    color: 'blue',
-    shape: 'ellipse',
-    widthToHeight: 1,
-    legendMarker: 'circle',
-  },
-  device: {
-    label: 'устройство',
-    color: 'orange',
-    shape: 'round-diamond',
-    widthToHeight: 1,
-    legendMarker: 'diamond',
-  },
-  network_address: {
-    label: 'сетевой адрес',
-    color: 'grape',
-    shape: 'round-hexagon',
-    widthToHeight: regularHexagonWidthToHeight,
-    legendMarker: 'hexagon',
-  },
-} as const satisfies Record<ShownNodeType, unknown>;
-
-export const nodeColor = (theme: MantineTheme, type: ShownNodeType) =>
+const nodeColor = (theme: MantineTheme, type: ShownNodeType) =>
   theme.colors[nodeKinds[type].color][6];
 
 const noTapMarkOnBackground = { 'active-bg-opacity': 0 } as Css.Core;
@@ -45,18 +25,18 @@ export const graphStylesheet = (theme: MantineTheme): StylesheetJson => [
     style: {
       label: 'data(label)',
       color: theme.black,
-      'font-size': 12,
+      'font-size': graphSizesPx.nodeLabelFont,
       'text-valign': 'bottom',
-      'text-margin-y': 6,
+      'text-margin-y': graphSizesPx.nodeLabelGap,
     },
   },
-  ...(Object.keys(nodeKinds) as ShownNodeType[]).map((type) => ({
+  ...shownNodeTypes.map((type) => ({
     selector: `node[type = "${type}"]`,
     style: {
       'background-color': nodeColor(theme, type),
       shape: nodeKinds[type].shape,
-      width: nodeHeightPx * nodeKinds[type].widthToHeight,
-      height: nodeHeightPx,
+      width: graphSizesPx.nodeHeight * nodeKinds[type].widthToHeight,
+      height: graphSizesPx.nodeHeight,
     },
   })),
   {
@@ -64,8 +44,8 @@ export const graphStylesheet = (theme: MantineTheme): StylesheetJson => [
     style: {
       label: 'data(label)',
       color: theme.colors.gray[7],
-      'font-size': 10,
-      width: 2,
+      'font-size': graphSizesPx.edgeLabelFont,
+      width: graphSizesPx.edgeWidth,
       'curve-style': 'bezier',
       'line-color': theme.colors.gray[6],
       'target-arrow-color': theme.colors.gray[6],
@@ -84,7 +64,7 @@ export const graphStylesheet = (theme: MantineTheme): StylesheetJson => [
       'target-arrow-shape': 'none',
     },
   },
-  { selector: `node.${fadedClass}`, style: { opacity: 0.15 } },
+  { selector: `node.${fadedClass}`, style: { opacity: fadedNodeOpacity } },
   {
     selector: `edge.${fadedClass}`,
     style: {

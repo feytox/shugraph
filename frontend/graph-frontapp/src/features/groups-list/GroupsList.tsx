@@ -1,6 +1,4 @@
 import { Badge, Group, Text } from '@mantine/core';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { Link, useSearchParams } from 'react-router';
 import type { GroupItem } from '@/api/client';
 import {
@@ -12,10 +10,9 @@ import {
   statusLabels,
 } from '@/features/groups-list/groupLabels';
 import { searchWithGroup, useSelectedGroupId } from '@/features/groups-list/useSelectedGroup';
+import { formatDateTimeUtc } from '@/shared/dates';
 import { formatRub } from '@/shared/money';
 import classes from '@/features/groups-list/GroupsList.module.css';
-
-dayjs.extend(utc);
 
 function RiskBadge({ level, score }: { level: GroupItem['risk_level']; score: number }) {
   return (
@@ -71,7 +68,7 @@ export function GroupsList({ items }: { items: GroupItem[] }) {
                 {formatRub(group.features.total_amount)}
               </Text>
               <Text size="xs" c="dimmed" className={classes.keepWidth}>
-                {dayjs.utc(group.last_event_at).format('DD.MM.YY HH:mm')}
+                {formatDateTimeUtc(group.last_event_at)}
               </Text>
             </Group>
           </Link>

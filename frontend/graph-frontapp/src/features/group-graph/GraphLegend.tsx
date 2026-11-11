@@ -1,9 +1,7 @@
 import type { ReactNode } from 'react';
 import { Box, Group, Text } from '@mantine/core';
-import { nodeKinds, type ShownNodeType } from '@/features/group-graph/graphStyle';
+import { nodeKinds, shownNodeTypes } from '@/features/group-graph/nodeKinds';
 import classes from '@/features/group-graph/GroupGraph.module.css';
-
-const shownTypes = Object.keys(nodeKinds) as ShownNodeType[];
 
 function LegendItem({ marker, label }: { marker: ReactNode; label: string }) {
   return (
@@ -20,7 +18,7 @@ export function GraphLegend() {
   return (
     <Group justify="space-between" wrap="nowrap" px="md" py="xs" className={classes.legend}>
       <Group gap="lg" wrap="nowrap">
-        {shownTypes.map((type) => {
+        {shownNodeTypes.map((type) => {
           const { label, color, legendMarker } = nodeKinds[type];
           return (
             <LegendItem

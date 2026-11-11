@@ -1,18 +1,20 @@
 import type { ElementsDefinition } from 'cytoscape';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
-import type { GroupGraph, GroupItem } from '@/api/client';
+import type { GraphNode, GroupGraph, GroupItem } from '@/api/client';
+import { formatTimeUtc } from '@/shared/dates';
 import { formatRub } from '@/shared/money';
 
-dayjs.extend(utc);
-
-const time = (occurredAt: string) => dayjs.utc(occurredAt).format('HH:mm');
+const hiddenNodeTypesByScheme: Record<GroupItem['scheme'], GraphNode['type'][]> = {
+  farm: ['client', 'network_address'],
+  address: ['client'],
+  chain: ['client'],
+  ring: ['client'],
+};
 
 export function toGraphElements(
   scheme: GroupItem['scheme'],
   graph: GroupGraph
 ): ElementsDefinition {
-  const hiddenTypes = scheme === 'farm' ? ['client', 'network_address'] : ['client'];
+  const hiddenTypes = hiddenNodeTypesByScheme[scheme];
   const nodes = graph.nodes.filter((node) => !hiddenTypes.includes(node.type));
   const shown = new Set(nodes.map((node) => node.id));
 
@@ -28,7 +30,7 @@ export function toGraphElements(
           source: transfer.source,
           target: transfer.target,
           occurredAt: transfer.occurred_at,
-          label: `${formatRub(transfer.amount)} · ${time(transfer.occurred_at)}`,
+          label: `${formatRub(transfer.amount)} · ${formatTimeUtc(transfer.occurred_at)}`,
         },
       })),
       ...graph.logins
@@ -40,7 +42,7 @@ export function toGraphElements(
             source: login.source,
             target: login.target,
             occurredAt: login.occurred_at,
-            label: time(login.occurred_at),
+            label: formatTimeUtc(login.occurred_at),
           },
         })),
     ],
