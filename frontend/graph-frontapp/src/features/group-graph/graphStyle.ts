@@ -84,5 +84,13 @@ export const graphStylesheet = (theme: MantineTheme): StylesheetJson => [
       'target-arrow-shape': 'none',
     },
   },
-  { selector: `.${fadedClass}`, style: { opacity: 0.15 } },
+  { selector: `node.${fadedClass}`, style: { opacity: 0.15 } },
+  {
+    selector: `edge.${fadedClass}`,
+    style: {
+      color: theme.colors.gray[3],
+      'line-color': theme.colors.gray[2],
+      'target-arrow-color': theme.colors.gray[2],
+    },
+  },
 ];
