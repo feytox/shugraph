@@ -1,129 +1,75 @@
-import type { EdgeDefinition, ElementsDefinition, Position } from 'cytoscape';
+import type {
+  BreadthFirstLayoutOptions,
+  CircleLayoutOptions,
+  Core,
+  NodeCollection,
+  NodeSingular,
+  SortingFunction,
+} from 'cytoscape';
 import type { GroupItem } from '@/api/client';
 
-type Positions = Record<string, Position>;
 type PointType = 'device' | 'network_address';
-type SchemeLayout = (graph: GraphQuery) => Positions;
-
-const distancePx = {
-  betweenChainAccounts: 200,
-  ringRadius: 200,
-  hubToSenders: 260,
-  sendersToReceivers: 260,
-  betweenAccountRows: 100,
-  hubToSecondaryPoints: 150,
-  secondaryPointBelowItsAccounts: 45,
+type GraphLayoutOptions = (BreadthFirstLayoutOptions | CircleLayoutOptions) & {
+  eles?: NodeCollection;
 };
 
-class GraphQuery {
-  private readonly elements: ElementsDefinition;
-
-  constructor(elements: ElementsDefinition) {
-    this.elements = elements;
-  }
-
-  idsOf(type: 'account' | PointType): string[] {
-    return this.elements.nodes
-      .filter((node) => node.data.type === type)
-      .map((node) => node.data.id!);
-  }
-
-  linksInto(id: string): EdgeDefinition[] {
-    return this.elements.edges.filter((edge) => edge.data.target === id);
-  }
-
-  receivesTransfers(id: string): boolean {
-    return this.linksInto(id).some((edge) => edge.data.type === 'transfer');
-  }
-
-  busiestPoint(type: PointType): string {
-    return this.idsOf(type).reduce((busiest, id) =>
-      this.linksInto(id).length > this.linksInto(busiest).length ? id : busiest
-    );
-  }
-
-  accountsInFirstEventOrder(): string[] {
-    const byTime = [...this.elements.edges].sort(
-      (left, right) => Date.parse(left.data.occurredAt) - Date.parse(right.data.occurredAt)
-    );
-    const order = [...new Set(byTime.flatMap((edge) => [edge.data.source, edge.data.target]))];
-    const rank = (id: string) => (order.includes(id) ? order.indexOf(id) : order.length);
-    return this.idsOf('account').sort((left, right) => rank(left) - rank(right));
-  }
+function byFirstEvent(cy: Core): SortingFunction {
+  const rank = new Map<string, number>();
+  cy.edges()
+    .sort(
+      (left, right) => Date.parse(left.data('occurredAt')) - Date.parse(right.data('occurredAt'))
+    )
+    .forEach((edge) => {
+      for (const id of [edge.source().id(), edge.target().id()]) {
+        if (!rank.has(id)) rank.set(id, rank.size);
+      }
+    });
+  const rankOf = (node: NodeSingular) => rank.get(node.id()) ?? rank.size;
+  return (left, right) => rankOf(left) - rankOf(right);
 }
 
-const line: SchemeLayout = (graph) =>
-  Object.fromEntries(
-    graph
-      .accountsInFirstEventOrder()
-      .map((id, index) => [id, { x: index * distancePx.betweenChainAccounts, y: 0 }])
-  );
+const bottomUp =
+  (sort: SortingFunction): SortingFunction =>
+  (left, right) =>
+    sort(right, left);
 
-function pointOnCircle(index: number, count: number): Position {
-  const angleFromTop = -Math.PI / 2 + (index * 2 * Math.PI) / count;
-  return {
-    x: distancePx.ringRadius * Math.cos(angleFromTop),
-    y: distancePx.ringRadius * Math.sin(angleFromTop),
-  };
-}
+const busiestPoint = (cy: Core, type: PointType) =>
+  cy
+    .nodes(`[type = "${type}"]`)
+    .max((node) => node.degree(false))
+    .ele.id();
 
-const circle: SchemeLayout = (graph) => {
-  const accounts = graph.accountsInFirstEventOrder();
-  return Object.fromEntries(
-    accounts.map((id, index) => [id, pointOnCircle(index, accounts.length)])
-  );
+const shared = { animate: false, nodeDimensionsIncludeLabels: true } as const;
+
+const columnsFrom = (cy: Core, roots: string[], directed: boolean): GraphLayoutOptions => ({
+  name: 'breadthfirst',
+  roots,
+  directed,
+  direction: 'rightward',
+  depthSort: bottomUp(byFirstEvent(cy)),
+  ...shared,
+});
+
+const layoutByScheme: Record<GroupItem['scheme'], (cy: Core) => GraphLayoutOptions> = {
+  chain: (cy) =>
+    columnsFrom(
+      cy,
+      cy
+        .nodes()
+        .roots()
+        .map((node) => node.id()),
+      true
+    ),
+  ring: (cy) => ({
+    name: 'circle',
+    eles: cy.nodes().sort(byFirstEvent(cy)),
+    startAngle: (3 / 2) * Math.PI,
+    clockwise: true,
+    ...shared,
+  }),
+  farm: (cy) => columnsFrom(cy, [busiestPoint(cy, 'device')], false),
+  address: (cy) => columnsFrom(cy, [busiestPoint(cy, 'network_address')], false),
 };
 
-const columnAt = (x: number, ids: string[]): Positions =>
-  Object.fromEntries(
-    ids.map((id, index) => [
-      id,
-      { x, y: (index - (ids.length - 1) / 2) * distancePx.betweenAccountRows },
-    ])
-  );
-
-const starAround =
-  (hubType: PointType): SchemeLayout =>
-  (graph) => {
-    const hub = graph.busiestPoint(hubType);
-    const accounts = graph.accountsInFirstEventOrder();
-    const hubX = -distancePx.hubToSenders;
-    const accountPositions = {
-      ...columnAt(
-        0,
-        accounts.filter((id) => !graph.receivesTransfers(id))
-      ),
-      ...columnAt(
-        distancePx.sendersToReceivers,
-        accounts.filter((id) => graph.receivesTransfers(id))
-      ),
-    };
-
-    const besideItsAccounts = (id: string): Position => {
-      const rows = graph.linksInto(id).map((edge) => accountPositions[edge.data.source].y);
-      const middleRow = rows.reduce((sum, y) => sum + y, 0) / rows.length;
-      return {
-        x: hubX + distancePx.hubToSecondaryPoints,
-        y: middleRow + distancePx.secondaryPointBelowItsAccounts,
-      };
-    };
-    const secondaryPoints = [...graph.idsOf('device'), ...graph.idsOf('network_address')].filter(
-      (id) => id !== hub
-    );
-
-    return {
-      [hub]: { x: hubX, y: 0 },
-      ...accountPositions,
-      ...Object.fromEntries(secondaryPoints.map((id) => [id, besideItsAccounts(id)])),
-    };
-  };
-
-const layoutByScheme: Record<GroupItem['scheme'], SchemeLayout> = {
-  chain: line,
-  ring: circle,
-  farm: starAround('device'),
-  address: starAround('network_address'),
-};
-
-export const layoutGraph = (scheme: GroupItem['scheme'], elements: ElementsDefinition): Positions =>
-  layoutByScheme[scheme](new GraphQuery(elements));
+export const graphLayout = (scheme: GroupItem['scheme'], cy: Core): GraphLayoutOptions =>
+  layoutByScheme[scheme](cy);
