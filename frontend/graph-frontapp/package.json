@@ -16,7 +16,7 @@
     "@mantine/hooks": "^9.7.1",
     "@tabler/icons-react": "^3.30.0",
     "@tanstack/react-query": "^5.66.0",
-    "cytoscape": "^3.34.5",
+    "cytoscape": "3.34.5",
     "dayjs": "^1.11.13",
     "openapi-fetch": "^0.17.0",
     "react": "^19.0.0",

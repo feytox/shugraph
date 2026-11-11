@@ -76,7 +76,7 @@ importers:
         specifier: ^5.66.0
         version: 5.104.1(react@19.3.0)
       cytoscape:
-        specifier: ^3.34.5
+        specifier: 3.34.5
         version: 3.34.5
       dayjs:
         specifier: ^1.11.13
