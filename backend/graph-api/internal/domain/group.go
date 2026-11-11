@@ -21,6 +21,27 @@ type GroupRules struct {
 	Farm   FarmRules
 }
 
+type TimeWindow struct {
+	Start time.Time
+	End   time.Time
+}
+
+func (w TimeWindow) Contains(t time.Time) bool {
+	return !t.Before(w.Start) && !t.After(w.End)
+}
+
+type GroupStats struct {
+	FirstEventAt  time.Time
+	LastEventAt   time.Time
+	AccountsCount int
+	TotalAmount   int64
+}
+
+type Risk struct {
+	Score int
+	Parts json.RawMessage
+}
+
 type GroupStatus string
 
 const (

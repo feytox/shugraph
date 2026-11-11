@@ -76,6 +76,16 @@ func TestGroups_ScenarioReplayOnEmptyDatabaseGivesSameGroup(t *testing.T) {
 	require.Equal(t, first, storedGroups(t))
 }
 
+func TestGroups_ScenarioInReverseOrderGivesSameGroup(t *testing.T) {
+	sc := loadScenario(t, "device_farm_with_group")
+	slices.Reverse(sc.Events)
+
+	clearEventTables(t)
+	playScenario(t, sc)
+
+	require.Equal(t, expectedGroups(t, sc), storedGroups(t))
+}
+
 func TestGroups_FarmGrowsUntilFrozen(t *testing.T) {
 	clearEventTables(t)
 

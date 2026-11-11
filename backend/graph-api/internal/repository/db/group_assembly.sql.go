@@ -44,28 +44,6 @@ func (q *Queries) AddGroupMembers(ctx context.Context, arg AddGroupMembersParams
 	return err
 }
 
-const findOpenFarmGroup = `-- name: FindOpenFarmGroup :one
-SELECT DISTINCT g.id, g.last_event_at
-FROM groups g
-JOIN group_events ge ON ge.group_id = g.id
-JOIN login_events l ON l.event_id = ge.event_id
-WHERE g.scheme = 'farm'
-  AND NOT g.is_frozen
-  AND l.device_id = $1
-`
-
-type FindOpenFarmGroupRow struct {
-	ID          uuid.UUID `db:"id"`
-	LastEventAt time.Time `db:"last_event_at"`
-}
-
-func (q *Queries) FindOpenFarmGroup(ctx context.Context, deviceID string) (FindOpenFarmGroupRow, error) {
-	row := q.db.QueryRow(ctx, findOpenFarmGroup, deviceID)
-	var i FindOpenFarmGroupRow
-	err := row.Scan(&i.ID, &i.LastEventAt)
-	return i, err
-}
-
 const freezeStaleGroups = `-- name: FreezeStaleGroups :exec
 UPDATE groups
 SET is_frozen = TRUE
@@ -80,146 +58,35 @@ func (q *Queries) FreezeStaleGroups(ctx context.Context, staleBefore time.Time) 
 
 const insertGroup = `-- name: InsertGroup :exec
 INSERT INTO groups (id, scheme, risk_score, risk_parts, first_event_at, last_event_at, accounts_count, total_amount)
-VALUES ($1, $2, 0, '{}', $3, $3, 0, 0)
+VALUES (
+    $1, $2, $3, $4,
+    $5, $6, $7, $8
+)
 `
 
 type InsertGroupParams struct {
-	ID      uuid.UUID `db:"id"`
-	Scheme  string    `db:"scheme"`
-	EventAt time.Time `db:"event_at"`
+	ID            uuid.UUID `db:"id"`
+	Scheme        string    `db:"scheme"`
+	RiskScore     int32     `db:"risk_score"`
+	RiskParts     []byte    `db:"risk_parts"`
+	FirstEventAt  time.Time `db:"first_event_at"`
+	LastEventAt   time.Time `db:"last_event_at"`
+	AccountsCount int32     `db:"accounts_count"`
+	TotalAmount   int64     `db:"total_amount"`
 }
 
 func (q *Queries) InsertGroup(ctx context.Context, arg InsertGroupParams) error {
-	_, err := q.db.Exec(ctx, insertGroup, arg.ID, arg.Scheme, arg.EventAt)
+	_, err := q.db.Exec(ctx, insertGroup,
+		arg.ID,
+		arg.Scheme,
+		arg.RiskScore,
+		arg.RiskParts,
+		arg.FirstEventAt,
+		arg.LastEventAt,
+		arg.AccountsCount,
+		arg.TotalAmount,
+	)
 	return err
-}
-
-const listFarmLogins = `-- name: ListFarmLogins :many
-SELECT e.event_id, l.account_id, a.client_id
-FROM login_events l
-JOIN events e ON e.event_id = l.event_id
-JOIN accounts a ON a.id = l.account_id
-WHERE l.device_id = $1
-  AND e.occurred_at BETWEEN $2 AND $3
-  AND NOT EXISTS (
-      SELECT 1
-      FROM group_events ge
-      JOIN groups g ON g.id = ge.group_id
-      WHERE ge.event_id = e.event_id
-        AND g.scheme = 'farm'
-        AND g.is_frozen
-  )
-`
-
-type ListFarmLoginsParams struct {
-	DeviceID    string    `db:"device_id"`
-	WindowStart time.Time `db:"window_start"`
-	WindowEnd   time.Time `db:"window_end"`
-}
-
-type ListFarmLoginsRow struct {
-	EventID   string `db:"event_id"`
-	AccountID string `db:"account_id"`
-	ClientID  string `db:"client_id"`
-}
-
-func (q *Queries) ListFarmLogins(ctx context.Context, arg ListFarmLoginsParams) ([]ListFarmLoginsRow, error) {
-	rows, err := q.db.Query(ctx, listFarmLogins, arg.DeviceID, arg.WindowStart, arg.WindowEnd)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListFarmLoginsRow{}
-	for rows.Next() {
-		var i ListFarmLoginsRow
-		if err := rows.Scan(&i.EventID, &i.AccountID, &i.ClientID); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listFarmTransfers = `-- name: ListFarmTransfers :many
-SELECT e.event_id, t.from_account_id, t.to_account_id
-FROM transfers t
-JOIN events e ON e.event_id = t.event_id
-WHERE t.from_account_id = ANY ($1::text[])
-  AND e.occurred_at BETWEEN $2 AND $3
-  AND NOT EXISTS (
-      SELECT 1
-      FROM group_events ge
-      JOIN groups g ON g.id = ge.group_id
-      WHERE ge.event_id = e.event_id
-        AND g.scheme = 'farm'
-        AND g.is_frozen
-  )
-`
-
-type ListFarmTransfersParams struct {
-	FromAccountIds []string  `db:"from_account_ids"`
-	WindowStart    time.Time `db:"window_start"`
-	WindowEnd      time.Time `db:"window_end"`
-}
-
-type ListFarmTransfersRow struct {
-	EventID       string `db:"event_id"`
-	FromAccountID string `db:"from_account_id"`
-	ToAccountID   string `db:"to_account_id"`
-}
-
-func (q *Queries) ListFarmTransfers(ctx context.Context, arg ListFarmTransfersParams) ([]ListFarmTransfersRow, error) {
-	rows, err := q.db.Query(ctx, listFarmTransfers, arg.FromAccountIds, arg.WindowStart, arg.WindowEnd)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListFarmTransfersRow{}
-	for rows.Next() {
-		var i ListFarmTransfersRow
-		if err := rows.Scan(&i.EventID, &i.FromAccountID, &i.ToAccountID); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listOpenFarmGroupDevices = `-- name: ListOpenFarmGroupDevices :many
-SELECT DISTINCT l.device_id
-FROM groups g
-JOIN group_events ge ON ge.group_id = g.id
-JOIN login_events l ON l.event_id = ge.event_id
-WHERE g.scheme = 'farm'
-  AND NOT g.is_frozen
-  AND l.account_id = $1
-ORDER BY l.device_id
-`
-
-func (q *Queries) ListOpenFarmGroupDevices(ctx context.Context, accountID string) ([]string, error) {
-	rows, err := q.db.Query(ctx, listOpenFarmGroupDevices, accountID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []string{}
-	for rows.Next() {
-		var device_id string
-		if err := rows.Scan(&device_id); err != nil {
-			return nil, err
-		}
-		items = append(items, device_id)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const lockGroupAssembly = `-- name: LockGroupAssembly :exec
@@ -231,7 +98,7 @@ func (q *Queries) LockGroupAssembly(ctx context.Context, lockKey int64) error {
 	return err
 }
 
-const refreshGroupStats = `-- name: RefreshGroupStats :exec
+const refreshGroupStats = `-- name: RefreshGroupStats :one
 UPDATE groups g
 SET first_event_at = s.first_event_at,
     last_event_at  = s.last_event_at,
@@ -247,9 +114,42 @@ FROM (
     WHERE ge.group_id = $1
 ) s
 WHERE g.id = $1
+RETURNING g.first_event_at, g.last_event_at, g.accounts_count, g.total_amount
 `
 
-func (q *Queries) RefreshGroupStats(ctx context.Context, groupID uuid.UUID) error {
-	_, err := q.db.Exec(ctx, refreshGroupStats, groupID)
+type RefreshGroupStatsRow struct {
+	FirstEventAt  time.Time `db:"first_event_at"`
+	LastEventAt   time.Time `db:"last_event_at"`
+	AccountsCount int32     `db:"accounts_count"`
+	TotalAmount   int64     `db:"total_amount"`
+}
+
+func (q *Queries) RefreshGroupStats(ctx context.Context, groupID uuid.UUID) (RefreshGroupStatsRow, error) {
+	row := q.db.QueryRow(ctx, refreshGroupStats, groupID)
+	var i RefreshGroupStatsRow
+	err := row.Scan(
+		&i.FirstEventAt,
+		&i.LastEventAt,
+		&i.AccountsCount,
+		&i.TotalAmount,
+	)
+	return i, err
+}
+
+const updateGroupRisk = `-- name: UpdateGroupRisk :exec
+UPDATE groups
+SET risk_score = $1,
+    risk_parts = $2
+WHERE id = $3
+`
+
+type UpdateGroupRiskParams struct {
+	RiskScore int32     `db:"risk_score"`
+	RiskParts []byte    `db:"risk_parts"`
+	GroupID   uuid.UUID `db:"group_id"`
+}
+
+func (q *Queries) UpdateGroupRisk(ctx context.Context, arg UpdateGroupRiskParams) error {
+	_, err := q.db.Exec(ctx, updateGroupRisk, arg.RiskScore, arg.RiskParts, arg.GroupID)
 	return err
 }

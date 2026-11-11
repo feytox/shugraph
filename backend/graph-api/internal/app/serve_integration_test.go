@@ -82,7 +82,7 @@ func run(m *testing.M) int {
 
 	repo := repository.NewPgNoteRepository(testPool)
 	noteService := service.NewNoteService(repo)
-	eventService := service.NewEventService(repository.NewPgEventRepository(testPool, groupsCfg.Rules()))
+	eventService := service.NewEventService(eventTransactor(testPool), groupsCfg.Rules())
 
 	errMigrate := pgdb.Migrate(ctx, testPool, slog.Default())
 	if errMigrate != nil {
