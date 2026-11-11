@@ -92,4 +92,14 @@ describe('graphLayout', () => {
     expect(at('device:dev-common').y).toBeCloseTo(at('account:acc-sasha').y);
     expect(at('account:acc-collector').y).toBeCloseTo(at('account:acc-sasha').y);
   });
+
+  it('ферма без общего устройства раскладывается линией по ходу денег', () => {
+    const farm = elementsOf('farm');
+    const withoutDevice: ElementsDefinition = {
+      nodes: farm.nodes.filter((node) => node.data.type !== 'device'),
+      edges: farm.edges.filter((edge) => edge.data.type !== 'login'),
+    };
+    const at = laidOut('farm', withoutDevice);
+    expect(at('account:acc-ravil').x).toBeLessThan(at('account:acc-collector').x);
+  });
 });
