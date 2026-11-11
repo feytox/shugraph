@@ -1,5 +1,5 @@
 import type { MantineTheme } from '@mantine/core';
-import type { StylesheetJson } from 'cytoscape';
+import type { Css, StylesheetJson } from 'cytoscape';
 import type { GraphNode } from '@/api/client';
 
 export type ShownNodeType = Exclude<GraphNode['type'], 'client'>;
@@ -34,7 +34,10 @@ export const nodeKinds = {
 export const nodeColor = (theme: MantineTheme, type: ShownNodeType) =>
   theme.colors[nodeKinds[type].color][6];
 
+const noTapMarkOnBackground = { 'active-bg-opacity': 0 } as Css.Core;
+
 export const graphStylesheet = (theme: MantineTheme): StylesheetJson => [
+  { selector: 'core', style: noTapMarkOnBackground },
   { selector: 'node:active', style: { 'overlay-opacity': 0 } },
   {
     selector: 'node',
