@@ -1,0 +1,27 @@
+.root {
+  position: relative;
+  height: 100%;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.legend {
+  position: absolute;
+  left: var(--mantine-spacing-md);
+  bottom: var(--mantine-spacing-md);
+}
+
+.transferLine,
+.loginLine {
+  display: inline-block;
+  width: var(--mantine-spacing-lg);
+  border-top: 2px solid var(--mantine-color-gray-6);
+}
+
+.loginLine {
+  border-top-style: dashed;
+  border-top-color: var(--mantine-color-gray-4);
+}
