@@ -8,11 +8,13 @@
   position: relative;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
 }
 
 .canvas {
   position: absolute;
   inset: 0;
+  overflow: hidden;
 }
 
 .legend {
