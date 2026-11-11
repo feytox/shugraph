@@ -1,20 +1,12 @@
-import { useEffect, useRef } from 'react';
-import { Alert, Button, Group, Loader, Stack, Text, useMantineTheme } from '@mantine/core';
-import cytoscape, { type Core } from 'cytoscape';
+import { useRef } from 'react';
+import { Alert, Button, Group, Loader, Stack, Text } from '@mantine/core';
 import type { GroupGraph as GroupGraphData, GroupItem } from '@/api/client';
 import { GraphLegend } from '@/features/group-graph/GraphLegend';
-import { toGraphElements } from '@/features/group-graph/graphElements';
-import { highlightLinksOnTap } from '@/features/group-graph/graphHighlight';
-import { graphLayout, graphPaddingPx } from '@/features/group-graph/graphLayout';
-import { graphStylesheet } from '@/features/group-graph/graphStyle';
+import { useCytoscapeGraph } from '@/features/group-graph/useCytoscapeGraph';
 import { useGroupGraph } from '@/features/group-graph/useGroupGraph';
 import classes from '@/features/group-graph/GroupGraph.module.css';
 
 type Props = { groupId: string; scheme: GroupItem['scheme'] };
-type RendererWithSyncRender = { renderer?: () => { render?: () => void } };
-
-const redrawBeforePaint = (cy: Core) =>
-  (cy as unknown as RendererWithSyncRender).renderer?.().render?.();
 
 export function GroupGraph({ groupId, scheme }: Props) {
   const graph = useGroupGraph(groupId);
@@ -59,31 +51,7 @@ export function GroupGraph({ groupId, scheme }: Props) {
 
 function GraphCanvas({ scheme, graph }: { scheme: Props['scheme']; graph: GroupGraphData }) {
   const container = useRef<HTMLDivElement>(null);
-  const theme = useMantineTheme();
-
-  useEffect(() => {
-    const cy = cytoscape({
-      container: container.current,
-      elements: toGraphElements(scheme, graph),
-      style: graphStylesheet(theme),
-      autounselectify: true,
-      boxSelectionEnabled: false,
-    });
-    cy.layout(graphLayout(scheme, cy)).run();
-    highlightLinksOnTap(cy);
-
-    const refitOnResize = new ResizeObserver(() => {
-      cy.resize();
-      cy.fit(undefined, graphPaddingPx);
-      redrawBeforePaint(cy);
-    });
-    refitOnResize.observe(container.current!);
-
-    return () => {
-      refitOnResize.disconnect();
-      cy.destroy();
-    };
-  }, [scheme, graph, theme]);
+  useCytoscapeGraph(container, scheme, graph);
 
   return (
     <div className={classes.canvasArea}>

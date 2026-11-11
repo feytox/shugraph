@@ -11,7 +11,13 @@ import { graphLayout } from '@/features/group-graph/graphLayout';
 
 const cy = vi.hoisted(() => {
   const layout = { run: vi.fn() };
-  return { layout: vi.fn(() => layout), destroy: vi.fn(), on: vi.fn(), runLayout: layout.run };
+  return {
+    layout: vi.fn(() => layout),
+    destroy: vi.fn(),
+    on: vi.fn(),
+    one: vi.fn(),
+    runLayout: layout.run,
+  };
 });
 
 vi.mock('cytoscape', () => ({ default: vi.fn(() => cy) }));
