@@ -21,13 +21,19 @@ afterEach(() => {
 });
 async function openScreen() {
   renderScreen();
-  await waitForScreen(() => expect(screen.getByRole('table')).toBeVisible());
+  await waitForScreen(() =>
+    expect(screen.getByRole('list', { name: 'Список групп' })).toBeVisible()
+  );
 }
 function counts() {
-  return within(screen.getByRole('table'))
-    .getAllByRole('row')
-    .slice(1)
-    .map((row) => within(row).getAllByRole('cell')[2].textContent);
+  return within(screen.getByRole('list', { name: 'Список групп' }))
+    .getAllByRole('listitem')
+    .map(
+      (item) =>
+        within(item)
+          .getByText(/сч[её]т/)
+          .textContent!.split(' ')[0]
+    );
 }
 async function more(size: number) {
   fireEvent.click(screen.getByRole('button', { name: 'Показать ещё' }));
@@ -60,7 +66,9 @@ it('обновляет загруженные страницы со свежим
   await waitForScreen(() =>
     expect(counts()).toEqual(['100', ...Array.from({ length: 39 }, (_, i) => String(i + 1))])
   );
-  const last = within(screen.getByRole('table')).getAllByRole('row').at(-1)!;
+  const last = within(screen.getByRole('list', { name: 'Список групп' }))
+    .getAllByRole('listitem')
+    .at(-1)!;
   expect(last).toHaveTextContent('Высокий · 99');
   expect(last).toHaveTextContent('678,90');
   expect(last).toHaveTextContent('07.10.2026 11:00:00 UTC');

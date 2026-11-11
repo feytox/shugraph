@@ -29,17 +29,18 @@ describe('Подозрительные группы', () => {
     );
     renderScreen();
     expect(await screen.findByRole('heading', { name: 'Подозрительные группы' })).toBeVisible();
-    const table = await screen.findByRole('table');
-    expect(within(table).getAllByRole('columnheader')).toHaveLength(6);
+    const [item] = within(await screen.findByRole('list', { name: 'Список групп' })).getAllByRole(
+      'listitem'
+    );
     for (const value of [
       'Ферма',
       'Высокий · 87',
-      '7',
+      '7 счетов',
       '123,45 ₽',
       '07.10.2026 10:30:45 UTC',
       'Новая',
     ]) {
-      expect(within(table).getByText(value)).toBeVisible();
+      expect(item).toHaveTextContent(value);
     }
   });
 });
@@ -52,7 +53,7 @@ it('показывает загрузку до первого ответа', asy
   );
   renderScreen();
   expect(await screen.findByRole('status')).toHaveTextContent('Загрузка групп');
-  expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  expect(screen.queryByRole('list', { name: 'Список групп' })).not.toBeInTheDocument();
 });
 
 it('объясняет пустой список и предлагает запуск через Swagger без кнопки запуска', async () => {
@@ -67,7 +68,7 @@ it('объясняет пустой список и предлагает зап�
       'Подозрительных групп пока нет. Запустите сценарий через Swagger graph-admin-api'
     )
   ).toBeVisible();
-  expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  expect(screen.queryByRole('list', { name: 'Список групп' })).not.toBeInTheDocument();
   expect(screen.queryByRole('button')).not.toBeInTheDocument();
 });
 

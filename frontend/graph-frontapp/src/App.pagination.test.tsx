@@ -34,13 +34,13 @@ it('добавляет следующие группы по непрозрачн
     })
   );
   renderScreen();
-  const table = await screen.findByRole('table');
-  expect(within(table).getAllByRole('row')).toHaveLength(21);
+  const list = await screen.findByRole('list', { name: 'Список групп' });
+  expect(within(list).getAllByRole('listitem')).toHaveLength(20);
   fireEvent.click(screen.getByRole('button', { name: 'Показать ещё' }));
   await waitFor(() => expect(screen.getByRole('button', { name: 'Показать ещё' })).toBeDisabled());
-  expect(within(table).getAllByRole('row')).toHaveLength(21);
+  expect(within(list).getAllByRole('listitem')).toHaveLength(20);
   finishPage();
-  await waitFor(() => expect(within(table).getAllByRole('row')).toHaveLength(26));
+  await waitFor(() => expect(within(list).getAllByRole('listitem')).toHaveLength(25));
   expect(screen.queryByRole('button', { name: 'Показать ещё' })).not.toBeInTheDocument();
 });
 
@@ -60,16 +60,16 @@ it('сохраняет загруженные группы после ошибк
     })
   );
   renderScreen();
-  const table = await screen.findByRole('table');
+  const list = await screen.findByRole('list', { name: 'Список групп' });
   fireEvent.click(screen.getByRole('button', { name: 'Показать ещё' }));
   expect(await screen.findByRole('alert')).toHaveTextContent(
     'Не удалось загрузить следующую страницу'
   );
   expect(screen.getByRole('alert')).toHaveTextContent('Курсор страницы недействителен');
-  expect(within(table).getAllByRole('row')).toHaveLength(21);
+  expect(within(list).getAllByRole('listitem')).toHaveLength(20);
   failNextPage = false;
   fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку' }));
-  await waitFor(() => expect(within(table).getAllByRole('row')).toHaveLength(26));
+  await waitFor(() => expect(within(list).getAllByRole('listitem')).toHaveLength(25));
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   expect(screen.queryByRole('button')).not.toBeInTheDocument();
 });

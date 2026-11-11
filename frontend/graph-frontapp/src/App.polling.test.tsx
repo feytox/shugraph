@@ -16,7 +16,9 @@ afterEach(() => {
 
 async function openScreen() {
   const view = renderScreen();
-  await waitForScreen(() => expect(screen.getByRole('table')).toBeVisible());
+  await waitForScreen(() =>
+    expect(screen.getByRole('list', { name: 'Список групп' })).toBeVisible()
+  );
   return view;
 }
 
@@ -46,13 +48,13 @@ it('обновляет строки через 3 секунды и добавл�
   expect(screen.queryByText('Кольцо')).not.toBeInTheDocument();
   await advance(1000);
   await waitForScreen(() => expect(screen.getByText('Высокий · 95')).toBeVisible());
-  const rows = within(screen.getByRole('table')).getAllByRole('row');
-  expect(rows).toHaveLength(3);
-  expect(rows[1]).toHaveTextContent('Кольцо');
-  expect(rows[2]).toHaveTextContent('Высокий · 95');
-  expect(rows[2]).toHaveTextContent('678,90');
-  expect(rows[2]).toHaveTextContent('07.10.2026 11:00:00 UTC');
-  expect(rows[2]).toHaveTextContent('Подтверждена');
+  const rows = within(screen.getByRole('list', { name: 'Список групп' })).getAllByRole('listitem');
+  expect(rows).toHaveLength(2);
+  expect(rows[0]).toHaveTextContent('Кольцо');
+  expect(rows[1]).toHaveTextContent('Высокий · 95');
+  expect(rows[1]).toHaveTextContent('678,90');
+  expect(rows[1]).toHaveTextContent('07.10.2026 11:00:00 UTC');
+  expect(rows[1]).toHaveTextContent('Подтверждена');
 });
 
 it('сохраняет таблицу при ошибке обновления и восстанавливается следующим опросом', async () => {
@@ -68,7 +70,7 @@ it('сохраняет таблицу при ошибке обновления �
     expect(screen.getByRole('alert')).toHaveTextContent('Не удалось обновить список')
   );
   expect(screen.getByRole('alert')).toHaveTextContent('Обновление временно недоступно');
-  expect(screen.getByRole('table')).toHaveTextContent('Высокий · 87');
+  expect(screen.getByRole('list', { name: 'Список групп' })).toHaveTextContent('Высокий · 87');
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   respond([{ ...group, risk_score: 95 }]);
   await advance(3000);
@@ -118,7 +120,7 @@ it('сохраняет таблицу пока ответ фонового об�
   );
   await advance(3000);
   await waitForScreen(() => expect(finish).not.toEqual(undefined));
-  expect(screen.getByRole('table')).toHaveTextContent('Высокий · 87');
+  expect(screen.getByRole('list', { name: 'Список групп' })).toHaveTextContent('Высокий · 87');
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   finish();
   await advance(1);
