@@ -90,6 +90,7 @@ func (r GroupRules) FarmEvidence(farm Farm, transfers []FarmTransfer) GroupEvide
 	return GroupEvidence{EventIDs: events, AccountIDs: slices.Sorted(maps.Keys(accounts))}
 }
 
+// TODO(GSD-31): посчитать риск фермы по risk.md, вход расширить числом клиентов и признаком сборщика.
 func FarmRisk(GroupStats) Risk {
 	return Risk{Score: 0, Parts: json.RawMessage(`{}`)}
 }

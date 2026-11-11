@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -36,7 +37,11 @@ func (a groupAssembly) afterLogin(ctx context.Context, event domain.LoginEvent) 
 		return err
 	}
 
-	return a.assembleFarm(ctx, event.DeviceID, event.OccurredAt)
+	if err := a.assembleFarm(ctx, event.DeviceID, event.OccurredAt); err != nil {
+		return fmt.Errorf("assemble farm on device %s: %w", event.DeviceID, err)
+	}
+
+	return nil
 }
 
 func (a groupAssembly) afterTransfer(ctx context.Context, event domain.TransferEvent) error {
@@ -51,7 +56,7 @@ func (a groupAssembly) afterTransfer(ctx context.Context, event domain.TransferE
 
 	for _, device := range devices {
 		if err := a.assembleFarm(ctx, device, event.OccurredAt); err != nil {
-			return err
+			return fmt.Errorf("assemble farm on device %s: %w", device, err)
 		}
 	}
 
