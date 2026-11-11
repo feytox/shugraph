@@ -51,6 +51,7 @@ export function SidePanel({ side, title, storageKey, children }: Props) {
   }
 
   const startDrag = (event: PointerEvent<HTMLDivElement>) => {
+    event.preventDefault();
     event.currentTarget.setPointerCapture?.(event.pointerId);
     dragStart.current = { x: event.clientX, width };
     setDragging(true);

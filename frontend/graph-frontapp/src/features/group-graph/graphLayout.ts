@@ -38,7 +38,13 @@ const busiestPoint = (cy: Core, type: PointType) =>
     .max((node) => node.degree(false))
     .ele.id();
 
-const shared = { animate: false, nodeDimensionsIncludeLabels: true } as const;
+export const graphPaddingPx = 30;
+
+const shared = {
+  animate: false,
+  nodeDimensionsIncludeLabels: true,
+  padding: graphPaddingPx,
+} as const;
 
 const line = (cy: Core): GraphLayoutOptions => ({
   name: 'breadthfirst',

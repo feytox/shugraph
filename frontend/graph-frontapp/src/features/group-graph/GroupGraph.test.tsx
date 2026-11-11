@@ -17,6 +17,7 @@ const cy = vi.hoisted(() => {
 vi.mock('cytoscape', () => ({ default: vi.fn(() => cy) }));
 vi.mock('@/features/group-graph/graphLayout', () => ({
   graphLayout: vi.fn(() => ({ name: 'grid' })),
+  graphPaddingPx: 0,
 }));
 
 const farm = mockGroups.find((group) => group.item.scheme === 'farm')!;

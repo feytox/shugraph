@@ -4,7 +4,7 @@ import cytoscape from 'cytoscape';
 import type { GroupGraph as GroupGraphData, GroupItem } from '@/api/client';
 import { GraphLegend } from '@/features/group-graph/GraphLegend';
 import { toGraphElements } from '@/features/group-graph/graphElements';
-import { graphLayout } from '@/features/group-graph/graphLayout';
+import { graphLayout, graphPaddingPx } from '@/features/group-graph/graphLayout';
 import { graphStylesheet } from '@/features/group-graph/graphStyle';
 import { useGroupGraph } from '@/features/group-graph/useGroupGraph';
 import classes from '@/features/group-graph/GroupGraph.module.css';
@@ -62,16 +62,20 @@ function GraphCanvas({ scheme, graph }: { scheme: Props['scheme']; graph: GroupG
       elements: toGraphElements(scheme, graph),
       style: graphStylesheet(theme),
     });
-    const layOut = () => cy.layout(graphLayout(scheme, cy)).run();
-    layOut();
+    cy.layout(graphLayout(scheme, cy)).run();
 
+    let pendingFrame = 0;
     const refitOnResize = new ResizeObserver(() => {
-      cy.resize();
-      layOut();
+      cancelAnimationFrame(pendingFrame);
+      pendingFrame = requestAnimationFrame(() => {
+        cy.resize();
+        cy.fit(undefined, graphPaddingPx);
+      });
     });
     refitOnResize.observe(container.current!);
 
     return () => {
+      cancelAnimationFrame(pendingFrame);
       refitOnResize.disconnect();
       cy.destroy();
     };

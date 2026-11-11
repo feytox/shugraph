@@ -11,6 +11,7 @@ vi.mock('cytoscape', () => ({
 }));
 vi.mock('@/features/group-graph/graphLayout', () => ({
   graphLayout: vi.fn(() => ({ name: 'grid' })),
+  graphPaddingPx: 0,
 }));
 
 const [farm, address, chain, ring] = mockGroups.map((group) => group.item);
