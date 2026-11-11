@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "dev:app": "pnpm --filter graph-frontapp dev",
+    "dev:mocks": "pnpm --filter graph-frontapp dev:mocks",
     "dev:admin": "pnpm --filter graph-admin-frontapp dev",
     "build": "pnpm -r build",
     "lint": "eslint . && pnpm format:check",
