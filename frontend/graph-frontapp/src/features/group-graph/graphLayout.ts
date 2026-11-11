@@ -1,85 +1,129 @@
 import type { EdgeDefinition, ElementsDefinition, Position } from 'cytoscape';
 import type { GroupItem } from '@/api/client';
 
-const chainStep = 200;
-const ringRadius = 200;
-const hubX = -260;
-const sinkX = 260;
-const rowStep = 100;
-const secondaryPointX = -110;
-const secondaryPointDrop = 45;
+type Positions = Record<string, Position>;
+type PointType = 'device' | 'network_address';
+type SchemeLayout = (graph: GraphQuery) => Positions;
 
-const byTime = (left: EdgeDefinition, right: EdgeDefinition) =>
-  Date.parse(left.data.occurredAt) - Date.parse(right.data.occurredAt);
+const distancePx = {
+  betweenChainAccounts: 200,
+  ringRadius: 200,
+  hubToSenders: 260,
+  sendersToReceivers: 260,
+  betweenAccountRows: 100,
+  hubToSecondaryPoints: 150,
+  secondaryPointBelowItsAccounts: 45,
+};
 
-function inFirstEventOrder(ids: string[], edges: EdgeDefinition[]) {
-  const seen = new Set<string>();
-  for (const edge of [...edges].sort(byTime)) {
-    seen.add(edge.data.source);
-    seen.add(edge.data.target);
+class GraphQuery {
+  private readonly elements: ElementsDefinition;
+
+  constructor(elements: ElementsDefinition) {
+    this.elements = elements;
   }
-  const order = [...seen];
-  const rank = (id: string) => (order.includes(id) ? order.indexOf(id) : order.length);
-  return [...ids].sort((left, right) => rank(left) - rank(right));
+
+  idsOf(type: 'account' | PointType): string[] {
+    return this.elements.nodes
+      .filter((node) => node.data.type === type)
+      .map((node) => node.data.id!);
+  }
+
+  linksInto(id: string): EdgeDefinition[] {
+    return this.elements.edges.filter((edge) => edge.data.target === id);
+  }
+
+  receivesTransfers(id: string): boolean {
+    return this.linksInto(id).some((edge) => edge.data.type === 'transfer');
+  }
+
+  busiestPoint(type: PointType): string {
+    return this.idsOf(type).reduce((busiest, id) =>
+      this.linksInto(id).length > this.linksInto(busiest).length ? id : busiest
+    );
+  }
+
+  accountsInFirstEventOrder(): string[] {
+    const byTime = [...this.elements.edges].sort(
+      (left, right) => Date.parse(left.data.occurredAt) - Date.parse(right.data.occurredAt)
+    );
+    const order = [...new Set(byTime.flatMap((edge) => [edge.data.source, edge.data.target]))];
+    const rank = (id: string) => (order.includes(id) ? order.indexOf(id) : order.length);
+    return this.idsOf('account').sort((left, right) => rank(left) - rank(right));
+  }
 }
 
-const column = (ids: string[], x: number, positions: Record<string, Position>) =>
-  ids.forEach((id, index) => {
-    positions[id] = { x, y: (index - (ids.length - 1) / 2) * rowStep };
-  });
-
-function star(
-  hubType: string,
-  nodeIds: (type: string) => string[],
-  edges: EdgeDefinition[]
-): Record<string, Position> {
-  const positions: Record<string, Position> = {};
-  const linksTo = (id: string) => edges.filter((edge) => edge.data.target === id);
-  const hub = nodeIds(hubType).reduce((best, id) =>
-    linksTo(id).length > linksTo(best).length ? id : best
+const line: SchemeLayout = (graph) =>
+  Object.fromEntries(
+    graph
+      .accountsInFirstEventOrder()
+      .map((id, index) => [id, { x: index * distancePx.betweenChainAccounts, y: 0 }])
   );
-  const accounts = inFirstEventOrder(nodeIds('account'), edges);
-  const receivesTransfers = (id: string) =>
-    linksTo(id).some((edge) => edge.data.type === 'transfer');
 
-  positions[hub] = { x: hubX, y: 0 };
-  column(
-    accounts.filter((id) => !receivesTransfers(id)),
-    0,
-    positions
+function pointOnCircle(index: number, count: number): Position {
+  const angleFromTop = -Math.PI / 2 + (index * 2 * Math.PI) / count;
+  return {
+    x: distancePx.ringRadius * Math.cos(angleFromTop),
+    y: distancePx.ringRadius * Math.sin(angleFromTop),
+  };
+}
+
+const circle: SchemeLayout = (graph) => {
+  const accounts = graph.accountsInFirstEventOrder();
+  return Object.fromEntries(
+    accounts.map((id, index) => [id, pointOnCircle(index, accounts.length)])
   );
-  column(accounts.filter(receivesTransfers), sinkX, positions);
+};
 
-  for (const id of [...nodeIds('device'), ...nodeIds('network_address')]) {
-    if (id === hub) continue;
-    const accountRows = linksTo(id).map((edge) => positions[edge.data.source].y);
-    const middle = accountRows.reduce((sum, y) => sum + y, 0) / accountRows.length;
-    positions[id] = { x: secondaryPointX, y: middle + secondaryPointDrop };
-  }
-  return positions;
-}
+const columnAt = (x: number, ids: string[]): Positions =>
+  Object.fromEntries(
+    ids.map((id, index) => [
+      id,
+      { x, y: (index - (ids.length - 1) / 2) * distancePx.betweenAccountRows },
+    ])
+  );
 
-export function layoutGraph(
-  scheme: GroupItem['scheme'],
-  { nodes, edges }: ElementsDefinition
-): Record<string, Position> {
-  const nodeIds = (type: string) =>
-    nodes.filter((node) => node.data.type === type).map((node) => node.data.id!);
-  const accounts = inFirstEventOrder(nodeIds('account'), edges);
+const starAround =
+  (hubType: PointType): SchemeLayout =>
+  (graph) => {
+    const hub = graph.busiestPoint(hubType);
+    const accounts = graph.accountsInFirstEventOrder();
+    const hubX = -distancePx.hubToSenders;
+    const accountPositions = {
+      ...columnAt(
+        0,
+        accounts.filter((id) => !graph.receivesTransfers(id))
+      ),
+      ...columnAt(
+        distancePx.sendersToReceivers,
+        accounts.filter((id) => graph.receivesTransfers(id))
+      ),
+    };
 
-  switch (scheme) {
-    case 'chain':
-      return Object.fromEntries(accounts.map((id, index) => [id, { x: index * chainStep, y: 0 }]));
-    case 'ring':
-      return Object.fromEntries(
-        accounts.map((id, index) => {
-          const angle = -Math.PI / 2 + (index * 2 * Math.PI) / accounts.length;
-          return [id, { x: ringRadius * Math.cos(angle), y: ringRadius * Math.sin(angle) }];
-        })
-      );
-    case 'farm':
-      return star('device', nodeIds, edges);
-    case 'address':
-      return star('network_address', nodeIds, edges);
-  }
-}
+    const besideItsAccounts = (id: string): Position => {
+      const rows = graph.linksInto(id).map((edge) => accountPositions[edge.data.source].y);
+      const middleRow = rows.reduce((sum, y) => sum + y, 0) / rows.length;
+      return {
+        x: hubX + distancePx.hubToSecondaryPoints,
+        y: middleRow + distancePx.secondaryPointBelowItsAccounts,
+      };
+    };
+    const secondaryPoints = [...graph.idsOf('device'), ...graph.idsOf('network_address')].filter(
+      (id) => id !== hub
+    );
+
+    return {
+      [hub]: { x: hubX, y: 0 },
+      ...accountPositions,
+      ...Object.fromEntries(secondaryPoints.map((id) => [id, besideItsAccounts(id)])),
+    };
+  };
+
+const layoutByScheme: Record<GroupItem['scheme'], SchemeLayout> = {
+  chain: line,
+  ring: circle,
+  farm: starAround('device'),
+  address: starAround('network_address'),
+};
+
+export const layoutGraph = (scheme: GroupItem['scheme'], elements: ElementsDefinition): Positions =>
+  layoutByScheme[scheme](new GraphQuery(elements));
