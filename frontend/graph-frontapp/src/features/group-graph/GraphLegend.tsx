@@ -1,39 +1,51 @@
-import { Group, Paper, Text, useMantineTheme } from '@mantine/core';
-import { nodeColor, nodeKinds } from '@/features/group-graph/graphStyle';
+import type { ReactNode } from 'react';
+import { Box, Group, Text } from '@mantine/core';
+import { nodeKinds, type ShownNodeType } from '@/features/group-graph/graphStyle';
 import classes from '@/features/group-graph/GroupGraph.module.css';
 
-export function GraphLegend() {
-  const theme = useMantineTheme();
+const shownTypes = Object.keys(nodeKinds) as ShownNodeType[];
+
+function LegendItem({ marker, label }: { marker: ReactNode; label: string }) {
   return (
-    <Paper withBorder px="sm" py={4} className={classes.legend}>
-      <Group gap="md">
-        {(Object.keys(nodeKinds) as (keyof typeof nodeKinds)[]).map((type) => {
-          const { label, Icon } = nodeKinds[type];
+    <Group gap="xs" wrap="nowrap">
+      {marker}
+      <Text size="xs" c="dimmed">
+        {label}
+      </Text>
+    </Group>
+  );
+}
+
+export function GraphLegend() {
+  return (
+    <Group justify="space-between" wrap="nowrap" px="md" py="xs" className={classes.legend}>
+      <Group gap="lg" wrap="nowrap">
+        {shownTypes.map((type) => {
+          const { label, color, legendMarker } = nodeKinds[type];
           return (
-            <Group key={type} gap={4}>
-              <Icon size={12} color={nodeColor(theme, type)} aria-hidden />
-              <Text size="xs" c="dimmed">
-                {label}
-              </Text>
-            </Group>
+            <LegendItem
+              key={type}
+              label={label}
+              marker={
+                <Box
+                  component="span"
+                  bg={`${color}.6`}
+                  className={classes[legendMarker]}
+                  aria-hidden
+                />
+              }
+            />
           );
         })}
-        <Group gap={4}>
-          <span className={classes.transferLine} />
-          <Text size="xs" c="dimmed">
-            перевод
-          </Text>
-        </Group>
-        <Group gap={4}>
-          <span className={classes.loginLine} />
-          <Text size="xs" c="dimmed">
-            вход
-          </Text>
-        </Group>
-        <Text size="xs" c="dimmed">
-          время в UTC
-        </Text>
+        <LegendItem
+          label="перевод"
+          marker={<span className={classes.transferLine} aria-hidden />}
+        />
+        <LegendItem label="вход" marker={<span className={classes.loginLine} aria-hidden />} />
       </Group>
-    </Paper>
+      <Text size="xs" c="dimmed">
+        время в UTC
+      </Text>
+    </Group>
   );
 }

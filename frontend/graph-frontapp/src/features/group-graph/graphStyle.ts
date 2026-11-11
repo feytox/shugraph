@@ -1,18 +1,17 @@
 import type { MantineTheme } from '@mantine/core';
-import { IconCircleFilled, IconDiamondFilled, IconHexagonFilled } from '@tabler/icons-react';
 import type { StylesheetJson } from 'cytoscape';
 import type { GraphNode } from '@/api/client';
 
-type ShownNodeType = Exclude<GraphNode['type'], 'client'>;
+export type ShownNodeType = Exclude<GraphNode['type'], 'client'>;
 
 export const nodeKinds = {
-  account: { label: 'счёт', color: 'blue', shape: 'ellipse', Icon: IconCircleFilled },
-  device: { label: 'устройство', color: 'orange', shape: 'round-diamond', Icon: IconDiamondFilled },
+  account: { label: 'счёт', color: 'blue', shape: 'ellipse', legendMarker: 'circle' },
+  device: { label: 'устройство', color: 'orange', shape: 'round-diamond', legendMarker: 'diamond' },
   network_address: {
     label: 'сетевой адрес',
     color: 'grape',
     shape: 'round-hexagon',
-    Icon: IconHexagonFilled,
+    legendMarker: 'hexagon',
   },
 } as const satisfies Record<ShownNodeType, unknown>;
 
