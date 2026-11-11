@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Alert, Button, Group, Loader, Stack, Text, useMantineTheme } from '@mantine/core';
-import cytoscape from 'cytoscape';
+import cytoscape, { type Core } from 'cytoscape';
 import type { GroupGraph as GroupGraphData, GroupItem } from '@/api/client';
 import { GraphLegend } from '@/features/group-graph/GraphLegend';
 import { toGraphElements } from '@/features/group-graph/graphElements';
@@ -10,6 +10,10 @@ import { useGroupGraph } from '@/features/group-graph/useGroupGraph';
 import classes from '@/features/group-graph/GroupGraph.module.css';
 
 type Props = { groupId: string; scheme: GroupItem['scheme'] };
+type RendererWithSyncRender = { renderer?: () => { render?: () => void } };
+
+const redrawBeforePaint = (cy: Core) =>
+  (cy as unknown as RendererWithSyncRender).renderer?.().render?.();
 
 export function GroupGraph({ groupId, scheme }: Props) {
   const graph = useGroupGraph(groupId);
@@ -66,18 +70,14 @@ function GraphCanvas({ scheme, graph }: { scheme: Props['scheme']; graph: GroupG
     });
     cy.layout(graphLayout(scheme, cy)).run();
 
-    let pendingFrame = 0;
     const refitOnResize = new ResizeObserver(() => {
-      cancelAnimationFrame(pendingFrame);
-      pendingFrame = requestAnimationFrame(() => {
-        cy.resize();
-        cy.fit(undefined, graphPaddingPx);
-      });
+      cy.resize();
+      cy.fit(undefined, graphPaddingPx);
+      redrawBeforePaint(cy);
     });
     refitOnResize.observe(container.current!);
 
     return () => {
-      cancelAnimationFrame(pendingFrame);
       refitOnResize.disconnect();
       cy.destroy();
     };
