@@ -9,7 +9,7 @@ export function useGroupGraph(groupId: string) {
         params: { path: { group_id: groupId } },
         signal,
       });
-      if (response.status === 404) throw new Error('Граф группы не найден');
+      if (response.status === 404) return null;
       if (!response.ok || !data) throw new Error('Не удалось загрузить граф группы');
       return data;
     },

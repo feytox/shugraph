@@ -36,6 +36,14 @@ export function GroupGraph({ groupId, scheme }: Props) {
     );
   }
 
+  if (!graph.data) {
+    return (
+      <Text c="dimmed" p="md">
+        Граф группы не найден
+      </Text>
+    );
+  }
+
   return (
     <div className={classes.root}>
       <GraphCanvas scheme={scheme} graph={graph.data} />

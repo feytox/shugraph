@@ -1,14 +1,17 @@
 import { act, render, type RenderResult } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { MemoryRouter } from 'react-router';
 import { vi } from 'vitest';
 import { App } from '@/App';
 
-export function renderScreen(): RenderResult {
+export function renderScreen(url = '/'): RenderResult {
   return render(
     <QueryClientProvider
       client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
     >
-      <App />
+      <MemoryRouter initialEntries={[url]}>
+        <App />
+      </MemoryRouter>
     </QueryClientProvider>
   );
 }
