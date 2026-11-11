@@ -11,7 +11,7 @@
 
 ## Rules
 
-- **UI**: Mantine v9 style props (`c`, `p`, `m`, `fw`) or CSS modules. Zero inline `style={{}}` attributes. Icons from `@tabler/icons-react`.
+- **UI**: Mantine v9 style props (`c`, `p`, `m`, `fw`) or CSS modules. Zero inline `style={{}}` attributes. Icons from `@tabler/icons-react`. No hover tooltips (`Tooltip`, `title`); icon-only controls get `aria-label`.
 - **Data**: TanStack Query + `@/api/client`. Never use raw `useEffect`/`fetch`/`axios` for server state.
 - **Domain**: Strictly view layer. Zero client-side risk scoring or graph traversals (fetch pre-calculated from API).
 - **Structure**: one folder per product feature in `src/features/`. Features don't import each other, `App.tsx` composes them. Code used by more than one feature lives in `src/shared/`. Features exchange state through URL search params and the TanStack Query cache (shared query keys, invalidation after mutations).
