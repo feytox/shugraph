@@ -29,6 +29,7 @@
 }
 
 .panel[data-side='right'] {
+  align-items: flex-end;
   border-left: 1px solid var(--mantine-color-gray-3);
 }
 
