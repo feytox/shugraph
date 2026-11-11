@@ -7,7 +7,7 @@ import { server } from '@/mocks/server';
 import { advance, renderScreen, waitForScreen } from '@/test/renderScreen';
 
 vi.mock('cytoscape', () => ({
-  default: vi.fn(() => ({ layout: () => ({ run: vi.fn() }), destroy: vi.fn() })),
+  default: vi.fn(() => ({ layout: () => ({ run: vi.fn() }), destroy: vi.fn(), on: vi.fn() })),
 }));
 vi.mock('@/features/group-graph/graphLayout', () => ({
   graphLayout: vi.fn(() => ({ name: 'grid' })),

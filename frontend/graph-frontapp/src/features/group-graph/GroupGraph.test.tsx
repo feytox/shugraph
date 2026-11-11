@@ -11,7 +11,7 @@ import { graphLayout } from '@/features/group-graph/graphLayout';
 
 const cy = vi.hoisted(() => {
   const layout = { run: vi.fn() };
-  return { layout: vi.fn(() => layout), destroy: vi.fn(), runLayout: layout.run };
+  return { layout: vi.fn(() => layout), destroy: vi.fn(), on: vi.fn(), runLayout: layout.run };
 });
 
 vi.mock('cytoscape', () => ({ default: vi.fn(() => cy) }));
@@ -53,6 +53,7 @@ describe('GroupGraph', () => {
     expect(container).toBe(screen.getByRole('img', { name: 'Граф группы' }));
     expect(graphLayout).toHaveBeenCalledWith('farm', cy);
     expect(cy.runLayout).toHaveBeenCalled();
+    expect(cy.on).toHaveBeenCalledWith('tap', 'node', expect.any(Function));
   });
 
   it('показывает легенду', async () => {

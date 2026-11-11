@@ -1,6 +1,7 @@
 import type { MantineTheme } from '@mantine/core';
 import type { Css, StylesheetJson } from 'cytoscape';
 import type { GraphNode } from '@/api/client';
+import { fadedClass } from '@/features/group-graph/graphHighlight';
 
 export type ShownNodeType = Exclude<GraphNode['type'], 'client'>;
 
@@ -83,4 +84,5 @@ export const graphStylesheet = (theme: MantineTheme): StylesheetJson => [
       'target-arrow-shape': 'none',
     },
   },
+  { selector: `.${fadedClass}`, style: { opacity: 0.15 } },
 ];

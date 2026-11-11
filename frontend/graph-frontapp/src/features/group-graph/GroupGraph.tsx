@@ -4,6 +4,7 @@ import cytoscape, { type Core } from 'cytoscape';
 import type { GroupGraph as GroupGraphData, GroupItem } from '@/api/client';
 import { GraphLegend } from '@/features/group-graph/GraphLegend';
 import { toGraphElements } from '@/features/group-graph/graphElements';
+import { highlightLinksOnTap } from '@/features/group-graph/graphHighlight';
 import { graphLayout, graphPaddingPx } from '@/features/group-graph/graphLayout';
 import { graphStylesheet } from '@/features/group-graph/graphStyle';
 import { useGroupGraph } from '@/features/group-graph/useGroupGraph';
@@ -69,6 +70,7 @@ function GraphCanvas({ scheme, graph }: { scheme: Props['scheme']; graph: GroupG
       boxSelectionEnabled: false,
     });
     cy.layout(graphLayout(scheme, cy)).run();
+    highlightLinksOnTap(cy);
 
     const refitOnResize = new ResizeObserver(() => {
       cy.resize();
