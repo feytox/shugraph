@@ -23,24 +23,15 @@ export function SidePanel({ side, title, storageKey, children }: Props) {
     defaultValue: false,
   });
   const { collapse: CollapseIcon, expand: ExpandIcon } = icons[side];
-
-  if (collapsed) {
-    return (
-      <aside aria-label={title} className={classes.collapsed} data-side={side}>
-        <ActionIcon
-          variant="subtle"
-          color="gray"
-          aria-label={`Показать: ${title}`}
-          onClick={() => setCollapsed(false)}
-        >
-          <ExpandIcon size={18} />
-        </ActionIcon>
-      </aside>
-    );
-  }
+  const ToggleIcon = collapsed ? ExpandIcon : CollapseIcon;
 
   return (
-    <aside aria-label={title} className={classes.panel} data-side={side}>
+    <aside
+      aria-label={title}
+      className={classes.panel}
+      data-side={side}
+      data-collapsed={collapsed || undefined}
+    >
       <Group
         gap="xs"
         wrap="nowrap"
@@ -53,16 +44,27 @@ export function SidePanel({ side, title, storageKey, children }: Props) {
         <ActionIcon
           variant="subtle"
           color="gray"
-          aria-label={`Скрыть: ${title}`}
-          onClick={() => setCollapsed(true)}
+          size="md"
+          aria-label={`${collapsed ? 'Показать' : 'Скрыть'}: ${title}`}
+          onClick={() => setCollapsed(!collapsed)}
         >
-          <CollapseIcon size={18} />
+          <ToggleIcon size={18} />
         </ActionIcon>
-        <Title order={2} size="h4" lineClamp={1}>
+        <Title
+          order={2}
+          size="h4"
+          lineClamp={1}
+          className={classes.fadesWhenCollapsed}
+          aria-hidden={collapsed}
+        >
           {title}
         </Title>
       </Group>
-      <ScrollArea type="never" className={classes.body}>
+      <ScrollArea
+        type="never"
+        className={`${classes.body} ${classes.fadesWhenCollapsed}`}
+        inert={collapsed}
+      >
         {children}
       </ScrollArea>
     </aside>
