@@ -14,6 +14,7 @@
 - **UI**: Mantine v9 style props (`c`, `p`, `m`, `fw`) or CSS modules. Zero inline `style={{}}` attributes. Icons from `@tabler/icons-react`.
 - **Data**: TanStack Query + `@/api/client`. Never use raw `useEffect`/`fetch`/`axios` for server state.
 - **Domain**: Strictly view layer. Zero client-side risk scoring or graph traversals (fetch pre-calculated from API).
+- **Structure**: one folder per product feature in `src/features/`. Features don't import each other, `App.tsx` composes them. Code used by more than one feature lives in `src/shared/`.
 - **Dates**: Strict UTC via `dayjs.utc()`.
 - **Environment**: Proxy `/api` -> `:8080` (override: `VITE_API_PROXY_TARGET`) or MSW (`VITE_USE_MOCKS=true`).
 
