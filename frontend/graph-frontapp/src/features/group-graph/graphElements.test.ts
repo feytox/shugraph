@@ -73,7 +73,7 @@ describe('toGraphElements', () => {
       ],
     };
     expect(label(toGraphElements('chain', graph), 'transfer:evt-1')).toBe(
-      `1${nbsp}234,5${nbsp}₽ · 20:59`
+      `1${nbsp}234,50${nbsp}₽ · 20:59`
     );
   });
 });

@@ -2,15 +2,9 @@ import type { ElementsDefinition } from 'cytoscape';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { GroupGraph, GroupItem } from '@/api/client';
+import { formatRub } from '@/shared/money';
 
 dayjs.extend(utc);
-
-const money = new Intl.NumberFormat('ru-RU', {
-  style: 'currency',
-  currency: 'RUB',
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 2,
-});
 
 const time = (occurredAt: string) => dayjs.utc(occurredAt).format('HH:mm');
 
@@ -33,7 +27,7 @@ export function toGraphElements(
           type: 'transfer',
           source: transfer.source,
           target: transfer.target,
-          label: `${money.format(transfer.amount / 100)} · ${time(transfer.occurred_at)}`,
+          label: `${formatRub(transfer.amount)} · ${time(transfer.occurred_at)}`,
         },
       })),
       ...graph.logins

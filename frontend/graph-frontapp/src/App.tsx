@@ -15,13 +15,13 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import type { GroupItem } from '@/api/client';
 import { useGroups } from '@/features/groups-list/useGroups';
+import { formatRub } from '@/shared/money';
 
 dayjs.extend(utc);
 const schemes = { farm: 'Ферма', address: 'Адрес', chain: 'Цепочка', ring: 'Кольцо' };
 const risks = { low: 'Низкий', medium: 'Средний', high: 'Высокий' };
 const riskColors = { low: 'green', medium: 'yellow', high: 'red' };
 const statuses = { new: 'Новая', approved: 'Подтверждена', declined: 'Отклонена' };
-const money = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' });
 
 function GroupsList({ items }: { items: GroupItem[] }) {
   return (
@@ -45,7 +45,7 @@ function GroupsList({ items }: { items: GroupItem[] }) {
               </Badge>
             </Table.Td>
             <Table.Td>{group.features.accounts_count}</Table.Td>
-            <Table.Td>{money.format(group.features.total_amount / 100)}</Table.Td>
+            <Table.Td>{formatRub(group.features.total_amount)}</Table.Td>
             <Table.Td>{dayjs.utc(group.last_event_at).format('DD.MM.YYYY HH:mm:ss')} UTC</Table.Td>
             <Table.Td>{statuses[group.status]}</Table.Td>
           </Table.Tr>
