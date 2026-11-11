@@ -69,14 +69,27 @@ describe('graphLayout', () => {
     expect(at(drops[0]).x).toBeLessThan(at('account:acc-collector').x);
   });
 
-  it('адрес: адрес слева, счета колонкой, получатель и устройства справа', () => {
+  it('адрес: адрес слева, счета и их устройства колонкой по времени, получатель справа', () => {
     const at = laidOut('address');
-    const senders = ['a-1', 'a-2', 'a-3', 'a-4', 'a-5'].map((id) => `account:${id}`);
-    expect(same(xs(at, senders))).toBe(true);
-    expect(increasing(ys(at, senders))).toBe(true);
-    expect(at('network_address:178.4.2.10').x).toBeLessThan(at(senders[0]).x);
-    for (const right of ['account:a-6', 'device:pc-01', 'device:pc-02', 'device:phone-9c']) {
-      expect(at(right).x).toBeGreaterThan(at(senders[0]).x);
-    }
+    const column = [
+      'account:a-1',
+      'device:pc-01',
+      'account:a-2',
+      'account:a-3',
+      'device:pc-02',
+      'account:a-4',
+      'device:phone-9c',
+      'account:a-5',
+    ];
+    expect(same(xs(at, column))).toBe(true);
+    expect(increasing(ys(at, column))).toBe(true);
+    expect(at('network_address:178.4.2.10').x).toBeLessThan(at(column[0]).x);
+    expect(at(column[0]).x).toBeLessThan(at('account:a-6').x);
+  });
+
+  it('звезда: общая точка и получатель на одной высоте посередине', () => {
+    const at = laidOut('farm');
+    expect(at('device:dev-common').y).toBeCloseTo(at('account:acc-sasha').y);
+    expect(at('account:acc-collector').y).toBeCloseTo(at('account:acc-sasha').y);
   });
 });

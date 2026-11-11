@@ -2,6 +2,7 @@ import type {
   BreadthFirstLayoutOptions,
   CircleLayoutOptions,
   Core,
+  GridLayoutOptions,
   NodeCollection,
   NodeSingular,
   SortingFunction,
@@ -9,9 +10,12 @@ import type {
 import type { GroupItem } from '@/api/client';
 
 type PointType = 'device' | 'network_address';
-type GraphLayoutOptions = (BreadthFirstLayoutOptions | CircleLayoutOptions) & {
+type Cell = { row: number; col: number };
+type GraphLayoutOptions = (BreadthFirstLayoutOptions | CircleLayoutOptions | GridLayoutOptions) & {
   eles?: NodeCollection;
 };
+
+const starColumn = { hub: 0, participants: 1, receivers: 2 } as const;
 
 function byFirstEvent(cy: Core): SortingFunction {
   const rank = new Map<string, number>();
@@ -28,11 +32,6 @@ function byFirstEvent(cy: Core): SortingFunction {
   return (left, right) => rankOf(left) - rankOf(right);
 }
 
-const bottomUp =
-  (sort: SortingFunction): SortingFunction =>
-  (left, right) =>
-    sort(right, left);
-
 const busiestPoint = (cy: Core, type: PointType) =>
   cy
     .nodes(`[type = "${type}"]`)
@@ -41,34 +40,65 @@ const busiestPoint = (cy: Core, type: PointType) =>
 
 const shared = { animate: false, nodeDimensionsIncludeLabels: true } as const;
 
-const columnsFrom = (cy: Core, roots: string[], directed: boolean): GraphLayoutOptions => ({
+const line = (cy: Core): GraphLayoutOptions => ({
   name: 'breadthfirst',
-  roots,
-  directed,
+  roots: cy
+    .nodes()
+    .roots()
+    .map((node) => node.id()),
+  directed: true,
   direction: 'rightward',
-  depthSort: bottomUp(byFirstEvent(cy)),
   ...shared,
 });
 
+const circle = (cy: Core): GraphLayoutOptions => ({
+  name: 'circle',
+  eles: cy.nodes().sort(byFirstEvent(cy)),
+  startAngle: (3 / 2) * Math.PI,
+  clockwise: true,
+  ...shared,
+});
+
+const starAround =
+  (hubType: PointType) =>
+  (cy: Core): GraphLayoutOptions => {
+    const inEventOrder = byFirstEvent(cy);
+    const hub = cy.getElementById(busiestPoint(cy, hubType));
+    const receivers = cy
+      .nodes('[type = "account"]')
+      .filter((node) => node.incomers('edge[type = "transfer"]').nonempty())
+      .sort(inEventOrder);
+    const participants = cy.nodes().difference(receivers).difference(hub).sort(inEventOrder);
+    const rows = Math.max(participants.length, receivers.length, 1);
+    const centeredRow = (index: number, count: number) => Math.floor((rows - count) / 2) + index;
+
+    const cells = new Map<string, Cell>([
+      [hub.id(), { row: centeredRow(0, 1), col: starColumn.hub }],
+    ]);
+    participants.forEach((node, index) => {
+      cells.set(node.id(), { row: index, col: starColumn.participants });
+    });
+    receivers.forEach((node, index) => {
+      cells.set(node.id(), {
+        row: centeredRow(index, receivers.length),
+        col: starColumn.receivers,
+      });
+    });
+
+    return {
+      name: 'grid',
+      rows,
+      cols: Object.keys(starColumn).length,
+      position: (node) => cells.get(node.id())!,
+      ...shared,
+    };
+  };
+
 const layoutByScheme: Record<GroupItem['scheme'], (cy: Core) => GraphLayoutOptions> = {
-  chain: (cy) =>
-    columnsFrom(
-      cy,
-      cy
-        .nodes()
-        .roots()
-        .map((node) => node.id()),
-      true
-    ),
-  ring: (cy) => ({
-    name: 'circle',
-    eles: cy.nodes().sort(byFirstEvent(cy)),
-    startAngle: (3 / 2) * Math.PI,
-    clockwise: true,
-    ...shared,
-  }),
-  farm: (cy) => columnsFrom(cy, [busiestPoint(cy, 'device')], false),
-  address: (cy) => columnsFrom(cy, [busiestPoint(cy, 'network_address')], false),
+  chain: line,
+  ring: circle,
+  farm: starAround('device'),
+  address: starAround('network_address'),
 };
 
 export const graphLayout = (scheme: GroupItem['scheme'], cy: Core): GraphLayoutOptions =>
