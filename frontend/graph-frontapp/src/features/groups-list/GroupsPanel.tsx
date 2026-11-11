@@ -1,14 +1,11 @@
-import { Alert, Button, Group, Loader, Stack, Text, Title } from '@mantine/core';
+import { Alert, Button, Group, Loader, Stack, Text } from '@mantine/core';
 import { GroupsList } from '@/features/groups-list/GroupsList';
 import { useGroups } from '@/features/groups-list/useGroups';
 
 export function GroupsPanel() {
   const groups = useGroups();
   return (
-    <Stack gap="sm" py="md">
-      <Title order={1} size="h4" px="md">
-        Подозрительные группы
-      </Title>
+    <Stack gap="sm" pb="md">
       {groups.isError && !groups.data && (
         <Alert color="red" title="Ошибка загрузки" mx="md">
           <Stack gap="sm">

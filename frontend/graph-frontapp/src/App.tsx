@@ -2,15 +2,16 @@ import { MantineProvider } from '@mantine/core';
 import { GroupGraph } from '@/features/group-graph/GroupGraph';
 import { GroupsPanel } from '@/features/groups-list/GroupsPanel';
 import { useSelectedGroup } from '@/features/groups-list/useSelectedGroup';
+import { SidePanel } from '@/shared/SidePanel';
 import classes from '@/App.module.css';
 
 function AnalystScreen() {
   const selected = useSelectedGroup();
   return (
     <div className={classes.screen}>
-      <aside className={classes.groups} aria-label="Группы">
+      <SidePanel side="left" title="Подозрительные группы" storageKey="groups-panel">
         <GroupsPanel />
-      </aside>
+      </SidePanel>
       <main className={classes.graph}>
         {selected && (
           <GroupGraph key={selected.id} groupId={selected.id} scheme={selected.scheme} />

@@ -1,12 +1,7 @@
 .screen {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 320px;
+  grid-template-columns: auto minmax(0, 1fr) 320px;
   height: 100dvh;
-}
-
-.groups {
-  overflow-y: auto;
-  border-right: 1px solid var(--mantine-color-gray-3);
 }
 
 .graph {
