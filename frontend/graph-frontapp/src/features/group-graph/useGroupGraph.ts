@@ -1,9 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 
-export function useGroupGraph(groupId: string) {
+export function useGroupGraph(groupId: string, lastEventAt: string) {
   return useQuery({
-    queryKey: ['groups', groupId, 'graph'],
+    queryKey: ['groups', groupId, 'graph', lastEventAt],
     queryFn: async ({ signal }) => {
       const { data, response } = await apiClient.GET('/api/v1/groups/{group_id}/graph', {
         params: { path: { group_id: groupId } },
@@ -14,5 +14,6 @@ export function useGroupGraph(groupId: string) {
       return data;
     },
     retry: false,
+    placeholderData: keepPreviousData,
   });
 }

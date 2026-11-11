@@ -18,7 +18,12 @@ function AnalystScreen() {
       </SidePanel>
       <main className={classes.graph}>
         {selected && (
-          <GroupGraph key={selected.id} groupId={selected.id} scheme={selected.scheme} />
+          <GroupGraph
+            key={selected.id}
+            groupId={selected.id}
+            scheme={selected.scheme}
+            lastEventAt={selected.last_event_at}
+          />
         )}
         {notInList && (
           <Center h="100%">

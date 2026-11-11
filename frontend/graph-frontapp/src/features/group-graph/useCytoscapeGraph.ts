@@ -1,8 +1,7 @@
 import { useEffect, type RefObject } from 'react';
 import { useMantineTheme } from '@mantine/core';
-import cytoscape from 'cytoscape';
-import type { GroupGraph, GroupItem } from '@/api/client';
-import { toGraphElements } from '@/features/group-graph/graphElements';
+import cytoscape, { type ElementsDefinition } from 'cytoscape';
+import type { GroupItem } from '@/api/client';
 import { highlightLinksOnTap } from '@/features/group-graph/graphHighlight';
 import { graphLayout } from '@/features/group-graph/graphLayout';
 import { graphStylesheet } from '@/features/group-graph/graphStyle';
@@ -11,7 +10,7 @@ import { keepFittedOnResize } from '@/features/group-graph/keepFittedOnResize';
 export function useCytoscapeGraph(
   container: RefObject<HTMLDivElement | null>,
   scheme: GroupItem['scheme'],
-  graph: GroupGraph
+  elements: ElementsDefinition
 ) {
   const theme = useMantineTheme();
 
@@ -21,7 +20,7 @@ export function useCytoscapeGraph(
 
     const cy = cytoscape({
       container: element,
-      elements: toGraphElements(scheme, graph),
+      elements,
       style: graphStylesheet(theme),
       autounselectify: true,
       boxSelectionEnabled: false,
@@ -34,5 +33,5 @@ export function useCytoscapeGraph(
       stopFitting();
       cy.destroy();
     };
-  }, [container, scheme, graph, theme]);
+  }, [container, scheme, elements, theme]);
 }

@@ -5,6 +5,7 @@ import cytoscape, { type CytoscapeOptions, type ElementsDefinition } from 'cytos
 import { http, HttpResponse } from 'msw';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { server } from '@/mocks/server';
+import type { GroupItem } from '@/api/client';
 import { mockGroups } from '@/mocks/groupGraphs';
 import { GroupGraph } from '@/features/group-graph/GroupGraph';
 import { graphLayout } from '@/features/group-graph/graphLayout';
@@ -29,14 +30,19 @@ vi.mock('@/features/group-graph/graphLayout', () => ({
 const farm = mockGroups.find((group) => group.item.scheme === 'farm')!;
 const graphUrl = `*/api/v1/groups/${farm.item.id}/graph`;
 
-function renderGraph() {
-  return render(
+function graphFor(scheme: GroupItem['scheme'], lastEventAt: string, client: QueryClient) {
+  const group = mockGroups.find((mock) => mock.item.scheme === scheme)!;
+  return (
     <MantineProvider>
-      <QueryClientProvider client={new QueryClient()}>
-        <GroupGraph groupId={farm.item.id} scheme="farm" />
+      <QueryClientProvider client={client}>
+        <GroupGraph groupId={group.item.id} scheme={scheme} lastEventAt={lastEventAt} />
       </QueryClientProvider>
     </MantineProvider>
   );
+}
+
+function renderGraph(scheme: GroupItem['scheme'] = 'farm') {
+  return render(graphFor(scheme, farm.item.last_event_at, new QueryClient()));
 }
 
 const passedOptions = () => vi.mocked(cytoscape).mock.calls.at(-1)![0] as CytoscapeOptions;
@@ -62,11 +68,29 @@ describe('GroupGraph', () => {
     expect(cy.on).toHaveBeenCalledWith('tap', 'node', expect.any(Function));
   });
 
-  it('показывает легенду', async () => {
+  it('в легенде только то, что есть на графе фермы', async () => {
     renderGraph();
-    for (const label of ['счёт', 'устройство', 'сетевой адрес', 'перевод', 'вход', 'время в UTC']) {
+    for (const label of ['счёт', 'устройство', 'перевод', 'вход', 'время в UTC']) {
       expect(await screen.findByText(label)).toBeVisible();
     }
+    expect(screen.queryByText('сетевой адрес')).not.toBeInTheDocument();
+  });
+
+  it('в легенде цепочки только счета и переводы', async () => {
+    renderGraph('chain');
+    expect(await screen.findByText('перевод')).toBeVisible();
+    for (const label of ['устройство', 'сетевой адрес', 'вход']) {
+      expect(screen.queryByText(label)).not.toBeInTheDocument();
+    }
+  });
+
+  it('перезапрашивает граф, когда в группу пришло новое событие, и не прячет старый', async () => {
+    const client = new QueryClient();
+    const { rerender } = render(graphFor('farm', farm.item.last_event_at, client));
+    await waitFor(() => expect(cytoscape).toHaveBeenCalledTimes(1));
+    rerender(graphFor('farm', '2026-11-12T10:45:00Z', client));
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    await waitFor(() => expect(cytoscape).toHaveBeenCalledTimes(2));
   });
 
   it('убирает граф, когда компонент закрывают', async () => {
@@ -88,6 +112,7 @@ describe('GroupGraph', () => {
     renderGraph();
     expect(await screen.findByText('Не удалось загрузить граф группы')).toBeVisible();
     expect(screen.getByText('время в UTC')).toBeVisible();
+    expect(screen.queryByText('счёт')).not.toBeInTheDocument();
   });
 
   it('при ошибке сервера даёт повторить загрузку', async () => {
