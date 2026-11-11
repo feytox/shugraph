@@ -23,3 +23,5 @@ secrets.yaml
 .idea/codeStyles/
 .idea/inspectionProfiles/
 .run/
+
+.vscode/settings.json
