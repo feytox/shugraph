@@ -16,12 +16,10 @@ export function useSelectedGroupId() {
   return params.get(selectedGroupParam);
 }
 
-export function useSelectedGroup(): GroupItem | undefined {
-  const [params, setParams] = useSearchParams();
-  const { data } = useGroups();
-  const items = data?.items ?? [];
-  const selectedId = params.get(selectedGroupParam);
-  const firstId = items[0]?.id;
+export function useDefaultGroupSelection() {
+  const [, setParams] = useSearchParams();
+  const selectedId = useSelectedGroupId();
+  const firstId = useGroups().data?.items[0]?.id;
 
   useEffect(() => {
     if (!selectedId && firstId) {
@@ -30,6 +28,11 @@ export function useSelectedGroup(): GroupItem | undefined {
       });
     }
   }, [selectedId, firstId, setParams]);
+}
 
-  return items.find((group) => group.id === selectedId);
+export function useSelectedGroup(): { group?: GroupItem; notInList: boolean } {
+  const selectedId = useSelectedGroupId();
+  const { data } = useGroups();
+  const group = data?.items.find((item) => item.id === selectedId);
+  return { group, notInList: Boolean(selectedId && data && !group) };
 }
