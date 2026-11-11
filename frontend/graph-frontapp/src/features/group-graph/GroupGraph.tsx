@@ -62,9 +62,24 @@ function GraphCanvas({ scheme, graph }: { scheme: Props['scheme']; graph: GroupG
       elements: toGraphElements(scheme, graph),
       style: graphStylesheet(theme),
     });
-    cy.layout(graphLayout(scheme, cy)).run();
-    return () => cy.destroy();
+    const layOut = () => cy.layout(graphLayout(scheme, cy)).run();
+    layOut();
+
+    const refitOnResize = new ResizeObserver(() => {
+      cy.resize();
+      layOut();
+    });
+    refitOnResize.observe(container.current!);
+
+    return () => {
+      refitOnResize.disconnect();
+      cy.destroy();
+    };
   }, [scheme, graph, theme]);
 
-  return <div ref={container} className={classes.canvas} role="img" aria-label="Граф группы" />;
+  return (
+    <div className={classes.canvasArea}>
+      <div ref={container} className={classes.canvas} role="img" aria-label="Граф группы" />
+    </div>
+  );
 }

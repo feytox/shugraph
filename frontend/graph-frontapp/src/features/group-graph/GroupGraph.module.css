@@ -1,6 +1,13 @@
 .root {
-  position: relative;
+  display: flex;
+  flex-direction: column;
   height: 100%;
+}
+
+.canvasArea {
+  position: relative;
+  flex: 1;
+  min-height: 0;
 }
 
 .canvas {
@@ -9,9 +16,8 @@
 }
 
 .legend {
-  position: absolute;
-  left: var(--mantine-spacing-md);
-  bottom: var(--mantine-spacing-md);
+  align-self: flex-start;
+  margin: 0 var(--mantine-spacing-md) var(--mantine-spacing-md);
 }
 
 .transferLine,
