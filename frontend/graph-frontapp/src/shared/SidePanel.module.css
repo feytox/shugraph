@@ -41,19 +41,26 @@
 .resizer:hover,
 .resizer:focus-visible,
 .resizer[data-dragging] {
-  background: var(--mantine-color-blue-2);
+  background: var(--mantine-color-gray-3);
   outline: none;
 }
 
 .collapsed {
   height: 100dvh;
-  padding: var(--mantine-spacing-xs);
+  padding: var(--mantine-spacing-md) var(--mantine-spacing-xs);
+}
+
+.header[data-side='right'] {
+  flex-direction: row-reverse;
+  justify-content: space-between;
 }
 
 .collapsed[data-side='left'] {
+  padding-left: var(--mantine-spacing-md);
   border-right: 1px solid var(--mantine-color-gray-3);
 }
 
 .collapsed[data-side='right'] {
+  padding-right: var(--mantine-spacing-md);
   border-left: 1px solid var(--mantine-color-gray-3);
 }

@@ -1,5 +1,5 @@
 import { useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from 'react';
-import { ActionIcon, Box, Group, Title, Tooltip } from '@mantine/core';
+import { ActionIcon, Box, Group, ScrollArea, Title } from '@mantine/core';
 import { useLocalStorage } from '@mantine/hooks';
 import {
   IconLayoutSidebarLeftCollapse,
@@ -36,16 +36,14 @@ export function SidePanel({ side, title, storageKey, children }: Props) {
   if (collapsed) {
     return (
       <aside aria-label={title} className={classes.collapsed} data-side={side}>
-        <Tooltip label={`Показать: ${title}`}>
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            aria-label={`Показать: ${title}`}
-            onClick={() => setCollapsed(false)}
-          >
-            <ExpandIcon size={18} />
-          </ActionIcon>
-        </Tooltip>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          aria-label={`Показать: ${title}`}
+          onClick={() => setCollapsed(false)}
+        >
+          <ExpandIcon size={18} />
+        </ActionIcon>
       </aside>
     );
   }
@@ -75,22 +73,30 @@ export function SidePanel({ side, title, storageKey, children }: Props) {
 
   return (
     <Box component="aside" aria-label={title} className={classes.panel} data-side={side} w={width}>
-      <Group justify="space-between" wrap="nowrap" px="md" pt="md" pb="xs">
+      <Group
+        gap="xs"
+        wrap="nowrap"
+        px="md"
+        pt="md"
+        pb="xs"
+        className={classes.header}
+        data-side={side}
+      >
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          aria-label={`Скрыть: ${title}`}
+          onClick={() => setCollapsed(true)}
+        >
+          <CollapseIcon size={18} />
+        </ActionIcon>
         <Title order={2} size="h4">
           {title}
         </Title>
-        <Tooltip label="Скрыть панель">
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            aria-label={`Скрыть: ${title}`}
-            onClick={() => setCollapsed(true)}
-          >
-            <CollapseIcon size={18} />
-          </ActionIcon>
-        </Tooltip>
       </Group>
-      <div className={classes.body}>{children}</div>
+      <ScrollArea type="scroll" className={classes.body}>
+        {children}
+      </ScrollArea>
       <div
         role="separator"
         aria-orientation="vertical"
