@@ -25,6 +25,12 @@ export const statusLabels: Record<GroupItem['status'], string> = {
   declined: 'Отклонена',
 };
 
+export const statusColors: Record<GroupItem['status'], string> = {
+  new: 'blue',
+  approved: 'red',
+  declined: 'green',
+};
+
 const accountWords: Record<Intl.LDMLPluralRule, string> = {
   zero: 'счетов',
   one: 'счёт',

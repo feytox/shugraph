@@ -53,7 +53,7 @@ it('обновляет строки через 3 секунды и добавл�
   expect(rows[0]).toHaveTextContent('Кольцо');
   expect(within(rows[1]).getByLabelText('Риск высокий: 95')).toBeVisible();
   expect(rows[1]).toHaveTextContent('678,90');
-  expect(rows[1]).toHaveTextContent('07.10.2026 11:00');
+  expect(rows[1]).toHaveTextContent('07.10.26 11:00');
   expect(rows[1]).toHaveTextContent('Подтверждена');
 });
 

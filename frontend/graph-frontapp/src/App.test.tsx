@@ -32,7 +32,7 @@ describe('Подозрительные группы', () => {
     const [item] = within(await screen.findByRole('list', { name: 'Список групп' })).getAllByRole(
       'listitem'
     );
-    for (const value of ['Ферма', '7 счетов', '123,45 ₽', '07.10.2026 10:30', 'Новая']) {
+    for (const value of ['Ферма', '7 счетов', '123,45 ₽', '07.10.26 10:30', 'Новая']) {
       expect(item).toHaveTextContent(value);
     }
     expect(within(item).getByLabelText('Риск высокий: 87')).toBeVisible();

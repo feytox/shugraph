@@ -71,7 +71,7 @@ it('обновляет загруженные страницы со свежим
     .at(-1)!;
   expect(within(last).getByLabelText('Риск высокий: 99')).toBeVisible();
   expect(last).toHaveTextContent('678,90');
-  expect(last).toHaveTextContent('07.10.2026 11:00');
+  expect(last).toHaveTextContent('07.10.26 11:00');
   expect(last).toHaveTextContent('Подтверждена');
   await more(60);
   expect(counts()).toEqual(['100', ...Array.from({ length: 59 }, (_, i) => String(i + 1))]);
