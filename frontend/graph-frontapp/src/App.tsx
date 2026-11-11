@@ -1,183 +1,105 @@
-import { useState } from 'react';
 import {
-  MantineProvider,
-  Container,
-  Title,
-  Paper,
-  TextInput,
-  Button,
-  Group,
-  Stack,
-  Text,
-  Alert,
-  Loader,
   Badge,
-  Card,
-  Box,
+  Container,
+  MantineProvider,
+  Stack,
+  Table,
+  Title,
+  Text,
+  Loader,
+  Group,
+  Alert,
+  Button,
 } from '@mantine/core';
-import { IconAlertCircle, IconCheck, IconRefresh, IconPlus } from '@tabler/icons-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { apiClient, type Note } from '@/api/client';
+import type { GroupItem } from '@/api/client';
+import { useGroups } from '@/features/groups-list/useGroups';
 
 dayjs.extend(utc);
+const schemes = { farm: 'Ферма', address: 'Адрес', chain: 'Цепочка', ring: 'Кольцо' };
+const risks = { low: 'Низкий', medium: 'Средний', high: 'Высокий' };
+const riskColors = { low: 'green', medium: 'yellow', high: 'red' };
+const statuses = { new: 'Новая', approved: 'Подтверждена', declined: 'Отклонена' };
+const money = new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB' });
 
-export function NotesApp() {
-  const [inputText, setInputText] = useState('');
-  const [formError, setFormError] = useState<string | null>(null);
-  const queryClient = useQueryClient();
-
-  const {
-    data: notes,
-    isLoading,
-    isError,
-    error,
-    refetch,
-    isFetching,
-  } = useQuery<Note[]>({
-    queryKey: ['notes'],
-    queryFn: async () => {
-      const response = await apiClient.GET('/api/v1/notes');
-      if (!response.response.ok || response.error !== undefined || !response.data) {
-        throw new Error('Не удалось загрузить список записей с сервера');
-      }
-      return response.data.notes ?? [];
-    },
-  });
-
-  const createMutation = useMutation({
-    mutationFn: async (text: string) => {
-      const { data, error, response } = await apiClient.POST('/api/v1/notes', {
-        body: { text },
-      });
-      if (!response.ok) {
-        const detail = typeof error === 'object' ? error?.detail : undefined;
-        throw new Error(detail || `Ошибка при создании записи (HTTP ${response.status})`);
-      }
-      return data;
-    },
-    onSuccess: () => {
-      setInputText('');
-      setFormError(null);
-      queryClient.invalidateQueries({ queryKey: ['notes'] });
-    },
-    onError: (err: Error) => {
-      setFormError(err.message);
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputText.trim()) {
-      setFormError('Введите текст перед созданием');
-      return;
-    }
-    setFormError(null);
-    createMutation.mutate(inputText.trim());
-  };
-
+function GroupsList({ items }: { items: GroupItem[] }) {
   return (
-    <Container size="sm" py="xl">
-      <Stack gap="lg">
-        <Box>
-          <Title order={2}>Тестовая страница (GSD-5 / B1)</Title>
-          <Text c="dimmed" size="sm">
-            Проверка взаимодействия с API записей (GET/POST /api/v1/notes)
-          </Text>
-        </Box>
+    <Table striped withTableBorder>
+      <Table.Thead>
+        <Table.Tr>
+          {['Тип схемы', 'Риск', 'Число счетов', 'Сумма', 'Последнее событие', 'Статус'].map(
+            (label) => (
+              <Table.Th key={label}>{label}</Table.Th>
+            )
+          )}
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        {items.map((group) => (
+          <Table.Tr key={group.id}>
+            <Table.Td>{schemes[group.scheme]}</Table.Td>
+            <Table.Td>
+              <Badge color={riskColors[group.risk_level]} variant="light">
+                {risks[group.risk_level]} · {group.risk_score}
+              </Badge>
+            </Table.Td>
+            <Table.Td>{group.features.accounts_count}</Table.Td>
+            <Table.Td>{money.format(group.features.total_amount / 100)}</Table.Td>
+            <Table.Td>{dayjs.utc(group.last_event_at).format('DD.MM.YYYY HH:mm:ss')} UTC</Table.Td>
+            <Table.Td>{statuses[group.status]}</Table.Td>
+          </Table.Tr>
+        ))}
+      </Table.Tbody>
+    </Table>
+  );
+}
 
-        <Paper withBorder p="md" radius="md">
-          <form onSubmit={handleSubmit}>
+function GroupsScreen() {
+  const groups = useGroups();
+  return (
+    <Container fluid p="xl">
+      <Stack>
+        <Title order={1}>Подозрительные группы</Title>
+        {groups.isError && !groups.data && (
+          <Alert color="red" title="Ошибка загрузки">
             <Stack gap="sm">
-              <TextInput
-                label="Текст записи"
-                placeholder="Например: подозрительный перевод со счета 123"
-                value={inputText}
-                onChange={(e) => setInputText(e.currentTarget.value)}
-                error={formError}
-                disabled={createMutation.isPending}
-                aria-label="Текст записи"
-              />
-              <Group justify="flex-end">
-                <Button
-                  type="submit"
-                  leftSection={<IconPlus size={16} />}
-                  loading={createMutation.isPending}
-                >
-                  Создать
-                </Button>
-              </Group>
-            </Stack>
-          </form>
-        </Paper>
-
-        <Paper withBorder p="md" radius="md">
-          <Stack gap="md">
-            <Group justify="space-between">
-              <Group gap="xs">
-                <Title order={4}>Список записей</Title>
-                {notes && <Badge variant="light">{notes.length}</Badge>}
-              </Group>
-              <Button
-                variant="light"
-                leftSection={<IconRefresh size={16} />}
-                onClick={() => refetch()}
-                loading={isFetching}
-              >
-                Обновить
+              <Text>{groups.error.message}</Text>
+              <Button onClick={() => groups.refetch()} loading={groups.isFetching}>
+                Повторить
               </Button>
-            </Group>
-
-            {isError && (
-              <Alert
-                icon={<IconAlertCircle size={16} />}
-                title="Ошибка подключения"
-                color="red"
-                variant="light"
-              >
-                {error?.message ||
-                  'Сервис бэкенда недоступен. Проверьте запуск бэкенда или используйте моки.'}
-              </Alert>
-            )}
-
-            {isLoading && (
-              <Group justify="center" p="md">
-                <Loader size="sm" />
-                <Text size="sm" c="dimmed">
-                  Загрузка данных...
-                </Text>
-              </Group>
-            )}
-
-            {!isLoading && !isError && notes && notes.length === 0 && (
-              <Text c="dimmed" size="sm" ta="center" py="md">
-                Записей пока нет. Создайте первую запись выше.
-              </Text>
-            )}
-
-            {!isLoading && !isError && notes && notes.length > 0 && (
-              <Stack gap="xs">
-                {notes.map((note) => (
-                  <Card key={note.id} withBorder padding="sm" radius="sm">
-                    <Group justify="space-between" align="flex-start">
-                      <Stack gap={4}>
-                        <Text size="sm" fw={500}>
-                          {note.text}
-                        </Text>
-                        <Text size="xs" c="dimmed">
-                          UTC: {dayjs.utc(note.created_at).format('YYYY-MM-DD HH:mm:ss')} (id:{' '}
-                          {note.id})
-                        </Text>
-                      </Stack>
-                      <IconCheck size={16} color="green" />
-                    </Group>
-                  </Card>
-                ))}
-              </Stack>
-            )}
-          </Stack>
-        </Paper>
+            </Stack>
+          </Alert>
+        )}
+        {groups.isRefetchError && groups.data && (
+          <Alert color="red" title="Не удалось обновить список">
+            {groups.error.message}
+          </Alert>
+        )}
+        {groups.isPending && (
+          <Group role="status">
+            <Loader size="sm" />
+            <Text>Загрузка групп…</Text>
+          </Group>
+        )}
+        {groups.data &&
+          (groups.data.items.length ? (
+            <GroupsList items={groups.data.items} />
+          ) : (
+            <Text>
+              Подозрительных групп пока нет. Запустите сценарий через Swagger graph-admin-api
+            </Text>
+          ))}
+        {groups.isFetchNextPageError && (
+          <Alert color="red" title="Не удалось загрузить следующую страницу">
+            {groups.error.message}
+          </Alert>
+        )}
+        {groups.hasNextPage && (
+          <Button onClick={() => groups.fetchNextPage()} loading={groups.isFetchingNextPage}>
+            {groups.isFetchNextPageError ? 'Повторить загрузку' : 'Показать ещё'}
+          </Button>
+        )}
       </Stack>
     </Container>
   );
@@ -186,7 +108,7 @@ export function NotesApp() {
 export function App() {
   return (
     <MantineProvider>
-      <NotesApp />
+      <GroupsScreen />
     </MantineProvider>
   );
 }
