@@ -61,6 +61,8 @@ function GraphCanvas({ scheme, graph }: { scheme: Props['scheme']; graph: GroupG
       container: container.current,
       elements: toGraphElements(scheme, graph),
       style: graphStylesheet(theme),
+      autounselectify: true,
+      boxSelectionEnabled: false,
     });
     cy.layout(graphLayout(scheme, cy)).run();
 

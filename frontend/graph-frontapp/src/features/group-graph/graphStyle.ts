@@ -4,13 +4,29 @@ import type { GraphNode } from '@/api/client';
 
 export type ShownNodeType = Exclude<GraphNode['type'], 'client'>;
 
+const nodeHeightPx = 30;
+const regularHexagonWidthToHeight = 2 / Math.sqrt(3);
+
 export const nodeKinds = {
-  account: { label: 'счёт', color: 'blue', shape: 'ellipse', legendMarker: 'circle' },
-  device: { label: 'устройство', color: 'orange', shape: 'round-diamond', legendMarker: 'diamond' },
+  account: {
+    label: 'счёт',
+    color: 'blue',
+    shape: 'ellipse',
+    widthToHeight: 1,
+    legendMarker: 'circle',
+  },
+  device: {
+    label: 'устройство',
+    color: 'orange',
+    shape: 'round-diamond',
+    widthToHeight: 1,
+    legendMarker: 'diamond',
+  },
   network_address: {
     label: 'сетевой адрес',
     color: 'grape',
     shape: 'round-hexagon',
+    widthToHeight: regularHexagonWidthToHeight,
     legendMarker: 'hexagon',
   },
 } as const satisfies Record<ShownNodeType, unknown>;
@@ -19,6 +35,7 @@ export const nodeColor = (theme: MantineTheme, type: ShownNodeType) =>
   theme.colors[nodeKinds[type].color][6];
 
 export const graphStylesheet = (theme: MantineTheme): StylesheetJson => [
+  { selector: 'node:active', style: { 'overlay-opacity': 0 } },
   {
     selector: 'node',
     style: {
@@ -31,7 +48,12 @@ export const graphStylesheet = (theme: MantineTheme): StylesheetJson => [
   },
   ...(Object.keys(nodeKinds) as ShownNodeType[]).map((type) => ({
     selector: `node[type = "${type}"]`,
-    style: { 'background-color': nodeColor(theme, type), shape: nodeKinds[type].shape },
+    style: {
+      'background-color': nodeColor(theme, type),
+      shape: nodeKinds[type].shape,
+      width: nodeHeightPx * nodeKinds[type].widthToHeight,
+      height: nodeHeightPx,
+    },
   })),
   {
     selector: 'edge',
@@ -45,7 +67,8 @@ export const graphStylesheet = (theme: MantineTheme): StylesheetJson => [
       'target-arrow-color': theme.colors.gray[6],
       'target-arrow-shape': 'triangle',
       'text-rotation': 'autorotate',
-      'text-background-color': theme.white,
+      events: 'no',
+      'text-background-color': theme.colors.gray[0],
       'text-background-opacity': 1,
     },
   },
