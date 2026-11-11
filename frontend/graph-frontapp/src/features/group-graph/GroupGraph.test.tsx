@@ -83,6 +83,13 @@ describe('GroupGraph', () => {
     expect(cytoscape).not.toHaveBeenCalled();
   });
 
+  it('оставляет легенду с пометкой UTC, даже когда графа нет', async () => {
+    server.use(http.get(graphUrl, () => new HttpResponse(null, { status: 500 })));
+    renderGraph();
+    expect(await screen.findByText('Не удалось загрузить граф группы')).toBeVisible();
+    expect(screen.getByText('время в UTC')).toBeVisible();
+  });
+
   it('при ошибке сервера даёт повторить загрузку', async () => {
     server.use(http.get(graphUrl, () => new HttpResponse(null, { status: 500 }), { once: true }));
     renderGraph();

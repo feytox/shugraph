@@ -1,4 +1,4 @@
-import { MantineProvider, Text } from '@mantine/core';
+import { Center, MantineProvider, Text } from '@mantine/core';
 import { GroupGraph } from '@/features/group-graph/GroupGraph';
 import { GroupsPanel } from '@/features/groups-list/GroupsPanel';
 import {
@@ -21,9 +21,9 @@ function AnalystScreen() {
           <GroupGraph key={selected.id} groupId={selected.id} scheme={selected.scheme} />
         )}
         {notInList && (
-          <Text c="dimmed" p="md">
-            Группа не найдена в загруженном списке
-          </Text>
+          <Center h="100%">
+            <Text c="dimmed">Группа не найдена в загруженном списке</Text>
+          </Center>
         )}
       </main>
       <aside className={classes.card} aria-label="Карточка группы" />
