@@ -49,6 +49,12 @@ describe('SidePanel', () => {
     expect(width()).toBe(panelWidthPx.min);
   });
 
+  it('сохранённая ширина меньше минимума поднимается до минимума', () => {
+    localStorage.setItem('test-panel-width', String(panelWidthPx.min - 80));
+    renderPanel();
+    expect(width()).toBe(panelWidthPx.min);
+  });
+
   it('правая панель растёт, когда край тянут влево', () => {
     renderPanel('right');
     fireEvent.keyDown(separator(), { key: 'ArrowLeft' });

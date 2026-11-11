@@ -21,10 +21,11 @@ const icons = {
 const growsWhenDraggedRight: Record<Side, 1 | -1> = { left: 1, right: -1 };
 
 export function SidePanel({ side, title, storageKey, children }: Props) {
-  const [width, setWidth] = useLocalStorage({
+  const [storedWidth, setWidth] = useLocalStorage({
     key: `${storageKey}-width`,
     defaultValue: panelWidthPx.initial,
   });
+  const width = clampPanelWidth(storedWidth);
   const [collapsed, setCollapsed] = useLocalStorage({
     key: `${storageKey}-collapsed`,
     defaultValue: false,
@@ -90,11 +91,11 @@ export function SidePanel({ side, title, storageKey, children }: Props) {
         >
           <CollapseIcon size={18} />
         </ActionIcon>
-        <Title order={2} size="h4">
+        <Title order={2} size="h4" lineClamp={1}>
           {title}
         </Title>
       </Group>
-      <ScrollArea type="scroll" className={classes.body}>
+      <ScrollArea type="never" className={classes.body}>
         {children}
       </ScrollArea>
       <div

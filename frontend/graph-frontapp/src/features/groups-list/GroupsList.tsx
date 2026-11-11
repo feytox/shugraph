@@ -24,6 +24,7 @@ function RiskBadge({ level, score }: { level: GroupItem['risk_level']; score: nu
       variant="filled"
       size="lg"
       fw={800}
+      className={classes.keepWidth}
       aria-label={`Риск ${riskLabels[level].toLowerCase()}: ${score}`}
     >
       {score}
@@ -33,7 +34,13 @@ function RiskBadge({ level, score }: { level: GroupItem['risk_level']; score: nu
 
 function StatusBadge({ status }: { status: GroupItem['status'] }) {
   return (
-    <Badge color={statusColors[status]} variant="light" size="sm" tt="none">
+    <Badge
+      color={statusColors[status]}
+      variant="light"
+      size="sm"
+      tt="none"
+      className={classes.keepWidth}
+    >
       {statusLabels[status]}
     </Badge>
   );
@@ -59,11 +66,11 @@ export function GroupsList({ items }: { items: GroupItem[] }) {
               <RiskBadge level={group.risk_level} score={group.risk_score} />
             </Group>
             <Group justify="space-between" wrap="nowrap">
-              <Text size="xs" c="dimmed">
+              <Text size="xs" c="dimmed" truncate>
                 {accountsLabel(group.features.accounts_count)} ·{' '}
                 {formatRub(group.features.total_amount)}
               </Text>
-              <Text size="xs" c="dimmed">
+              <Text size="xs" c="dimmed" className={classes.keepWidth}>
                 {dayjs.utc(group.last_event_at).format('DD.MM.YY HH:mm')}
               </Text>
             </Group>

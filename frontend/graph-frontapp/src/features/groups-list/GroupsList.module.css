@@ -19,3 +19,8 @@
 .row[aria-current='true'] {
   background: var(--mantine-color-blue-0);
 }
+
+.keepWidth {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
