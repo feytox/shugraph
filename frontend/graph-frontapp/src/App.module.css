@@ -1,6 +1,6 @@
 .screen {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 320px;
+  grid-template-columns: auto minmax(0, 1fr);
   height: 100dvh;
 }
 
@@ -9,8 +9,4 @@
   min-height: 0;
   overflow: hidden;
   background: var(--mantine-color-gray-0);
-}
-
-.card {
-  border-left: 1px solid var(--mantine-color-gray-3);
 }

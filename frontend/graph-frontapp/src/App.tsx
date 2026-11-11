@@ -31,7 +31,6 @@ function AnalystScreen() {
           </Center>
         )}
       </main>
-      <aside className={classes.card} aria-label="Карточка группы" />
     </div>
   );
 }
