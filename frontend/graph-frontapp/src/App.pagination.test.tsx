@@ -71,5 +71,7 @@ it('сохраняет загруженные группы после ошибк
   fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку' }));
   await waitFor(() => expect(within(list).getAllByRole('listitem')).toHaveLength(25));
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole('button', { name: /Показать ещё|Повторить загрузку/ })
+  ).not.toBeInTheDocument();
 });

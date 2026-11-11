@@ -14,8 +14,8 @@ export const riskLabels: Record<GroupItem['risk_level'], string> = {
 };
 
 export const riskColors: Record<GroupItem['risk_level'], string> = {
-  low: 'green',
-  medium: 'yellow',
+  low: 'gray',
+  medium: 'orange',
   high: 'red',
 };
 

@@ -44,7 +44,12 @@ export function GroupsPanel() {
         </Alert>
       )}
       {groups.hasNextPage && (
-        <Button onClick={() => groups.fetchNextPage()} loading={groups.isFetchingNextPage} mx="md">
+        <Button
+          variant="default"
+          onClick={() => groups.fetchNextPage()}
+          loading={groups.isFetchingNextPage}
+          mx="md"
+        >
           {groups.isFetchNextPageError ? 'Повторить загрузку' : 'Показать ещё'}
         </Button>
       )}

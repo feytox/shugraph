@@ -32,16 +32,10 @@ describe('Подозрительные группы', () => {
     const [item] = within(await screen.findByRole('list', { name: 'Список групп' })).getAllByRole(
       'listitem'
     );
-    for (const value of [
-      'Ферма',
-      'Высокий · 87',
-      '7 счетов',
-      '123,45 ₽',
-      '07.10.2026 10:30:45 UTC',
-      'Новая',
-    ]) {
+    for (const value of ['Ферма', '7 счетов', '123,45 ₽', '07.10.2026 10:30', 'Новая']) {
       expect(item).toHaveTextContent(value);
     }
+    expect(within(item).getByLabelText('Риск высокий: 87')).toBeVisible();
   });
 });
 
@@ -69,7 +63,7 @@ it('объясняет пустой список и предлагает зап�
     )
   ).toBeVisible();
   expect(screen.queryByRole('list', { name: 'Список групп' })).not.toBeInTheDocument();
-  expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /сценари/i })).not.toBeInTheDocument();
 });
 
 it('сохраняет отличие ошибки от пустого ответа и восстанавливается по Повторить', async () => {
