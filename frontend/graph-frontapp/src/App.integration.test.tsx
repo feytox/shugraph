@@ -192,6 +192,8 @@ it('после ошибки первой загрузки ждёт явного 
   );
   await advance(9000);
   expect(requests).toBe(1);
-  expect(screen.getByRole('button', { name: 'Повторить' })).toBeEnabled();
+  expect(
+    screen.getByRole('button', { name: 'Повторить: Не удалось загрузить список' })
+  ).toBeEnabled();
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
 });

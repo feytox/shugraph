@@ -10,14 +10,20 @@ import {
 import classes from '@/shared/SidePanel.module.css';
 
 type Side = 'left' | 'right';
-type Props = { side: Side; title: string; storageKey: string; children: ReactNode };
+type Props = {
+  side: Side;
+  title: string;
+  storageKey: string;
+  footer?: ReactNode;
+  children: ReactNode;
+};
 
 const icons = {
   left: { collapse: IconLayoutSidebarLeftCollapse, expand: IconLayoutSidebarLeftExpand },
   right: { collapse: IconLayoutSidebarRightCollapse, expand: IconLayoutSidebarRightExpand },
 };
 
-export function SidePanel({ side, title, storageKey, children }: Props) {
+export function SidePanel({ side, title, storageKey, footer, children }: Props) {
   const [collapsed, setCollapsed] = useLocalStorage({
     key: `${storageKey}-collapsed`,
     defaultValue: false,
@@ -63,11 +69,13 @@ export function SidePanel({ side, title, storageKey, children }: Props) {
       <ScrollArea
         type="never"
         className={`${classes.body} ${classes.fadesWhenCollapsed}`}
-        classNames={{ content: classes.scrollContent }}
         inert={collapsed}
       >
         {children}
       </ScrollArea>
+      <div className={`${classes.footer} ${classes.fadesWhenCollapsed}`} inert={collapsed}>
+        {footer}
+      </div>
     </aside>
   );
 }

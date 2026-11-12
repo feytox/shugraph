@@ -73,7 +73,7 @@ it('сохраняет отличие ошибки от пустого отве�
     )
   );
   renderScreen();
-  expect(await screen.findByRole('alert')).toHaveTextContent('Хранилище групп временно недоступно');
+  expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось загрузить список');
   expect(screen.queryByText(/Подозрительных групп пока нет/)).not.toBeInTheDocument();
   server.use(
     http.get('*/api/v1/groups', () =>
@@ -94,7 +94,7 @@ it('сохраняет отличие ошибки от пустого отве�
       })
     )
   );
-  fireEvent.click(screen.getByRole('button', { name: 'Повторить' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Повторить: Не удалось загрузить список' }));
   expect(await screen.findByText('Кольцо')).toBeVisible();
   expect(screen.getByText('Подтверждена')).toBeVisible();
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();

@@ -51,9 +51,9 @@ export function GroupGraph({ groupId, scheme, lastEventAt }: Props) {
     <GraphFrame
       elements={drawn}
       notice={
-        drawn && graph.isError ? (
+        graph.isError ? (
           <ErrorNotice
-            title="Не удалось обновить граф"
+            title={drawn ? 'Не удалось обновить граф' : 'Не удалось загрузить граф'}
             onRetry={() => graph.refetch()}
             retrying={graph.isFetching}
           />
@@ -77,17 +77,7 @@ function GraphStatus({ graph }: { graph: GroupGraphQuery }) {
     );
   }
 
-  if (graph.isError) {
-    return (
-      <Center h="100%">
-        <ErrorNotice
-          title={graph.error.message}
-          onRetry={() => graph.refetch()}
-          retrying={graph.isFetching}
-        />
-      </Center>
-    );
-  }
+  if (graph.isError) return null;
 
   return <GraphMessage>Граф группы не найден</GraphMessage>;
 }

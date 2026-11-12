@@ -1,13 +1,17 @@
 .notice {
+  --notice-accent: var(--mantine-color-red-6);
+  --notice-border: color-mix(in srgb, var(--notice-accent) 45%, transparent);
+  --notice-background: color-mix(in srgb, var(--notice-accent) 10%, var(--mantine-color-body));
+
   max-width: 100%;
   padding: calc(var(--mantine-spacing-xs) / 2) var(--mantine-spacing-xs)
     calc(var(--mantine-spacing-xs) / 2) var(--mantine-spacing-sm);
+  border: 1px solid var(--notice-border);
   border-radius: var(--mantine-radius-sm);
-  background: color-mix(in srgb, var(--mantine-color-red-7) 85%, transparent);
-  color: var(--mantine-color-white);
-  box-shadow: var(--mantine-shadow-sm);
+  background: var(--notice-background);
+  color: var(--mantine-color-red-9);
 }
 
 .title {
-  flex-shrink: 0;
+  min-width: 0;
 }

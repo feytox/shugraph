@@ -4,28 +4,22 @@ import classes from '@/shared/ErrorNotice.module.css';
 
 type Props = {
   title: string;
-  details?: string;
   onRetry?: () => void;
   retrying?: boolean;
 };
 
-export function ErrorNotice({ title, details, onRetry, retrying = false }: Props) {
+export function ErrorNotice({ title, onRetry, retrying = false }: Props) {
   return (
     <Group role="alert" gap="xs" wrap="nowrap" className={classes.notice}>
-      <Text size="sm" fw={600} className={classes.title}>
+      <Text size="sm" fw={600} truncate className={classes.title}>
         {title}
       </Text>
-      {details && (
-        <Text size="sm" truncate>
-          {details}
-        </Text>
-      )}
       {onRetry && (
         <ActionIcon
-          variant="transparent"
-          color="white"
+          variant="subtle"
+          color="red"
           size="sm"
-          aria-label="Повторить"
+          aria-label={`Повторить: ${title}`}
           loading={retrying}
           onClick={onRetry}
         >

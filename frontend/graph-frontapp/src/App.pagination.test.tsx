@@ -62,16 +62,12 @@ it('сохраняет загруженные группы после ошибк
   renderScreen();
   const list = await screen.findByRole('list', { name: 'Список групп' });
   fireEvent.click(screen.getByRole('button', { name: 'Показать ещё' }));
-  expect(await screen.findByRole('alert')).toHaveTextContent(
-    'Не удалось загрузить следующую страницу'
-  );
-  expect(screen.getByRole('alert')).toHaveTextContent('Курсор страницы недействителен');
+  expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось загрузить ещё');
   expect(within(list).getAllByRole('listitem')).toHaveLength(20);
+  expect(screen.queryByRole('button', { name: 'Показать ещё' })).not.toBeInTheDocument();
   failNextPage = false;
-  fireEvent.click(screen.getByRole('button', { name: 'Повторить загрузку' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Повторить: Не удалось загрузить ещё' }));
   await waitFor(() => expect(within(list).getAllByRole('listitem')).toHaveLength(25));
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
-  expect(
-    screen.queryByRole('button', { name: /Показать ещё|Повторить загрузку/ })
-  ).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: 'Показать ещё' })).not.toBeInTheDocument();
 });

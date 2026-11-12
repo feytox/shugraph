@@ -69,7 +69,6 @@ it('сохраняет таблицу при ошибке обновления �
   await waitForScreen(() =>
     expect(screen.getByRole('alert')).toHaveTextContent('Не удалось обновить список')
   );
-  expect(screen.getByRole('alert')).toHaveTextContent('Обновление временно недоступно');
   expect(
     within(screen.getByRole('list', { name: 'Список групп' })).getByLabelText('Риск высокий: 87')
   ).toBeVisible();

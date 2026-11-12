@@ -1,6 +1,6 @@
 import { MantineProvider } from '@mantine/core';
 import { GraphFrame, GraphMessage, GroupGraph } from '@/features/group-graph/GroupGraph';
-import { GroupsPanel } from '@/features/groups-list/GroupsPanel';
+import { GroupsPanel, GroupsPanelError } from '@/features/groups-list/GroupsPanel';
 import {
   useDefaultGroupSelection,
   useSelectedGroup,
@@ -13,7 +13,12 @@ function AnalystScreen() {
   const { group: selected, notInList } = useSelectedGroup();
   return (
     <div className={classes.screen}>
-      <SidePanel side="left" title="Подозрительные группы" storageKey="groups-panel">
+      <SidePanel
+        side="left"
+        title="Подозрительные группы"
+        storageKey="groups-panel"
+        footer={<GroupsPanelError />}
+      >
         <GroupsPanel />
       </SidePanel>
       <main className={classes.graph}>

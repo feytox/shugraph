@@ -87,7 +87,7 @@ it('для группы без графа пишет, что граф не на�
   respond([unknown]);
   renderScreen();
   expect(await screen.findByText('Граф группы не найден')).toBeVisible();
-  expect(screen.queryByRole('button', { name: 'Повторить' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /Повторить/ })).not.toBeInTheDocument();
 });
 
 it('сообщает, если группы из адреса нет в загруженном списке', async () => {

@@ -117,7 +117,9 @@ describe('GroupGraph', () => {
     server.use(http.get(graphUrl, () => new HttpResponse(null, { status: 500 })));
     rerender(graphFor('farm', '2026-11-12T10:45:00Z', client));
     expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось обновить граф');
-    expect(screen.getByRole('button', { name: 'Повторить' })).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: 'Повторить: Не удалось обновить граф' })
+    ).toBeVisible();
     expect(screen.getByRole('img', { name: 'Граф группы' })).toBeInTheDocument();
     expect(screen.getByText('устройство')).toBeVisible();
     expect(cytoscape).toHaveBeenCalledTimes(1);
@@ -136,7 +138,7 @@ describe('GroupGraph', () => {
   it('оставляет легенду с пометкой UTC, даже когда графа нет', async () => {
     server.use(http.get(graphUrl, () => new HttpResponse(null, { status: 500 })));
     renderGraph();
-    expect(await screen.findByText('Не удалось загрузить граф группы')).toBeVisible();
+    expect(await screen.findByText('Не удалось загрузить граф')).toBeVisible();
     expect(screen.getByText('время в UTC')).toBeVisible();
     expect(screen.queryByText('счёт')).not.toBeInTheDocument();
   });
@@ -144,8 +146,8 @@ describe('GroupGraph', () => {
   it('при ошибке сервера даёт повторить загрузку', async () => {
     server.use(http.get(graphUrl, () => new HttpResponse(null, { status: 500 }), { once: true }));
     renderGraph();
-    expect(await screen.findByText('Не удалось загрузить граф группы')).toBeVisible();
-    fireEvent.click(screen.getByRole('button', { name: 'Повторить' }));
+    expect(await screen.findByText('Не удалось загрузить граф')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Повторить: Не удалось загрузить граф' }));
     await waitFor(() => expect(cytoscape).toHaveBeenCalled());
   });
 });
