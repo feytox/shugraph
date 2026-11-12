@@ -45,7 +45,7 @@ export function GroupGraph({ groupId, scheme, lastEventAt }: Props) {
     [scheme, graph.data]
   );
   const [drawn, setDrawn] = useState(fetched);
-  if (fetched && fetched !== drawn) setDrawn(fetched);
+  if (graph.isSuccess && fetched !== drawn) setDrawn(fetched);
 
   return (
     <GraphFrame
