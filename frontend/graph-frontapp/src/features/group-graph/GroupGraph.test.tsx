@@ -117,7 +117,7 @@ describe('GroupGraph', () => {
     server.use(http.get(graphUrl, () => new HttpResponse(null, { status: 500 })));
     rerender(graphFor('farm', '2026-11-12T10:45:00Z', client));
     expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось обновить граф');
-    expect(screen.getByRole('button', { name: 'Обновить граф' })).toBeVisible();
+    expect(screen.getByRole('button', { name: 'Повторить' })).toBeVisible();
     expect(screen.getByRole('img', { name: 'Граф группы' })).toBeInTheDocument();
     expect(screen.getByText('устройство')).toBeVisible();
     expect(cytoscape).toHaveBeenCalledTimes(1);

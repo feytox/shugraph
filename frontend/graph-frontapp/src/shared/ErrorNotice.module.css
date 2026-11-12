@@ -1,0 +1,13 @@
+.notice {
+  max-width: 100%;
+  padding: calc(var(--mantine-spacing-xs) / 2) var(--mantine-spacing-xs)
+    calc(var(--mantine-spacing-xs) / 2) var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-sm);
+  background: color-mix(in srgb, var(--mantine-color-red-7) 85%, transparent);
+  color: var(--mantine-color-white);
+  box-shadow: var(--mantine-shadow-sm);
+}
+
+.title {
+  flex-shrink: 0;
+}

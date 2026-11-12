@@ -1,12 +1,12 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react';
-import { ActionIcon, Alert, Button, Center, Group, Loader, Stack, Text } from '@mantine/core';
-import { IconRefresh } from '@tabler/icons-react';
+import { Center, Group, Loader, Text } from '@mantine/core';
 import type { ElementsDefinition } from 'cytoscape';
 import type { GroupItem } from '@/api/client';
 import { GraphLegend } from '@/features/group-graph/GraphLegend';
 import { toGraphElements } from '@/features/group-graph/graphElements';
 import { useCytoscapeGraph } from '@/features/group-graph/useCytoscapeGraph';
 import { useGroupGraph } from '@/features/group-graph/useGroupGraph';
+import { ErrorNotice } from '@/shared/ErrorNotice';
 import classes from '@/features/group-graph/GroupGraph.module.css';
 
 type Props = { groupId: string; scheme: GroupItem['scheme']; lastEventAt: string };
@@ -24,7 +24,8 @@ export function GraphFrame({
   return (
     <div className={classes.root}>
       <div className={classes.canvasArea}>{children}</div>
-      <GraphLegend elements={elements} notice={notice} />
+      {notice && <div className={classes.noticeRow}>{notice}</div>}
+      <GraphLegend elements={elements} />
     </div>
   );
 }
@@ -49,7 +50,15 @@ export function GroupGraph({ groupId, scheme, lastEventAt }: Props) {
   return (
     <GraphFrame
       elements={drawn}
-      notice={drawn && graph.isError ? <RefreshError graph={graph} /> : undefined}
+      notice={
+        drawn && graph.isError ? (
+          <ErrorNotice
+            title="Не удалось обновить граф"
+            onRetry={() => graph.refetch()}
+            retrying={graph.isFetching}
+          />
+        ) : undefined
+      }
     >
       {drawn ? <GraphCanvas scheme={scheme} elements={drawn} /> : <GraphStatus graph={graph} />}
     </GraphFrame>
@@ -71,43 +80,16 @@ function GraphStatus({ graph }: { graph: GroupGraphQuery }) {
   if (graph.isError) {
     return (
       <Center h="100%">
-        <Alert color="red" title="Ошибка загрузки графа">
-          <Stack gap="sm">
-            <Text>{graph.error.message}</Text>
-            <RetryButton graph={graph} />
-          </Stack>
-        </Alert>
+        <ErrorNotice
+          title={graph.error.message}
+          onRetry={() => graph.refetch()}
+          retrying={graph.isFetching}
+        />
       </Center>
     );
   }
 
   return <GraphMessage>Граф группы не найден</GraphMessage>;
-}
-
-function RefreshError({ graph }: { graph: GroupGraphQuery }) {
-  return (
-    <Group role="alert" gap="xs" wrap="nowrap" className={classes.refreshError}>
-      <Text size="xs">Не удалось обновить граф</Text>
-      <ActionIcon
-        variant="transparent"
-        color="white"
-        size="sm"
-        aria-label="Обновить граф"
-        loading={graph.isFetching}
-        onClick={() => graph.refetch()}
-      >
-        <IconRefresh size={14} />
-      </ActionIcon>
-    </Group>
-  );
-}
-
-function RetryButton({ graph }: { graph: GroupGraphQuery }) {
-  return (
-    <Button onClick={() => graph.refetch()} loading={graph.isFetching}>
-      Повторить
-    </Button>
-  );
 }
 
 function GraphCanvas({

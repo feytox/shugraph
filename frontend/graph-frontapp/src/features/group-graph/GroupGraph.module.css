@@ -17,14 +17,10 @@
   overflow: hidden;
 }
 
-.refreshError {
-  flex-shrink: 0;
-  white-space: nowrap;
-  padding-left: var(--mantine-spacing-sm);
-  border-radius: var(--mantine-radius-xl);
-  background: color-mix(in srgb, var(--mantine-color-dark-7) 75%, transparent);
-  color: var(--mantine-color-white);
-  box-shadow: var(--mantine-shadow-sm);
+.noticeRow {
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--mantine-spacing-md) var(--mantine-spacing-xs);
 }
 
 .legend {
