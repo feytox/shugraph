@@ -129,3 +129,26 @@ it('сохраняет таблицу пока ответ фонового об�
   await advance(1);
   await waitForScreen(() => expect(screen.getByLabelText('Риск высокий: 95')).toBeVisible());
 });
+
+it('держит ошибку следующей страницы до повтора и не опрашивает список поверх неё', async () => {
+  const cursor = 'next-page';
+  let requests = 0;
+  server.use(
+    http.get('*/api/v1/groups', ({ request }) => {
+      requests++;
+      if (new URL(request.url).searchParams.has('cursor'))
+        return new HttpResponse(null, { status: 500 });
+      return HttpResponse.json<GroupListResponse>({ items: [group], next_cursor: cursor });
+    })
+  );
+  await openScreen();
+  fireEvent.click(screen.getByRole('button', { name: 'Показать ещё' }));
+  await waitForScreen(() =>
+    expect(screen.getByRole('alert')).toHaveTextContent('Не удалось загрузить ещё')
+  );
+  const requestsAfterError = requests;
+  await advance(9000);
+  expect(requests).toBe(requestsAfterError);
+  expect(screen.getAllByRole('alert')).toHaveLength(1);
+  expect(screen.getByRole('alert')).toHaveTextContent('Не удалось загрузить ещё');
+});

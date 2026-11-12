@@ -3,6 +3,15 @@ import { apiClient } from '@/api/client';
 
 const pollIntervalMs = 3000;
 
+type GroupsQueryState = {
+  status: string;
+  fetchMeta: { fetchMore?: { direction: 'forward' | 'backward' } } | null;
+};
+
+function failedOnNextPage(state: GroupsQueryState) {
+  return state.status === 'error' && state.fetchMeta?.fetchMore?.direction === 'forward';
+}
+
 export function useGroups() {
   return useInfiniteQuery({
     queryKey: ['groups'],
@@ -25,7 +34,8 @@ export function useGroups() {
     }),
     retry: false,
     staleTime: pollIntervalMs,
-    refetchInterval: ({ state }) => (state.data ? pollIntervalMs : false),
-    refetchOnWindowFocus: 'always',
+    refetchInterval: ({ state }) =>
+      state.data && !failedOnNextPage(state) ? pollIntervalMs : false,
+    refetchOnWindowFocus: ({ state }) => (failedOnNextPage(state) ? false : 'always'),
   });
 }
