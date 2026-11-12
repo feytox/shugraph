@@ -18,10 +18,13 @@
 }
 
 .refreshError {
-  position: absolute;
-  top: var(--mantine-spacing-md);
-  left: 50%;
-  transform: translateX(-50%);
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding-left: var(--mantine-spacing-sm);
+  border-radius: var(--mantine-radius-xl);
+  background: color-mix(in srgb, var(--mantine-color-dark-7) 75%, transparent);
+  color: var(--mantine-color-white);
+  box-shadow: var(--mantine-shadow-sm);
 }
 
 .legend {

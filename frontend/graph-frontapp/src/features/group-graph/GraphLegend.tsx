@@ -20,7 +20,13 @@ function LegendItem({ marker, label }: { marker: ReactNode; label: string }) {
   );
 }
 
-export function GraphLegend({ elements }: { elements?: ElementsDefinition }) {
+export function GraphLegend({
+  elements,
+  notice,
+}: {
+  elements?: ElementsDefinition;
+  notice?: ReactNode;
+}) {
   const hasNodeType = (type: string) => !!elements?.nodes.some((node) => node.data.type === type);
   const hasEdgeType = (type: string) => !!elements?.edges.some((edge) => edge.data.type === type);
 
@@ -54,6 +60,7 @@ export function GraphLegend({ elements }: { elements?: ElementsDefinition }) {
             />
           ))}
       </Group>
+      {notice}
       <Text size="xs" c="dimmed">
         время в UTC
       </Text>

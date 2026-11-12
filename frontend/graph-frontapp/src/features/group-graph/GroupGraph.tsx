@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState, type ReactNode } from 'react';
-import { Alert, Button, Center, Group, Loader, Stack, Text } from '@mantine/core';
+import { ActionIcon, Alert, Button, Center, Group, Loader, Stack, Text } from '@mantine/core';
+import { IconRefresh } from '@tabler/icons-react';
 import type { ElementsDefinition } from 'cytoscape';
 import type { GroupItem } from '@/api/client';
 import { GraphLegend } from '@/features/group-graph/GraphLegend';
@@ -13,15 +14,17 @@ type GroupGraphQuery = ReturnType<typeof useGroupGraph>;
 
 export function GraphFrame({
   elements,
+  notice,
   children,
 }: {
   elements?: ElementsDefinition;
+  notice?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <div className={classes.root}>
       <div className={classes.canvasArea}>{children}</div>
-      <GraphLegend elements={elements} />
+      <GraphLegend elements={elements} notice={notice} />
     </div>
   );
 }
@@ -44,15 +47,11 @@ export function GroupGraph({ groupId, scheme, lastEventAt }: Props) {
   if (fetched && fetched !== drawn) setDrawn(fetched);
 
   return (
-    <GraphFrame elements={drawn}>
-      {drawn ? (
-        <>
-          <GraphCanvas scheme={scheme} elements={drawn} />
-          {graph.isError && <RefreshError graph={graph} />}
-        </>
-      ) : (
-        <GraphStatus graph={graph} />
-      )}
+    <GraphFrame
+      elements={drawn}
+      notice={drawn && graph.isError ? <RefreshError graph={graph} /> : undefined}
+    >
+      {drawn ? <GraphCanvas scheme={scheme} elements={drawn} /> : <GraphStatus graph={graph} />}
     </GraphFrame>
   );
 }
@@ -87,12 +86,19 @@ function GraphStatus({ graph }: { graph: GroupGraphQuery }) {
 
 function RefreshError({ graph }: { graph: GroupGraphQuery }) {
   return (
-    <Alert color="red" title="Не удалось обновить граф" className={classes.refreshError}>
-      <Stack gap="xs">
-        <Text size="sm">На экране последняя загруженная версия.</Text>
-        <RetryButton graph={graph} />
-      </Stack>
-    </Alert>
+    <Group role="alert" gap="xs" wrap="nowrap" className={classes.refreshError}>
+      <Text size="xs">Не удалось обновить граф</Text>
+      <ActionIcon
+        variant="transparent"
+        color="white"
+        size="sm"
+        aria-label="Обновить граф"
+        loading={graph.isFetching}
+        onClick={() => graph.refetch()}
+      >
+        <IconRefresh size={14} />
+      </ActionIcon>
+    </Group>
   );
 }
 
