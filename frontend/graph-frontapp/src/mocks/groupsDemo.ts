@@ -35,6 +35,5 @@ export function createGroupsDemo() {
       });
       return [...mockGroups.map((group) => group.item), ...generated];
     },
-    isRefreshError: () => elapsed() >= 3000 && elapsed() < 6000,
   };
 }
