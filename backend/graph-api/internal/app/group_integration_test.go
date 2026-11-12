@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"slices"
+	"sync"
 	"testing"
 	"time"
 
@@ -105,6 +106,41 @@ func TestGroups_FarmGrowsUntilFrozen(t *testing.T) {
 	require.Len(t, storedGroups(t), 1)
 }
 
+func TestGroups_LateLoginAfterFreezeStaysOutOfGroup(t *testing.T) {
+	clearEventTables(t)
+
+	putLogins(t, "dev-farm", 3*60+27, "a", "b", "c")
+	putLogins(t, "dev-other", 24*60+3*60+30, "x")
+	putLogins(t, "dev-farm", 5*60, "d")
+
+	group := onlyGroup(t)
+	require.True(t, group.IsFrozen)
+	require.Equal(t, []string{"acc-a", "acc-b", "acc-c"}, group.Members)
+}
+
+func TestGroups_ParallelLoginsOnOneDeviceGiveOneGroup(t *testing.T) {
+	clearEventTables(t)
+
+	clients := []string{"a", "b", "c", "d", "e", "f"}
+	statuses := make([]int, len(clients))
+
+	var wg sync.WaitGroup
+
+	for i, client := range clients {
+		wg.Go(func() {
+			statuses[i] = sendEvent(t.Context(), loginsPath+"login-"+client, deviceLogin("dev-farm", i, client))
+		})
+	}
+
+	wg.Wait()
+
+	for i, status := range statuses {
+		require.Equal(t, http.StatusCreated, status, clients[i])
+	}
+
+	require.Equal(t, []string{"acc-a", "acc-b", "acc-c", "acc-d", "acc-e", "acc-f"}, onlyGroup(t).Members)
+}
+
 func TestGroups_FrozenGroupEventsDoNotCountForNewGroup(t *testing.T) {
 	clearEventTables(t)
 
@@ -128,15 +164,17 @@ func putLogins(t *testing.T, deviceID string, minute int, clients ...string) {
 	t.Helper()
 
 	for i, client := range clients {
-		login := handler.LoginPayload{
-			OccurredAt: eventTime.Add(time.Duration(minute+i) * time.Minute),
-			AccountID:  "acc-" + client,
-			ClientID:   "cli-" + client,
-			DeviceID:   deviceID,
-			AddressID:  "10.0.0.1",
-		}
+		require.Equal(t, http.StatusCreated, putEvent(t, loginsPath+"login-"+client, deviceLogin(deviceID, minute+i, client)))
+	}
+}
 
-		require.Equal(t, http.StatusCreated, putEvent(t, loginsPath+"login-"+client, login))
+func deviceLogin(deviceID string, minute int, client string) handler.LoginPayload {
+	return handler.LoginPayload{
+		OccurredAt: eventTime.Add(time.Duration(minute) * time.Minute),
+		AccountID:  "acc-" + client,
+		ClientID:   "cli-" + client,
+		DeviceID:   deviceID,
+		AddressID:  "10.0.0.1",
 	}
 }
 
