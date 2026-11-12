@@ -63,6 +63,7 @@ export function SidePanel({ side, title, storageKey, children }: Props) {
       <ScrollArea
         type="never"
         className={`${classes.body} ${classes.fadesWhenCollapsed}`}
+        classNames={{ content: classes.scrollContent }}
         inert={collapsed}
       >
         {children}

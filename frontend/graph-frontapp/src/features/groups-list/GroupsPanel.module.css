@@ -1,0 +1,12 @@
+.fill {
+  flex: 1;
+}
+
+.bottomNotice {
+  position: sticky;
+  bottom: var(--mantine-spacing-xs);
+  display: flex;
+  justify-content: center;
+  margin-top: auto;
+  padding: 0 var(--mantine-spacing-md);
+}

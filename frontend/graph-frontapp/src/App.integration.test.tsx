@@ -187,7 +187,9 @@ it('после ошибки первой загрузки ждёт явного 
     })
   );
   renderScreen();
-  await waitForScreen(() => expect(screen.getByRole('alert')).toHaveTextContent('Ошибка загрузки'));
+  await waitForScreen(() =>
+    expect(screen.getByRole('alert')).toHaveTextContent('Не удалось загрузить список')
+  );
   await advance(9000);
   expect(requests).toBe(1);
   expect(screen.getByRole('button', { name: 'Повторить' })).toBeEnabled();

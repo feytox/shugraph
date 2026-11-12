@@ -1,26 +1,27 @@
-import { Alert, Button, Group, Loader, Stack, Text } from '@mantine/core';
+import { Button, Center, Group, Loader, Stack, Text } from '@mantine/core';
 import { GroupsList } from '@/features/groups-list/GroupsList';
 import { useGroups } from '@/features/groups-list/useGroups';
+import { ErrorNotice } from '@/shared/ErrorNotice';
+import classes from '@/features/groups-list/GroupsPanel.module.css';
 
 export function GroupsPanel() {
   const groups = useGroups();
+
+  if (groups.isError && !groups.data) {
+    return (
+      <Center className={classes.fill} px="md">
+        <ErrorNotice
+          title="Не удалось загрузить список"
+          details={groups.error.message}
+          onRetry={() => groups.refetch()}
+          retrying={groups.isFetching}
+        />
+      </Center>
+    );
+  }
+
   return (
-    <Stack gap="sm" pb="md">
-      {groups.isError && !groups.data && (
-        <Alert color="red" title="Ошибка загрузки" mx="md">
-          <Stack gap="sm">
-            <Text>{groups.error.message}</Text>
-            <Button onClick={() => groups.refetch()} loading={groups.isFetching}>
-              Повторить
-            </Button>
-          </Stack>
-        </Alert>
-      )}
-      {groups.isRefetchError && groups.data && (
-        <Alert color="red" title="Не удалось обновить список" mx="md">
-          {groups.error.message}
-        </Alert>
-      )}
+    <Stack gap="sm" pb="md" className={classes.fill}>
       {groups.isPending && (
         <Group role="status" px="md">
           <Loader size="sm" />
@@ -35,11 +36,6 @@ export function GroupsPanel() {
             Подозрительных групп пока нет. Запустите сценарий через Swagger graph-admin-api
           </Text>
         ))}
-      {groups.isFetchNextPageError && (
-        <Alert color="red" title="Не удалось загрузить следующую страницу" mx="md">
-          {groups.error.message}
-        </Alert>
-      )}
       {groups.hasNextPage && (
         <Button
           variant="default"
@@ -49,6 +45,24 @@ export function GroupsPanel() {
         >
           {groups.isFetchNextPageError ? 'Повторить загрузку' : 'Показать ещё'}
         </Button>
+      )}
+      {(groups.isRefetchError || groups.isFetchNextPageError) && (
+        <div className={classes.bottomNotice}>
+          {groups.isRefetchError && (
+            <ErrorNotice
+              title="Не удалось обновить список"
+              details={groups.error.message}
+              onRetry={() => groups.refetch()}
+              retrying={groups.isFetching}
+            />
+          )}
+          {groups.isFetchNextPageError && (
+            <ErrorNotice
+              title="Не удалось загрузить следующую страницу"
+              details={groups.error.message}
+            />
+          )}
+        </div>
       )}
     </Stack>
   );
