@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:mocks": "vite --mode mocks",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",
@@ -16,10 +17,12 @@
     "@mantine/hooks": "^9.7.1",
     "@tabler/icons-react": "^3.30.0",
     "@tanstack/react-query": "^5.66.0",
+    "cytoscape": "3.34.5",
     "dayjs": "^1.11.13",
     "openapi-fetch": "^0.17.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "react-router": "^8.5.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^7.0.1",

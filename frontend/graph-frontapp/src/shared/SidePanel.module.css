@@ -1,0 +1,69 @@
+.panel {
+  --panel-width: 300px;
+  --panel-toggle-size: calc(1.75rem * var(--mantine-scale));
+  --panel-collapsed-width: calc(var(--panel-toggle-size) + 2 * var(--mantine-spacing-md));
+
+  display: flex;
+  flex-direction: column;
+  width: var(--panel-width);
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--mantine-color-body);
+  transition: width 200ms ease;
+}
+
+.panel[data-collapsed] {
+  width: var(--panel-collapsed-width);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .fadesWhenCollapsed {
+    transition: none;
+  }
+}
+
+.panel[data-side='left'] {
+  border-right: 1px solid var(--mantine-color-gray-3);
+}
+
+.panel[data-side='right'] {
+  align-items: flex-end;
+  border-left: 1px solid var(--mantine-color-gray-3);
+}
+
+.header,
+.body,
+.footer {
+  flex-shrink: 0;
+  width: var(--panel-width);
+}
+
+.header[data-side='right'] {
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+}
+
+.footer {
+  display: flex;
+  justify-content: center;
+  padding: var(--mantine-spacing-xs) var(--mantine-spacing-md) var(--mantine-spacing-md);
+}
+
+.footer:empty {
+  display: none;
+}
+
+.fadesWhenCollapsed {
+  transition: opacity 150ms ease;
+}
+
+.panel[data-collapsed] .fadesWhenCollapsed {
+  opacity: 0;
+}

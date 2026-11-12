@@ -16,7 +16,9 @@ afterEach(() => {
 
 async function openScreen() {
   const view = renderScreen();
-  await waitForScreen(() => expect(screen.getByRole('table')).toBeVisible());
+  await waitForScreen(() =>
+    expect(screen.getByRole('list', { name: 'Список групп' })).toBeVisible()
+  );
   return view;
 }
 
@@ -31,7 +33,7 @@ function respond(items: GroupItem[]) {
 it('обновляет строки через 3 секунды и добавляет новую группу сверху без дублей', async () => {
   respond([group]);
   await openScreen();
-  expect(screen.getByText('Высокий · 87')).toBeVisible();
+  expect(screen.getByLabelText('Риск высокий: 87')).toBeVisible();
   respond([
     { ...group, id: '00000000-0000-4000-8000-000000000002', scheme: 'ring' },
     {
@@ -45,14 +47,14 @@ it('обновляет строки через 3 секунды и добавл�
   await advance(2000);
   expect(screen.queryByText('Кольцо')).not.toBeInTheDocument();
   await advance(1000);
-  await waitForScreen(() => expect(screen.getByText('Высокий · 95')).toBeVisible());
-  const rows = within(screen.getByRole('table')).getAllByRole('row');
-  expect(rows).toHaveLength(3);
-  expect(rows[1]).toHaveTextContent('Кольцо');
-  expect(rows[2]).toHaveTextContent('Высокий · 95');
-  expect(rows[2]).toHaveTextContent('678,90');
-  expect(rows[2]).toHaveTextContent('07.10.2026 11:00:00 UTC');
-  expect(rows[2]).toHaveTextContent('Подтверждена');
+  await waitForScreen(() => expect(screen.getByLabelText('Риск высокий: 95')).toBeVisible());
+  const rows = within(screen.getByRole('list', { name: 'Список групп' })).getAllByRole('listitem');
+  expect(rows).toHaveLength(2);
+  expect(rows[0]).toHaveTextContent('Кольцо');
+  expect(within(rows[1]).getByLabelText('Риск высокий: 95')).toBeVisible();
+  expect(rows[1]).toHaveTextContent('678,90');
+  expect(rows[1]).toHaveTextContent('07.10.26 11:00');
+  expect(rows[1]).toHaveTextContent('Подтверждена');
 });
 
 it('сохраняет таблицу при ошибке обновления и восстанавливается следующим опросом', async () => {
@@ -67,12 +69,13 @@ it('сохраняет таблицу при ошибке обновления �
   await waitForScreen(() =>
     expect(screen.getByRole('alert')).toHaveTextContent('Не удалось обновить список')
   );
-  expect(screen.getByRole('alert')).toHaveTextContent('Обновление временно недоступно');
-  expect(screen.getByRole('table')).toHaveTextContent('Высокий · 87');
+  expect(
+    within(screen.getByRole('list', { name: 'Список групп' })).getByLabelText('Риск высокий: 87')
+  ).toBeVisible();
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   respond([{ ...group, risk_score: 95 }]);
   await advance(3000);
-  await waitForScreen(() => expect(screen.getByText('Высокий · 95')).toBeVisible());
+  await waitForScreen(() => expect(screen.getByLabelText('Риск высокий: 95')).toBeVisible());
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 });
 
@@ -94,11 +97,11 @@ it('не опрашивает скрытую вкладку и обновляе�
   );
   for (let tick = 0; tick < 3; tick++) await advance(3000);
   expect(requests).toBe(0);
-  expect(screen.getByText('Высокий · 87')).toBeVisible();
+  expect(screen.getByLabelText('Риск высокий: 87')).toBeVisible();
   visibility.mockReturnValue('visible');
   fireEvent(document, new Event('visibilitychange', { bubbles: true }));
   await advance(1);
-  await waitForScreen(() => expect(screen.getByText('Высокий · 95')).toBeVisible());
+  await waitForScreen(() => expect(screen.getByLabelText('Риск высокий: 95')).toBeVisible());
 });
 
 it('сохраняет таблицу пока ответ фонового обновления задерживается', async () => {
@@ -118,9 +121,34 @@ it('сохраняет таблицу пока ответ фонового об�
   );
   await advance(3000);
   await waitForScreen(() => expect(finish).not.toEqual(undefined));
-  expect(screen.getByRole('table')).toHaveTextContent('Высокий · 87');
+  expect(
+    within(screen.getByRole('list', { name: 'Список групп' })).getByLabelText('Риск высокий: 87')
+  ).toBeVisible();
   expect(screen.queryByRole('status')).not.toBeInTheDocument();
   finish();
   await advance(1);
-  await waitForScreen(() => expect(screen.getByText('Высокий · 95')).toBeVisible());
+  await waitForScreen(() => expect(screen.getByLabelText('Риск высокий: 95')).toBeVisible());
+});
+
+it('держит ошибку следующей страницы до повтора и не опрашивает список поверх неё', async () => {
+  const cursor = 'next-page';
+  let requests = 0;
+  server.use(
+    http.get('*/api/v1/groups', ({ request }) => {
+      requests++;
+      if (new URL(request.url).searchParams.has('cursor'))
+        return new HttpResponse(null, { status: 500 });
+      return HttpResponse.json<GroupListResponse>({ items: [group], next_cursor: cursor });
+    })
+  );
+  await openScreen();
+  fireEvent.click(screen.getByRole('button', { name: 'Показать ещё' }));
+  await waitForScreen(() =>
+    expect(screen.getByRole('alert')).toHaveTextContent('Не удалось загрузить ещё')
+  );
+  const requestsAfterError = requests;
+  await advance(9000);
+  expect(requests).toBe(requestsAfterError);
+  expect(screen.getAllByRole('alert')).toHaveLength(1);
+  expect(screen.getByRole('alert')).toHaveTextContent('Не удалось загрузить ещё');
 });

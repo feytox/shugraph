@@ -1,18 +1,27 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 
+const pollIntervalMs = 3000;
+
+type GroupsQueryState = {
+  status: string;
+  fetchMeta: { fetchMore?: { direction: 'forward' | 'backward' } } | null;
+};
+
+function failedOnNextPage(state: GroupsQueryState) {
+  return state.status === 'error' && state.fetchMeta?.fetchMore?.direction === 'forward';
+}
+
 export function useGroups() {
   return useInfiniteQuery({
     queryKey: ['groups'],
     initialPageParam: undefined as string | undefined,
     queryFn: async ({ pageParam, signal }) => {
-      const { data, error, response } = await apiClient.GET('/api/v1/groups', {
+      const { data, response } = await apiClient.GET('/api/v1/groups', {
         params: { query: { limit: 20, cursor: pageParam } },
         signal,
       });
-      if (!response.ok || error !== undefined || !data) {
-        throw new Error(error?.detail || 'Не удалось загрузить список групп');
-      }
+      if (!response.ok || !data) throw new Error('Не удалось загрузить список групп');
       return data;
     },
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
@@ -24,8 +33,9 @@ export function useGroups() {
       ],
     }),
     retry: false,
-    staleTime: 3000,
-    refetchInterval: (query) => (query.state.data ? 3000 : false),
-    refetchOnWindowFocus: 'always',
+    staleTime: pollIntervalMs,
+    refetchInterval: ({ state }) =>
+      state.data && !failedOnNextPage(state) ? pollIntervalMs : false,
+    refetchOnWindowFocus: ({ state }) => (failedOnNextPage(state) ? false : 'always'),
   });
 }
