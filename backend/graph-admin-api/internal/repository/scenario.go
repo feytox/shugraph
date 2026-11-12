@@ -2,6 +2,7 @@ package repository
 
 import (
 	"encoding/json/v2"
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -21,10 +22,14 @@ func NewScenarioReadOnlyRepository() *ScenarioReadOnlyRepository {
 }
 
 func (*ScenarioReadOnlyRepository) GetByName(name string) (*domain.Scenario, error) {
-	data, err := fs.ReadFile(os.DirFS(scenariosDir), filepath.Join(name, ".json"))
+	fileName := name + ".json"
+	data, err := fs.ReadFile(os.DirFS(scenariosDir), fileName)
 
 	if err != nil {
-		return nil, err
+		if errors.Is(err, fs.ErrNotExist) {
+			return nil, domain.ErrScenarioNotFound
+		}
+		return nil, fmt.Errorf("read scenario file: %w", err)
 	}
 
 	var sc domain.Scenario
@@ -40,7 +45,7 @@ func (*ScenarioReadOnlyRepository) GetByName(name string) (*domain.Scenario, err
 func (*ScenarioReadOnlyRepository) ListNames() ([]string, error) {
 	files, err := os.ReadDir(scenariosDir)
 	if err != nil {
-		return nil, fmt.Errorf("list names: %w", err)
+		return nil, fmt.Errorf("read dir %q: %w", scenariosDir, err)
 	}
 
 	var scenarioNames []string

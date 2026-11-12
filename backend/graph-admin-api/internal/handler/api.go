@@ -21,9 +21,10 @@ type Pinger interface {
 }
 
 type Deps struct {
-	Notes    NoteService
-	Database Pinger
-	Log      *slog.Logger
+	Notes     NoteService
+	Scenarios ScenarioService
+	Database  Pinger
+	Log       *slog.Logger
 }
 
 func New(deps Deps) http.Handler {
@@ -46,6 +47,7 @@ func registerAPI(router chi.Router, deps Deps) huma.API {
 	api := humachi.New(router, config)
 	registerHealth(api, &healthHandlers{database: deps.Database, log: deps.Log})
 	registerNotes(api, &noteHandlers{notes: deps.Notes, log: deps.Log})
+	registerService(api, &scenarioHandlers{scenario: deps.Scenarios, log: deps.Log})
 
 	return api
 }

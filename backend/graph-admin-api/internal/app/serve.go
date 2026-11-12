@@ -56,13 +56,14 @@ func newServer(ctx context.Context, cfg config.Serve, log *slog.Logger) (*server
 	}
 
 	notes := service.NewNoteService(graph, repository.NewPgNoteRepository(pool))
-
+	scenarios := service.NewScenarioService(graph, repository.NewScenarioReadOnlyRepository(), log)
 	httpServer := &http.Server{
 		Addr: net.JoinHostPort("", strconv.Itoa(cfg.HTTP.Port)),
 		Handler: handler.New(handler.Deps{
-			Notes:    notes,
-			Database: pool,
-			Log:      log,
+			Notes:     notes,
+			Scenarios: scenarios,
+			Database:  pool,
+			Log:       log,
 		}),
 		ReadHeaderTimeout: cfg.HTTP.ReadHeaderTimeout,
 		ReadTimeout:       cfg.HTTP.ReadTimeout,

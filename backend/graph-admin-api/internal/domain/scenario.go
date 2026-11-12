@@ -1,17 +1,18 @@
 package domain
 
 import (
-	"time"
+	"encoding/json"
+	"errors"
+)
+
+const (
+	EventTypeLogin    = "login"
+	EventTypeTransfer = "transfer"
 )
 
 type Scenario struct {
-	Name   string          `json:"name"`
-	Events []ScenarioEvent `json:"events"`
+	Name   string            `json:"name"`
+	Events []json.RawMessage `json:"events"`
 }
 
-type ScenarioEvent struct {
-	EventID    string    `json:"event_id"`
-	Type       string    `json:"type"`
-	OccurredAt time.Time `json:"occurred_at"`
-	Amount     int64     `json:"amount"`
-}
+var ErrScenarioNotFound = errors.New("scenario not found")
