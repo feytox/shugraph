@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { Alert, Button, Center, Group, Loader, Stack, Text } from '@mantine/core';
 import type { ElementsDefinition } from 'cytoscape';
 import type { GroupItem } from '@/api/client';
@@ -11,32 +11,53 @@ import classes from '@/features/group-graph/GroupGraph.module.css';
 type Props = { groupId: string; scheme: GroupItem['scheme']; lastEventAt: string };
 type GroupGraphQuery = ReturnType<typeof useGroupGraph>;
 
-export function GroupGraph({ groupId, scheme, lastEventAt }: Props) {
-  const graph = useGroupGraph(groupId, lastEventAt);
-  const elements = useMemo(
-    () => (graph.data ? toGraphElements(scheme, graph.data) : undefined),
-    [scheme, graph.data]
-  );
-
+export function GraphFrame({
+  elements,
+  children,
+}: {
+  elements?: ElementsDefinition;
+  children: ReactNode;
+}) {
   return (
     <div className={classes.root}>
-      <div className={classes.canvasArea}>
-        <GraphArea graph={graph} scheme={scheme} elements={elements} />
-      </div>
+      <div className={classes.canvasArea}>{children}</div>
       <GraphLegend elements={elements} />
     </div>
   );
 }
 
-function GraphArea({
-  graph,
-  scheme,
-  elements,
-}: {
-  graph: GroupGraphQuery;
-  scheme: GroupItem['scheme'];
-  elements?: ElementsDefinition;
-}) {
+export function GraphMessage({ children }: { children: ReactNode }) {
+  return (
+    <Center h="100%">
+      <Text c="dimmed">{children}</Text>
+    </Center>
+  );
+}
+
+export function GroupGraph({ groupId, scheme, lastEventAt }: Props) {
+  const graph = useGroupGraph(groupId, lastEventAt);
+  const fetched = useMemo(
+    () => (graph.data ? toGraphElements(scheme, graph.data) : undefined),
+    [scheme, graph.data]
+  );
+  const [drawn, setDrawn] = useState(fetched);
+  if (fetched && fetched !== drawn) setDrawn(fetched);
+
+  return (
+    <GraphFrame elements={drawn}>
+      {drawn ? (
+        <>
+          <GraphCanvas scheme={scheme} elements={drawn} />
+          {graph.isError && <RefreshError graph={graph} />}
+        </>
+      ) : (
+        <GraphStatus graph={graph} />
+      )}
+    </GraphFrame>
+  );
+}
+
+function GraphStatus({ graph }: { graph: GroupGraphQuery }) {
   if (graph.isPending) {
     return (
       <Center h="100%">
@@ -54,24 +75,33 @@ function GraphArea({
         <Alert color="red" title="Ошибка загрузки графа">
           <Stack gap="sm">
             <Text>{graph.error.message}</Text>
-            <Button onClick={() => graph.refetch()} loading={graph.isFetching}>
-              Повторить
-            </Button>
+            <RetryButton graph={graph} />
           </Stack>
         </Alert>
       </Center>
     );
   }
 
-  if (!elements) {
-    return (
-      <Center h="100%">
-        <Text c="dimmed">Граф группы не найден</Text>
-      </Center>
-    );
-  }
+  return <GraphMessage>Граф группы не найден</GraphMessage>;
+}
 
-  return <GraphCanvas scheme={scheme} elements={elements} />;
+function RefreshError({ graph }: { graph: GroupGraphQuery }) {
+  return (
+    <Alert color="red" title="Не удалось обновить граф" className={classes.refreshError}>
+      <Stack gap="xs">
+        <Text size="sm">На экране последняя загруженная версия.</Text>
+        <RetryButton graph={graph} />
+      </Stack>
+    </Alert>
+  );
+}
+
+function RetryButton({ graph }: { graph: GroupGraphQuery }) {
+  return (
+    <Button onClick={() => graph.refetch()} loading={graph.isFetching}>
+      Повторить
+    </Button>
+  );
 }
 
 function GraphCanvas({

@@ -17,6 +17,13 @@
   overflow: hidden;
 }
 
+.refreshError {
+  position: absolute;
+  top: var(--mantine-spacing-md);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
 .legend {
   border-top: 1px solid var(--mantine-color-gray-3);
   background: var(--mantine-color-body);

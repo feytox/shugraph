@@ -4,8 +4,12 @@ import { graphPaddingPx } from '@/features/group-graph/graphLayout';
 
 const userViewportGestures = 'dragpan pinchzoom scrollzoom';
 
-export function keepFittedOnResize(cy: Core, container: HTMLElement) {
-  let userMovedViewport = false;
+export function keepFittedOnResize(
+  cy: Core,
+  container: HTMLElement,
+  { userAlreadyMovedViewport = false } = {}
+) {
+  let userMovedViewport = userAlreadyMovedViewport;
   cy.one(userViewportGestures, () => {
     userMovedViewport = true;
   });
@@ -16,5 +20,9 @@ export function keepFittedOnResize(cy: Core, container: HTMLElement) {
     redrawBeforePaint(cy);
   });
   observer.observe(container);
-  return () => observer.disconnect();
+
+  return {
+    userMovedViewport: () => userMovedViewport,
+    stop: () => observer.disconnect(),
+  };
 }

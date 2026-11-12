@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
 
 export function useGroupGraph(groupId: string, lastEventAt: string) {
@@ -14,6 +14,5 @@ export function useGroupGraph(groupId: string, lastEventAt: string) {
       return data;
     },
     retry: false,
-    placeholderData: keepPreviousData,
   });
 }

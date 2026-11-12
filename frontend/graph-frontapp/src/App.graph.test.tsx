@@ -93,5 +93,6 @@ it('для группы без графа пишет, что граф не на�
 it('сообщает, если группы из адреса нет в загруженном списке', async () => {
   renderScreen('/?group=00000000-0000-4000-8000-000000000404');
   expect(await screen.findByText('Группа не найдена в загруженном списке')).toBeVisible();
+  expect(screen.getByText('время в UTC')).toBeVisible();
   expect(requestedGraphs).toEqual([]);
 });

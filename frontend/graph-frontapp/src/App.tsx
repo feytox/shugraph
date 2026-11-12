@@ -1,5 +1,5 @@
-import { Center, MantineProvider, Text } from '@mantine/core';
-import { GroupGraph } from '@/features/group-graph/GroupGraph';
+import { MantineProvider } from '@mantine/core';
+import { GraphFrame, GraphMessage, GroupGraph } from '@/features/group-graph/GroupGraph';
 import { GroupsPanel } from '@/features/groups-list/GroupsPanel';
 import {
   useDefaultGroupSelection,
@@ -26,9 +26,9 @@ function AnalystScreen() {
           />
         )}
         {notInList && (
-          <Center h="100%">
-            <Text c="dimmed">Группа не найдена в загруженном списке</Text>
-          </Center>
+          <GraphFrame>
+            <GraphMessage>Группа не найдена в загруженном списке</GraphMessage>
+          </GraphFrame>
         )}
       </main>
     </div>

@@ -36,4 +36,15 @@ describe('keepFittedOnResize', () => {
     notifyResize();
     expect(fit).not.toHaveBeenCalled();
   });
+
+  it('не подгоняет обновлённый граф, если пользователь двигал прежний', () => {
+    const cy = cytoscape({ headless: true, elements: [{ data: { id: 'a' } }] });
+    const fitting = keepFittedOnResize(cy, document.createElement('div'), {
+      userAlreadyMovedViewport: true,
+    });
+    const fit = vi.spyOn(cy, 'fit');
+    notifyResize();
+    expect(fit).not.toHaveBeenCalled();
+    expect(fitting.userMovedViewport()).toBe(true);
+  });
 });

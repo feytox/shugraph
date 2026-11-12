@@ -17,6 +17,9 @@ const cy = vi.hoisted(() => {
     destroy: vi.fn(),
     on: vi.fn(),
     one: vi.fn(),
+    zoom: vi.fn(() => 2),
+    pan: vi.fn(() => ({ x: 5, y: 7 })),
+    viewport: vi.fn(),
     runLayout: layout.run,
   };
 });
@@ -105,6 +108,28 @@ describe('GroupGraph', () => {
     renderGraph();
     expect(await screen.findByText('Граф группы не найден')).toBeVisible();
     expect(cytoscape).not.toHaveBeenCalled();
+  });
+
+  it('при ошибке обновления оставляет последний граф и сообщает об этом', async () => {
+    const client = new QueryClient();
+    const { rerender } = render(graphFor('farm', farm.item.last_event_at, client));
+    await waitFor(() => expect(cytoscape).toHaveBeenCalledTimes(1));
+    server.use(http.get(graphUrl, () => new HttpResponse(null, { status: 500 })));
+    rerender(graphFor('farm', '2026-11-12T10:45:00Z', client));
+    expect(await screen.findByText('Не удалось обновить граф')).toBeVisible();
+    expect(screen.getByRole('img', { name: 'Граф группы' })).toBeInTheDocument();
+    expect(screen.getByText('устройство')).toBeVisible();
+    expect(cytoscape).toHaveBeenCalledTimes(1);
+  });
+
+  it('после обновления графа той же группы возвращает зум и сдвиг пользователя', async () => {
+    cy.one.mockImplementationOnce((_gestures: string, onGesture: () => void) => onGesture());
+    const client = new QueryClient();
+    const { rerender } = render(graphFor('farm', farm.item.last_event_at, client));
+    await waitFor(() => expect(cytoscape).toHaveBeenCalledTimes(1));
+    rerender(graphFor('farm', '2026-11-12T10:45:00Z', client));
+    await waitFor(() => expect(cytoscape).toHaveBeenCalledTimes(2));
+    expect(cy.viewport).toHaveBeenCalledWith({ zoom: 2, pan: { x: 5, y: 7 } });
   });
 
   it('оставляет легенду с пометкой UTC, даже когда графа нет', async () => {
