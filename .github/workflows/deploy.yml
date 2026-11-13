@@ -65,7 +65,9 @@ jobs:
     needs: [plan, checks]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    environment: vm
+    environment:
+      name: vm
+      deployment: false
     strategy:
       matrix:
         service: ${{ fromJson(needs.plan.outputs.services) }}
