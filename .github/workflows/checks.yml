@@ -5,16 +5,6 @@ on:
   push:
     branches: [main]
   workflow_call:
-    inputs:
-      graph-api:
-        type: boolean
-        default: false
-      graph-admin-api:
-        type: boolean
-        default: false
-      frontend:
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -76,12 +66,10 @@ jobs:
         env:
           EVENT: ${{ github.event_name }}
           FILTER: ${{ toJson(steps.filter.outputs) }}
-          INPUTS: ${{ toJson(inputs) }}
         run: |
           case $EVENT in
             pull_request) parts=$FILTER ;;
-            push) parts='{"graph-api": true, "graph-admin-api": true, "frontend": true, "workflows": true}' ;;
-            *) parts=$INPUTS ;;
+            *) parts='{"graph-api": true, "graph-admin-api": true, "frontend": true, "workflows": true}' ;;
           esac
           jq -r '
             map_values(tostring == "true") as $p
