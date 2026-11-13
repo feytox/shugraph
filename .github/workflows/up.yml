@@ -13,6 +13,9 @@ jobs:
   up:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: write
     environment:
       name: vm
       deployment: false
@@ -34,3 +37,9 @@ jobs:
           install -m 600 /dev/null "$RUNNER_TEMP/ssh-key"
           printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/ssh-key"
           SSH_KEY="$RUNNER_TEMP/ssh-key" infra/vm/vm.sh up
+
+      - name: Schedule autodown
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run autodown.yml -R "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"

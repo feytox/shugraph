@@ -1,13 +1,14 @@
 name: down
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  workflow_call:
+  schedule:
+    - cron: '0 1 * * *'
+      timezone: Europe/Moscow
 
 permissions:
   contents: read
-
-concurrency:
-  group: vm
-  queue: max
 
 jobs:
   down:
@@ -16,6 +17,9 @@ jobs:
     environment:
       name: vm
       deployment: false
+    concurrency:
+      group: vm
+      queue: max
     env:
       VM_ID: ${{ vars.VM_ID }}
     steps:

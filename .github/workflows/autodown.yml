@@ -1,0 +1,24 @@
+name: autodown
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+concurrency:
+  group: autodown
+  cancel-in-progress: true
+
+env:
+  DELAY_MINUTES: 60
+
+jobs:
+  wait:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - run: sleep "$((DELAY_MINUTES * 60))"
+
+  down:
+    needs: wait
+    uses: ./.github/workflows/down.yml # zizmor: ignore[self-repository]

@@ -98,6 +98,9 @@ jobs:
   deploy:
     needs: [plan, build]
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: write
     environment: vm
     concurrency:
       group: vm
@@ -171,3 +174,9 @@ jobs:
             echo
             echo "Адрес: http://$IP/"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Schedule autodown
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run autodown.yml -R "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
