@@ -29,18 +29,13 @@ describe('Подозрительные группы', () => {
     );
     renderScreen();
     expect(await screen.findByRole('heading', { name: 'Подозрительные группы' })).toBeVisible();
-    const table = await screen.findByRole('table');
-    expect(within(table).getAllByRole('columnheader')).toHaveLength(6);
-    for (const value of [
-      'Ферма',
-      'Высокий · 87',
-      '7',
-      '123,45 ₽',
-      '07.10.2026 10:30:45 UTC',
-      'Новая',
-    ]) {
-      expect(within(table).getByText(value)).toBeVisible();
+    const [item] = within(await screen.findByRole('list', { name: 'Список групп' })).getAllByRole(
+      'listitem'
+    );
+    for (const value of ['Ферма', '7 счетов', '123,45 ₽', '07.10.26 10:30', 'Новая']) {
+      expect(item).toHaveTextContent(value);
     }
+    expect(within(item).getByLabelText('Риск высокий: 87')).toBeVisible();
   });
 });
 
@@ -52,7 +47,7 @@ it('показывает загрузку до первого ответа', asy
   );
   renderScreen();
   expect(await screen.findByRole('status')).toHaveTextContent('Загрузка групп');
-  expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  expect(screen.queryByRole('list', { name: 'Список групп' })).not.toBeInTheDocument();
 });
 
 it('объясняет пустой список и предлагает запуск через Swagger без кнопки запуска', async () => {
@@ -67,8 +62,8 @@ it('объясняет пустой список и предлагает зап�
       'Подозрительных групп пока нет. Запустите сценарий через Swagger graph-admin-api'
     )
   ).toBeVisible();
-  expect(screen.queryByRole('table')).not.toBeInTheDocument();
-  expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  expect(screen.queryByRole('list', { name: 'Список групп' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /сценари/i })).not.toBeInTheDocument();
 });
 
 it('сохраняет отличие ошибки от пустого ответа и восстанавливается по Повторить', async () => {
@@ -78,7 +73,7 @@ it('сохраняет отличие ошибки от пустого отве�
     )
   );
   renderScreen();
-  expect(await screen.findByRole('alert')).toHaveTextContent('Хранилище групп временно недоступно');
+  expect(await screen.findByRole('alert')).toHaveTextContent('Не удалось загрузить список');
   expect(screen.queryByText(/Подозрительных групп пока нет/)).not.toBeInTheDocument();
   server.use(
     http.get('*/api/v1/groups', () =>
@@ -99,7 +94,7 @@ it('сохраняет отличие ошибки от пустого отве�
       })
     )
   );
-  fireEvent.click(screen.getByRole('button', { name: 'Повторить' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Повторить: Не удалось загрузить список' }));
   expect(await screen.findByText('Кольцо')).toBeVisible();
   expect(screen.getByText('Подтверждена')).toBeVisible();
   expect(screen.queryByRole('alert')).not.toBeInTheDocument();
