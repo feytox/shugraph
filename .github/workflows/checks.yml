@@ -40,11 +40,13 @@ jobs:
       go: ${{ steps.pick.outputs.go }}
       frontend: ${{ steps.pick.outputs.frontend }}
       workflows: ${{ steps.pick.outputs.workflows }}
+      deploy: ${{ steps.filter.outputs.deploy }}
     steps:
       - if: github.event_name == 'pull_request'
         id: filter
         uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         with:
+          predicate-quantifier: some-with-excludes
           filters: |
             checks: &checks
               - .github/workflows/checks.yml
@@ -62,6 +64,13 @@ jobs:
               - backend/graph-api/openapi.yaml
             workflows:
               - .github/**
+            deploy:
+              - backend/**
+              - frontend/**
+              - infra/**
+              - .github/workflows/deploy.yml
+              - .github/actions/**
+              - '!**/*.md'
 
       - id: pick
         env:
@@ -206,6 +215,32 @@ jobs:
         run: |
           jq -r 'to_entries[] | "\(.key): \(.value.result)"' <<< "$RESULTS"
           jq -e 'all(.[]; .result == "success" or .result == "skipped")' <<< "$RESULTS" > /dev/null
+
+  deploy-status:
+    needs: changes
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      statuses: write
+    steps:
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          NEEDS_DEPLOY: ${{ needs.changes.outputs.deploy }}
+          DEPLOY_URL: ${{ github.server_url }}/${{ github.repository }}/actions/workflows/deploy.yml
+        run: |
+          statuses="repos/$GITHUB_REPOSITORY/statuses/$SHA"
+          current=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/status" --jq '.statuses[] | select(.context == "deploy/prod") | .state')
+          if [[ $current == success ]]; then
+            echo "Коммит уже выкачен на prod"
+          elif [[ $NEEDS_DEPLOY == true ]]; then
+            gh api "$statuses" -f context=deploy/prod -f state=pending -f target_url="$DEPLOY_URL" \
+              -f description="Выкати ветку на prod через workflow deploy" > /dev/null
+          else
+            gh api "$statuses" -f context=deploy/prod -f state=success \
+              -f description="PR не меняет сервисы и деплой, выкатываться не нужно" > /dev/null
+          fi
 
   govulncheck:
     needs: changes
