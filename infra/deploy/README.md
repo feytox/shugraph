@@ -67,7 +67,7 @@ ssh -i ~/.ssh/shugraph shugraph@<ip> sudo k3s kubectl -n prod logs job/graph-api
 ## Как добавить новый сервис
 
 1. Добавить release в `helmfile.yaml.gotmpl`, проще всего скопировав похожий сервис.
-2. В `deploy.yml` добавить сервис в список в job `plan` и галочку с тем же именем в `inputs`. Поле `kind` (`go` или `node`) определяет, как запускать тесты.
+2. В `deploy.yml` добавить сервис в список в job `plan` и галочку с тем же именем в `inputs`.
 3. Если сервису нужна база: пароль в `passwords` в `charts/postgres/values.yaml`, вызов `create_database` в `init-databases.sh` и `DATABASE_URL` в release, как у `graph-api`. На работающей площадке базу ещё нужно создать вручную (см. "Пароли Postgres").
 
 ## Пароли Postgres
