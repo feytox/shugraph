@@ -1,6 +1,9 @@
 name: autodown
 
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+  push:
+    branches: [GSD-44]
 
 permissions:
   contents: read
