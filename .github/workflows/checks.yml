@@ -51,6 +51,7 @@ jobs:
             graph-api:
               - *checks
               - backend/graph-api/**
+              - backend/graph-admin-api/scenarios/**
             graph-admin-api:
               - *checks
               - backend/graph-admin-api/**

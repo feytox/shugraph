@@ -145,9 +145,11 @@ func eventAccepted(created bool) *EventAcceptedOutput {
 func (h *eventHandlers) eventProblem(ctx context.Context, err error) error {
 	switch {
 	case errors.Is(err, domain.ErrEventConflict):
-		return huma.Error409Conflict(err.Error())
-	case errors.Is(err, domain.ErrAccountOwnerMismatch), errors.Is(err, domain.ErrSameAccounts):
-		return huma.Error422UnprocessableEntity(err.Error())
+		return huma.Error409Conflict(domain.ErrEventConflict.Error())
+	case errors.Is(err, domain.ErrAccountOwnerMismatch):
+		return huma.Error422UnprocessableEntity(domain.ErrAccountOwnerMismatch.Error())
+	case errors.Is(err, domain.ErrSameAccounts):
+		return huma.Error422UnprocessableEntity(domain.ErrSameAccounts.Error())
 	default:
 		return problem(ctx, h.log, err)
 	}

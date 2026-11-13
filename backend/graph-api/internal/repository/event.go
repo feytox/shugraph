@@ -7,82 +7,59 @@ import (
 	"slices"
 
 	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository/db"
 )
 
 type PgEventRepository struct {
-	pool *pgxpool.Pool
+	queries *db.Queries
 }
 
-func NewPgEventRepository(pool *pgxpool.Pool) *PgEventRepository {
-	return &PgEventRepository{pool: pool}
+func NewPgEventRepository(tx pgx.Tx) *PgEventRepository {
+	return &PgEventRepository{queries: db.New(tx)}
 }
 
 func (p *PgEventRepository) SaveLogin(ctx context.Context, event domain.LoginEvent) (created bool, err error) {
-	err = pgx.BeginFunc(ctx, p.pool, func(tx pgx.Tx) error {
-		q := db.New(tx)
-
-		rows, err := q.InsertEvent(ctx, db.InsertEventParams{
-			EventID:    event.EventID,
-			Type:       string(domain.EventTypeLogin),
-			OccurredAt: event.OccurredAt,
-		})
-		if err != nil {
-			return fmt.Errorf("insert event: %w", err)
-		}
-
-		if rows == 0 {
-			return ensureSameAsStoredLogin(ctx, q, event)
-		}
-
-		if err := insertLoginDetails(ctx, q, event); err != nil {
-			return err
-		}
-
-		created = true
-
-		return nil
+	rows, err := p.queries.InsertEvent(ctx, db.InsertEventParams{
+		EventID:    event.EventID,
+		Type:       string(domain.EventTypeLogin),
+		OccurredAt: event.OccurredAt,
 	})
 	if err != nil {
+		return false, fmt.Errorf("insert event: %w", err)
+	}
+
+	if rows == 0 {
+		return false, ensureSameAsStoredLogin(ctx, p.queries, event)
+	}
+
+	if err := insertLoginDetails(ctx, p.queries, event); err != nil {
 		return false, err
 	}
 
-	return created, nil
+	return true, nil
 }
 
 func (p *PgEventRepository) SaveTransfer(ctx context.Context, event domain.TransferEvent) (created bool, err error) {
-	err = pgx.BeginFunc(ctx, p.pool, func(tx pgx.Tx) error {
-		q := db.New(tx)
-
-		rows, err := q.InsertEvent(ctx, db.InsertEventParams{
-			EventID:    event.EventID,
-			Type:       string(domain.EventTypeTransfer),
-			OccurredAt: event.OccurredAt,
-		})
-		if err != nil {
-			return fmt.Errorf("insert event: %w", err)
-		}
-
-		if rows == 0 {
-			return ensureSameAsStoredTransfer(ctx, q, event)
-		}
-
-		if err := insertTransferDetails(ctx, q, event); err != nil {
-			return err
-		}
-
-		created = true
-
-		return nil
+	rows, err := p.queries.InsertEvent(ctx, db.InsertEventParams{
+		EventID:    event.EventID,
+		Type:       string(domain.EventTypeTransfer),
+		OccurredAt: event.OccurredAt,
 	})
 	if err != nil {
+		return false, fmt.Errorf("insert event: %w", err)
+	}
+
+	if rows == 0 {
+		return false, ensureSameAsStoredTransfer(ctx, p.queries, event)
+	}
+
+	if err := insertTransferDetails(ctx, p.queries, event); err != nil {
 		return false, err
 	}
 
-	return created, nil
+	return true, nil
 }
 
 func insertLoginDetails(ctx context.Context, q *db.Queries, event domain.LoginEvent) error {
