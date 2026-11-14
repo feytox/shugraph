@@ -29,7 +29,7 @@ func registerService(api huma.API, h *scenarioHandlers) {
 		Method:        http.MethodPost,
 		Path:          "/admin-api/v1/scenario/{scenario_id}/run",
 		Tags:          []string{scenarioTag},
-		DefaultStatus: http.StatusCreated,
+		DefaultStatus: http.StatusAccepted,
 		Errors:        []int{http.StatusNotFound},
 	}, h.run)
 
