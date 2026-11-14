@@ -17,6 +17,7 @@
   - [schemes/legal.md](schemes/legal.md) - правовые приложения к схемам
 - [cards/device-farm.md](cards/device-farm.md) - тексты карточки расследования для схемы 1
 - [cards/shared-address.md](cards/shared-address.md) - тексты карточки расследования для схемы 2
+- [cards/fast-chain.md](cards/fast-chain.md) - тексты карточки расследования для схемы 3
 
 RFC:
 
