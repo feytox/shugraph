@@ -224,7 +224,10 @@ jobs:
           current=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/status" --jq '.statuses[] | select(.context == "deploy/prod") | .state')
           if [[ $current == success ]]; then
             echo "Коммит уже выкачен на prod"
-          elif [[ $NEEDS_DEPLOY == true || $BASE != "$MAIN" ]]; then
+          elif [[ $BASE != "$MAIN" ]]; then
+            gh api "$statuses" -f context=deploy/prod -f state=pending \
+              -f description="Игнорируй, пока база PR не $MAIN: выкатывать нужно только перед мержем в $MAIN" > /dev/null
+          elif [[ $NEEDS_DEPLOY == true ]]; then
             gh api "$statuses" -f context=deploy/prod -f state=pending -f target_url="$DEPLOY_URL" \
               -f description="Выкати ветку на prod через workflow deploy" > /dev/null
           else
