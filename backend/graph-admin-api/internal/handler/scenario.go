@@ -46,7 +46,7 @@ func registerService(api huma.API, h *scenarioHandlers) {
 
 type RunScenarioInput struct {
 	ScenarioID   string `path:"scenario_id" validate:"required"`
-	DelaySeconds int    `query:"delay_s" minimum:"0" default:"500" minimum:""`
+	DelaySeconds int    `query:"delay_s" minimum:"0" default:"1" maximum:"5"`
 }
 
 type ListScenarioOutput struct {
