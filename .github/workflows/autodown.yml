@@ -15,10 +15,14 @@ env:
 jobs:
   wait:
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
     steps:
       - run: sleep "$((DELAY_MINUTES * 60))"
 
   down:
     needs: wait
+    permissions:
+      contents: read
+      actions: read
     uses: ./.github/workflows/down.yml # zizmor: ignore[self-repository]
+    secrets:
+      YC_SA_KEY: ${{ secrets.YC_SA_KEY }}
