@@ -18,6 +18,7 @@
 - [cards/device-farm.md](cards/device-farm.md) - тексты карточки расследования для схемы 1
 - [cards/shared-address.md](cards/shared-address.md) - тексты карточки расследования для схемы 2
 - [cards/fast-chain.md](cards/fast-chain.md) - тексты карточки расследования для схемы 3
+- [cards/ring.md](cards/ring.md) - тексты карточки расследования для схемы 4
 
 RFC:
 
