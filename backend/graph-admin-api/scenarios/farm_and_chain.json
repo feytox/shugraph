@@ -4,7 +4,7 @@
   "scheme": "farm",
   "events": [
     {
-      "event_id": "evt-fc-noise-0001",
+      "event_id": "evt-fch-noise-0001",
       "type": "login",
       "occurred_at": "2026-11-12T17:40:00Z",
       "account_id": "acc-sofia",
@@ -13,17 +13,17 @@
       "address_id": "203.0.113.141"
     },
     {
-      "event_id": "evt-fc-noise-0002",
+      "event_id": "evt-fch-noise-0002",
       "type": "transfer",
       "occurred_at": "2026-11-12T17:52:00Z",
       "from_account_id": "acc-sofia",
       "from_client_id": "cli-sofia",
-      "to_account_id": "acc-noise-fc-1",
-      "to_client_id": "cli-noise-fc-1",
+      "to_account_id": "acc-noise-fch-1",
+      "to_client_id": "cli-noise-fch-1",
       "amount": 210000
     },
     {
-      "event_id": "evt-fc-0001",
+      "event_id": "evt-fch-0001",
       "type": "login",
       "occurred_at": "2026-11-12T18:00:00Z",
       "account_id": "acc-anna",
@@ -32,7 +32,7 @@
       "address_id": "198.51.100.141"
     },
     {
-      "event_id": "evt-fc-0002",
+      "event_id": "evt-fch-0002",
       "type": "login",
       "occurred_at": "2026-11-12T18:06:00Z",
       "account_id": "acc-boris",
@@ -41,7 +41,7 @@
       "address_id": "198.51.100.142"
     },
     {
-      "event_id": "evt-fc-0003",
+      "event_id": "evt-fch-0003",
       "type": "login",
       "occurred_at": "2026-11-12T18:12:00Z",
       "account_id": "acc-vera",
@@ -50,7 +50,7 @@
       "address_id": "198.51.100.143"
     },
     {
-      "event_id": "evt-fc-0004",
+      "event_id": "evt-fch-0004",
       "type": "transfer",
       "occurred_at": "2026-11-12T18:20:00Z",
       "from_account_id": "acc-anna",
@@ -60,7 +60,7 @@
       "amount": 3000000
     },
     {
-      "event_id": "evt-fc-0005",
+      "event_id": "evt-fch-0005",
       "type": "transfer",
       "occurred_at": "2026-11-12T18:26:00Z",
       "from_account_id": "acc-boris",
@@ -70,7 +70,7 @@
       "amount": 4000000
     },
     {
-      "event_id": "evt-fc-0006",
+      "event_id": "evt-fch-0006",
       "type": "transfer",
       "occurred_at": "2026-11-12T18:32:00Z",
       "from_account_id": "acc-vera",
@@ -80,7 +80,7 @@
       "amount": 5000000
     },
     {
-      "event_id": "evt-fc-0007",
+      "event_id": "evt-fch-0007",
       "type": "transfer",
       "occurred_at": "2026-11-12T18:40:00Z",
       "from_account_id": "acc-anna",
@@ -90,7 +90,7 @@
       "amount": 2000000
     },
     {
-      "event_id": "evt-fc-0008",
+      "event_id": "evt-fch-0008",
       "type": "transfer",
       "occurred_at": "2026-11-12T18:47:00Z",
       "from_account_id": "acc-petr",
@@ -100,7 +100,7 @@
       "amount": 1950000
     },
     {
-      "event_id": "evt-fc-0009",
+      "event_id": "evt-fch-0009",
       "type": "transfer",
       "occurred_at": "2026-11-12T18:54:00Z",
       "from_account_id": "acc-sveta",
@@ -110,7 +110,7 @@
       "amount": 1900000
     },
     {
-      "event_id": "evt-fc-noise-0003",
+      "event_id": "evt-fch-noise-0003",
       "type": "login",
       "occurred_at": "2026-11-12T19:10:00Z",
       "account_id": "acc-sofia",
@@ -119,13 +119,13 @@
       "address_id": "203.0.113.141"
     },
     {
-      "event_id": "evt-fc-noise-0004",
+      "event_id": "evt-fch-noise-0004",
       "type": "transfer",
       "occurred_at": "2026-11-12T19:20:00Z",
       "from_account_id": "acc-sofia",
       "from_client_id": "cli-sofia",
-      "to_account_id": "acc-noise-fc-2",
-      "to_client_id": "cli-noise-fc-2",
+      "to_account_id": "acc-noise-fch-2",
+      "to_client_id": "cli-noise-fch-2",
       "amount": 110000
     }
   ],
@@ -140,12 +140,12 @@
           "acc-collector"
         ],
         "event_ids": [
-          "evt-fc-0001",
-          "evt-fc-0002",
-          "evt-fc-0003",
-          "evt-fc-0004",
-          "evt-fc-0005",
-          "evt-fc-0006"
+          "evt-fch-0001",
+          "evt-fch-0002",
+          "evt-fch-0003",
+          "evt-fch-0004",
+          "evt-fch-0005",
+          "evt-fch-0006"
         ],
         "risk_score": 70,
         "risk_level": "medium",
@@ -167,9 +167,9 @@
           "acc-timur"
         ],
         "event_ids": [
-          "evt-fc-0007",
-          "evt-fc-0008",
-          "evt-fc-0009"
+          "evt-fch-0007",
+          "evt-fch-0008",
+          "evt-fch-0009"
         ],
         "risk_score": 75,
         "risk_level": "high",
