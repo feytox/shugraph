@@ -1,0 +1,53 @@
+name: deploy-status
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  deploy-status:
+    if: (github.event.action != 'edited' || github.event.changes.base) && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      pull-requests: read
+      statuses: write
+    steps:
+      - id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          predicate-quantifier: some-with-excludes
+          filters: |
+            deploy:
+              - backend/**
+              - frontend/**
+              - infra/**
+              - .github/workflows/deploy.yml
+              - .github/actions/**
+              - '!**/*.md'
+
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          BASE: ${{ github.base_ref }}
+          MAIN: ${{ github.event.repository.default_branch }}
+          NEEDS_DEPLOY: ${{ steps.filter.outputs.deploy }}
+          DEPLOY_URL: ${{ github.server_url }}/${{ github.repository }}/actions/workflows/deploy.yml
+        run: |
+          statuses="repos/$GITHUB_REPOSITORY/statuses/$SHA"
+          current=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/status" --jq '.statuses[] | select(.context == "deploy/prod") | .state')
+          if [[ $current == success ]]; then
+            echo "Коммит уже выкачен на prod"
+          elif [[ $BASE != "$MAIN" ]]; then
+            gh api "$statuses" -f context=deploy/prod -f state=pending \
+              -f description="Игнорируй, пока база PR не $MAIN: выкатывать нужно только перед мержем в $MAIN" > /dev/null
+          elif [[ $NEEDS_DEPLOY == true ]]; then
+            gh api "$statuses" -f context=deploy/prod -f state=pending -f target_url="$DEPLOY_URL" \
+              -f description="Выкати ветку на prod через workflow deploy" > /dev/null
+          else
+            gh api "$statuses" -f context=deploy/prod -f state=success \
+              -f description="PR не меняет сервисы и деплой, выкатываться не нужно" > /dev/null
+          fi
