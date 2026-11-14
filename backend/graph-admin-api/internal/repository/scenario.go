@@ -23,18 +23,19 @@ func NewScenarioReadOnlyRepository() *ScenarioReadOnlyRepository {
 
 func (*ScenarioReadOnlyRepository) GetByName(name string) (*domain.Scenario, error) {
 	fileName := name + ".json"
-	data, err := fs.ReadFile(os.DirFS(scenariosDir), fileName)
 
+	data, err := fs.ReadFile(os.DirFS(scenariosDir), fileName)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return nil, domain.ErrScenarioNotFound
 		}
+
 		return nil, fmt.Errorf("read scenario file: %w", err)
 	}
 
 	var sc domain.Scenario
-	errUnmarshal := json.Unmarshal(data, &sc)
 
+	errUnmarshal := json.Unmarshal(data, &sc)
 	if errUnmarshal != nil {
 		return nil, errUnmarshal
 	}
@@ -54,6 +55,7 @@ func (*ScenarioReadOnlyRepository) ListNames() ([]string, error) {
 		if file.IsDir() {
 			continue
 		}
+
 		fileName := trimExtension(file.Name())
 		scenarioNames = append(scenarioNames, fileName)
 	}

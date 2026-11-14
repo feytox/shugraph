@@ -58,6 +58,7 @@ func (h scenarioHandlers) run(ctx context.Context, i *RunScenarioInput) (*struct
 	if errors.Is(err, domain.ErrScenarioNotFound) {
 		return nil, huma.Error404NotFound("Scenario not found")
 	}
+
 	return nil, problem(ctx, h.log, err)
 }
 
@@ -66,5 +67,6 @@ func (h scenarioHandlers) list(ctx context.Context, _ *struct{}) (*ListScenarioO
 	if err != nil {
 		return nil, problem(ctx, h.log, err)
 	}
+
 	return &ListScenarioOutput{Body: names}, nil
 }

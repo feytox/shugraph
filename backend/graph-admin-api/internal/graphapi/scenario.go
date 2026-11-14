@@ -14,9 +14,11 @@ func (c *Client) LoginEvent(ctx context.Context, eventID string, payload oapi.Lo
 	if err != nil {
 		return fmt.Errorf("%w: %w", domain.ErrGraphAPIUnavailable, err)
 	}
+
 	if resp.StatusCode() != http.StatusCreated && resp.StatusCode() != http.StatusNoContent {
 		return fmt.Errorf("%w: unexpected status %d", domain.ErrGraphAPIUnavailable, resp.StatusCode())
 	}
+
 	return nil
 }
 
@@ -25,8 +27,10 @@ func (c *Client) TransferEvent(ctx context.Context, eventID string, payload oapi
 	if err != nil {
 		return fmt.Errorf("%w: %w", domain.ErrGraphAPIUnavailable, err)
 	}
+
 	if resp.StatusCode() != http.StatusCreated && resp.StatusCode() != http.StatusNoContent {
 		return fmt.Errorf("%w: unexpected status %d", domain.ErrGraphAPIUnavailable, resp.StatusCode())
 	}
+
 	return nil
 }

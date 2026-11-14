@@ -10,6 +10,7 @@ import (
 
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/domain"
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/graphapi/oapi"
+	"github.com/feytox/shugraph/backend/graph-admin-api/internal/logattr"
 )
 
 type eventAPI interface {
@@ -43,6 +44,7 @@ func NewScenarioService(eventAPI eventAPI, scenarioRepository scenarioRepository
 		logger:             logger,
 	}
 	s.wg = sync.WaitGroup{}
+
 	return s
 }
 
@@ -56,7 +58,7 @@ func (s *ScenarioService) Run(ctx context.Context, scenarioID string, delaySecon
 	go func() {
 		err := s.sendScenario(ctx, scenarioID, scenario, time.Duration(delaySecond)*time.Second)
 		if err != nil {
-			s.logger.Error("error sending scenario: %w", err)
+			s.logger.Error("send scenario failed", logattr.Error(err))
 		}
 	}()
 
@@ -68,6 +70,7 @@ func (s *ScenarioService) ListNames() ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("scenario list: %w", err)
 	}
+
 	return scenarioNames, nil
 }
 
@@ -77,16 +80,19 @@ func (s *ScenarioService) Wait() {
 
 func (s *ScenarioService) sendScenario(ctx context.Context, scenarioID string, scenario *domain.Scenario, delay time.Duration) error {
 	defer s.wg.Done()
+
 	for _, raw := range scenario.Events {
 		select {
 		case <-time.After(delay):
 		case <-ctx.Done():
 			s.logger.Info("shutdown detected, skipping scenario delay")
 		}
+
 		event, err := decodeScenarioEvent(raw)
 		if err != nil {
 			return fmt.Errorf("error decoding scenario %q: %w", scenarioID, err)
 		}
+
 		switch event.Type {
 		case domain.EventTypeLogin:
 			if err := handleEvent(ctx, event.EventID, raw, s.eventAPI.LoginEvent); err != nil {
@@ -100,6 +106,7 @@ func (s *ScenarioService) sendScenario(ctx context.Context, scenarioID string, s
 			return fmt.Errorf("unknown event type %q", event.Type)
 		}
 	}
+
 	return nil
 }
 
@@ -109,11 +116,13 @@ func handleEvent[T any](ctx context.Context, eventID string, raw json.RawMessage
 	if err := json.Unmarshal(raw, &event); err != nil {
 		return err
 	}
+
 	return send(ctx, eventID, event)
 }
 
 func decodeScenarioEvent(raw json.RawMessage) (scenarioEvent, error) {
 	var event scenarioEvent
+
 	err := json.Unmarshal(raw, &event)
 	if err != nil {
 		return scenarioEvent{}, err
