@@ -59,7 +59,8 @@ jobs:
             echo "all-services=$([[ $services == "$all" ]] && echo true || echo false)"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Check branch is up to date with main
+      - &check-up-to-date
+        name: Check branch is up to date with main
         if: inputs.environment == 'prod'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -146,6 +147,8 @@ jobs:
       - uses: ./.github/actions/setup-yc # zizmor: ignore[self-repository]
         with:
           sa-key: ${{ secrets.YC_SA_KEY }}
+
+      - *check-up-to-date
 
       - name: Install helm and helmfile
         run: |
