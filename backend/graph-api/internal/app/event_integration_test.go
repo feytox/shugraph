@@ -397,7 +397,7 @@ func sendEvent(ctx context.Context, path string, body any) int {
 func clearEventTables(t *testing.T) {
 	t.Helper()
 
-	_, err := testPool.Exec(t.Context(), "TRUNCATE clients, devices, network_addresses, events CASCADE")
+	_, err := testPool.Exec(t.Context(), "TRUNCATE groups, clients, devices, network_addresses, events CASCADE")
 	require.NoError(t, err)
 }
 

@@ -1,9 +1,13 @@
 #!/usr/bin/env bash
-# up: запускает ВМ, ждёт готовности k3s и печатает IP. down: останавливает ВМ.
-# Нужны yc с ролью compute.operator на ВМ, jq и для up SSH-ключ (SSH_KEY).
+# Включает и выключает ВМ с k3s.
+#   up    запускает ВМ, ждёт готовности k3s и печатает IP
+#   down  останавливает ВМ
+# Нужны yc с ролью compute.operator на ВМ и jq, для up ещё ssh.
+# VM_ID: ID ВМ. Если не задан, скрипт берёт переменную VM_ID окружения vm на GitHub через gh.
+# SSH_KEY: ключ для up, по умолчанию ~/.ssh/shugraph-ci.
 set -euo pipefail
 
-VM_ID=fv4v4f590n4gbbdd607m
+VM_ID=${VM_ID:-$(gh variable get VM_ID --env vm)}
 SSH_USER=shugraph
 SSH_KEY=${SSH_KEY:-$HOME/.ssh/shugraph-ci}
 
@@ -35,6 +39,7 @@ up() {
       "${ssh[@]}" 'sudo k3s kubectl get nodes'
       echo "IP: $ip"
       [[ -n ${GITHUB_STEP_SUMMARY:-} ]] && echo "IP ВМ: \`$ip\`" >> "$GITHUB_STEP_SUMMARY"
+      [[ -n ${GITHUB_OUTPUT:-} ]] && echo "ip=$ip" >> "$GITHUB_OUTPUT"
       return 0
     fi
     sleep 10

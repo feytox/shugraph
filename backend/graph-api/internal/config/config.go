@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/caarlos0/env/v11"
+
+	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
 )
 
 type Log struct {
@@ -30,9 +32,26 @@ type HTTP struct {
 	ShutdownTimeout   time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"15s"`
 }
 
+type Groups struct {
+	Window                  time.Duration `env:"GROUP_WINDOW" envDefault:"24h"`
+	FarmMinClients          int           `env:"FARM_MIN_CLIENTS" envDefault:"3"`
+	FarmMinCollectorSenders int           `env:"FARM_MIN_COLLECTOR_SENDERS" envDefault:"2"`
+}
+
+func (g Groups) Rules() domain.GroupRules {
+	return domain.GroupRules{
+		Window: g.Window,
+		Farm: domain.FarmRules{
+			MinClients:          g.FarmMinClients,
+			MinCollectorSenders: g.FarmMinCollectorSenders,
+		},
+	}
+}
+
 type Serve struct {
 	Database Database
 	HTTP     HTTP
+	Groups   Groups
 }
 
 type Migrate struct {

@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "pnpm -r --parallel dev",
     "dev:app": "pnpm --filter graph-frontapp dev",
+    "dev:mocks": "pnpm --filter graph-frontapp dev:mocks",
     "dev:admin": "pnpm --filter graph-admin-frontapp dev",
     "build": "pnpm -r build",
     "lint": "eslint . && pnpm format:check",
@@ -23,6 +24,8 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.12.0",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-import-x": "^4.18.1",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.7",
     "openapi-typescript": "^7.6.1",

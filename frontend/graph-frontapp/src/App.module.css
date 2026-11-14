@@ -1,0 +1,12 @@
+.screen {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  height: 100dvh;
+}
+
+.graph {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--mantine-color-gray-0);
+}
