@@ -55,11 +55,15 @@ type ListScenarioOutput struct {
 
 func (h scenarioHandlers) run(ctx context.Context, i *RunScenarioInput) (*struct{}, error) {
 	err := h.scenario.Run(ctx, i.ScenarioID, i.DelaySeconds)
-	if errors.Is(err, domain.ErrScenarioNotFound) {
-		return nil, huma.Error404NotFound("Scenario not found")
+	if err != nil {
+		if errors.Is(err, domain.ErrScenarioNotFound) {
+			return nil, huma.Error404NotFound("Scenario not found")
+		}
+
+		return nil, problem(ctx, h.log, err)
 	}
 
-	return nil, problem(ctx, h.log, err)
+	return nil, nil
 }
 
 func (h scenarioHandlers) list(ctx context.Context, _ *struct{}) (*ListScenarioOutput, error) {

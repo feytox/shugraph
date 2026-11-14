@@ -56,7 +56,7 @@ func (s *ScenarioService) Run(ctx context.Context, scenarioID string, delaySecon
 
 	s.wg.Add(1)
 	go func() {
-		err := s.sendScenario(ctx, scenarioID, scenario, time.Duration(delaySecond)*time.Second)
+		err := s.sendScenario(context.WithoutCancel(ctx), scenarioID, scenario, time.Duration(delaySecond)*time.Second)
 		if err != nil {
 			s.logger.Error("send scenario failed", logattr.Error(err))
 		}

@@ -5,26 +5,23 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/domain"
 )
 
-const scenariosDir = "../../graph-admin-api/scenarios"
-
 type ScenarioReadOnlyRepository struct {
+	fsys fs.FS
 }
 
-func NewScenarioReadOnlyRepository() *ScenarioReadOnlyRepository {
-	return &ScenarioReadOnlyRepository{}
+func NewScenarioReadOnlyRepository(fsys fs.FS) *ScenarioReadOnlyRepository {
+	return &ScenarioReadOnlyRepository{fsys: fsys}
 }
 
-func (*ScenarioReadOnlyRepository) GetByName(name string) (*domain.Scenario, error) {
+func (r *ScenarioReadOnlyRepository) GetByName(name string) (*domain.Scenario, error) {
 	fileName := name + ".json"
 
-	data, err := fs.ReadFile(os.DirFS(scenariosDir), fileName)
+	data, err := fs.ReadFile(r.fsys, fileName)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return nil, domain.ErrScenarioNotFound
@@ -43,26 +40,22 @@ func (*ScenarioReadOnlyRepository) GetByName(name string) (*domain.Scenario, err
 	return &sc, nil
 }
 
-func (*ScenarioReadOnlyRepository) ListNames() ([]string, error) {
-	files, err := os.ReadDir(scenariosDir)
+func (r *ScenarioReadOnlyRepository) ListNames() ([]string, error) {
+	entries, err := fs.ReadDir(r.fsys, ".")
 	if err != nil {
-		return nil, fmt.Errorf("read dir %q: %w", scenariosDir, err)
+		return nil, fmt.Errorf("read scenarios dir: %w", err)
 	}
 
 	var scenarioNames []string
 
-	for _, file := range files {
-		if file.IsDir() {
+	for _, entry := range entries {
+		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
 			continue
 		}
 
-		fileName := trimExtension(file.Name())
+		fileName := strings.TrimSuffix(entry.Name(), ".json")
 		scenarioNames = append(scenarioNames, fileName)
 	}
 
 	return scenarioNames, nil
-}
-
-func trimExtension(filename string) string {
-	return strings.TrimSuffix(filename, filepath.Ext(filename))
 }

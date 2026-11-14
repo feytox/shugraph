@@ -19,6 +19,7 @@ import (
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/postgres"
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/repository"
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/service"
+	scenariosfs "github.com/feytox/shugraph/backend/graph-admin-api/scenarios"
 )
 
 func Serve(ctx context.Context, log *slog.Logger) error {
@@ -61,7 +62,7 @@ func newServer(ctx context.Context, cfg config.Serve, log *slog.Logger) (*server
 	}
 
 	notes := service.NewNoteService(graph, repository.NewPgNoteRepository(pool))
-	scenarios := service.NewScenarioService(graph, repository.NewScenarioReadOnlyRepository(), log)
+	scenarios := service.NewScenarioService(graph, repository.NewScenarioReadOnlyRepository(scenariosfs.FS), log)
 	httpServer := &http.Server{
 		Addr: net.JoinHostPort("", strconv.Itoa(cfg.HTTP.Port)),
 		Handler: handler.New(handler.Deps{
