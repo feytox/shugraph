@@ -215,6 +215,8 @@ jobs:
       - env:
           GH_TOKEN: ${{ github.token }}
           SHA: ${{ github.event.pull_request.head.sha }}
+          BASE: ${{ github.base_ref }}
+          MAIN: ${{ github.event.repository.default_branch }}
           NEEDS_DEPLOY: ${{ needs.changes.outputs.deploy }}
           DEPLOY_URL: ${{ github.server_url }}/${{ github.repository }}/actions/workflows/deploy.yml
         run: |
@@ -222,7 +224,7 @@ jobs:
           current=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/status" --jq '.statuses[] | select(.context == "deploy/prod") | .state')
           if [[ $current == success ]]; then
             echo "Коммит уже выкачен на prod"
-          elif [[ $NEEDS_DEPLOY == true ]]; then
+          elif [[ $NEEDS_DEPLOY == true || $BASE != "$MAIN" ]]; then
             gh api "$statuses" -f context=deploy/prod -f state=pending -f target_url="$DEPLOY_URL" \
               -f description="Выкати ветку на prod через workflow deploy" > /dev/null
           else
