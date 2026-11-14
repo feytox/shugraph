@@ -3,6 +3,16 @@
   "description": "Быстрая цепочка: на фоне обычного потока деньги проходят только через два перевода — Олег → Игорь → Павел. До порога схемы (не меньше 3 переводов между счетами цепочки) не хватает, группы нет.",
   "events": [
     {
+      "event_id": "evt-fc-without-context-0001",
+      "type": "transfer",
+      "occurred_at": "2026-11-13T12:00:00Z",
+      "from_account_id": "acc-victim-fc-wo-1",
+      "from_client_id": "cli-victim-fc-wo-1",
+      "to_account_id": "acc-oleg",
+      "to_client_id": "cli-oleg",
+      "amount": 6000000
+    },
+    {
       "event_id": "evt-fc-without-noise-0001",
       "type": "login",
       "occurred_at": "2026-11-13T13:00:00Z",
@@ -20,16 +30,6 @@
       "to_account_id": "acc-noise-fc-wo-1",
       "to_client_id": "cli-noise-fc-wo-1",
       "amount": 190000
-    },
-    {
-      "event_id": "evt-fc-without-context-0001",
-      "type": "transfer",
-      "occurred_at": "2026-11-13T13:10:00Z",
-      "from_account_id": "acc-victim-fc-wo-1",
-      "from_client_id": "cli-victim-fc-wo-1",
-      "to_account_id": "acc-oleg",
-      "to_client_id": "cli-oleg",
-      "amount": 6000000
     },
     {
       "event_id": "evt-fc-without-0001",
