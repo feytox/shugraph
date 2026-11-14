@@ -70,7 +70,7 @@
 
 1. Выбрать группу.
 2. Прочитать карточку: уровень риска, объяснение простыми словами
-3. Шаблоны карточки (точные формулировки объяснений) — [cards/device-farm.md](cards/device-farm.md) для схемы «Одно устройство на толпу», [cards/shared-address.md](cards/shared-address.md) для схемы «Один адрес на толпу», [cards/fast-chain.md](cards/fast-chain.md) для схемы «Быстрая цепочка», [cards/ring.md](cards/ring.md) для схемы «Кольцо».
+3. Шаблоны карточки (точные формулировки объяснений) — [cards/README.md](cards/README.md) (общий шаблон), а также документы по схемам: [cards/device-farm.md](cards/device-farm.md) («ферма»), [cards/shared-address.md](cards/shared-address.md) («адрес»), [cards/fast-chain.md](cards/fast-chain.md) («цепочка»), [cards/ring.md](cards/ring.md) («кольцо»).
 
 **Что должно получиться:** причина называется конкретно; формулировки в карточке совпадают по шаблону. 
 
