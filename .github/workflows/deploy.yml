@@ -30,39 +30,67 @@ jobs:
   plan:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
+    permissions:
+      contents: read
+      checks: read
     outputs:
       services: ${{ steps.plan.outputs.services }}
       selectors: ${{ steps.plan.outputs.selectors }}
+      all-services: ${{ steps.plan.outputs.all-services }}
+      checked: ${{ steps.checked.outputs.checked }}
     steps:
       - id: plan
         env:
           INPUTS: ${{ toJson(inputs) }}
         run: |
-          services=$(jq -c '. as $in | [
+          all=$(jq -nc '[
             {name: "graph-api", context: "backend/graph-api", dockerfile: "backend/graph-api/Dockerfile"},
             {name: "graph-admin-api", context: "backend/graph-admin-api", dockerfile: "backend/graph-admin-api/Dockerfile"},
             {name: "graph-frontapp", context: "frontend", dockerfile: "frontend/graph-frontapp/Dockerfile"}
-          ] | map(select($in[.name] == true))' <<< "$INPUTS")
+          ]')
+          services=$(jq -c --argjson in "$INPUTS" 'map(select($in[.name] == true))' <<< "$all")
           if [[ $services == "[]" ]]; then
             echo "Не выбран ни один сервис" >&2
             exit 1
           fi
-          echo "services=$services" >> "$GITHUB_OUTPUT"
-          echo "selectors=$(jq -r 'map("-l name=" + .name) | join(" ")' <<< "$services")" >> "$GITHUB_OUTPUT"
+          {
+            echo "services=$services"
+            echo "selectors=$(jq -r 'map("-l name=" + .name) | join(" ")' <<< "$services")"
+            echo "all-services=$([[ $services == "$all" ]] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
+
+      - &check-up-to-date
+        name: Check branch is up to date with main
+        if: inputs.environment == 'prod'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAIN: ${{ github.event.repository.default_branch }}
+        run: |
+          behind=$(gh api "repos/$GITHUB_REPOSITORY/compare/$MAIN...$GITHUB_SHA" --jq .behind_by)
+          if (( behind > 0 )); then
+            echo "::error::Ветка отстаёт от $MAIN на $behind коммитов: подлей $MAIN и запусти деплой заново"
+            exit 1
+          fi
+
+      - id: checked
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          passed=$(gh api --paginate "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?filter=latest&per_page=100" \
+            --jq '.check_runs[] | select(.name == "required-ok" or .name == "checks / required-ok") | select(.conclusion == "success") | .html_url')
+          echo "checked=$([[ -n $passed ]] && echo true || echo false)" | tee -a "$GITHUB_OUTPUT"
 
   checks:
     needs: plan
+    if: needs.plan.outputs.checked != 'true'
     permissions:
       contents: read
       pull-requests: read
     uses: ./.github/workflows/checks.yml # zizmor: ignore[self-repository]
-    with:
-      graph-api: ${{ inputs.graph-api }}
-      graph-admin-api: ${{ inputs.graph-admin-api }}
-      frontend: ${{ inputs.graph-frontapp }}
 
   build:
     needs: [plan, checks]
+    if: ${{ !failure() && !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     environment:
@@ -97,10 +125,12 @@ jobs:
 
   deploy:
     needs: [plan, build]
+    if: ${{ !failure() && !cancelled() }}
     runs-on: ubuntu-24.04
     permissions:
       contents: read
       actions: write
+      statuses: write
     environment: vm
     concurrency:
       group: vm
@@ -116,6 +146,8 @@ jobs:
       - uses: ./.github/actions/setup-yc # zizmor: ignore[self-repository]
         with:
           sa-key: ${{ secrets.YC_SA_KEY }}
+
+      - *check-up-to-date
 
       - name: Install helm and helmfile
         run: |
@@ -163,6 +195,15 @@ jobs:
           read -ra selectors <<< "$SELECTORS"
           helmfile -e "$ENVIRONMENT" -l name=postgres "${selectors[@]}" sync
 
+      - name: Mark commit as deployed to prod
+        if: inputs.environment == 'prod' && needs.plan.outputs.all-services == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f context=deploy/prod -f state=success \
+            -f target_url="$RUN_URL" -f description="Задеплоено на prod" > /dev/null
+
       - name: Summary
         env:
           IP: ${{ steps.up.outputs.ip }}
@@ -170,7 +211,7 @@ jobs:
           SERVICES: ${{ needs.plan.outputs.services }}
         run: |
           {
-            echo "Выкачено на \`$ENVIRONMENT\`: $(jq -r 'map(.name) | join(", ")' <<< "$SERVICES"), коммит \`$GITHUB_SHA\`"
+            echo "Задеплоено на \`$ENVIRONMENT\`: $(jq -r 'map(.name) | join(", ")' <<< "$SERVICES"), коммит \`$GITHUB_SHA\`"
             echo
             echo "Адрес: http://$IP/"
           } >> "$GITHUB_STEP_SUMMARY"
