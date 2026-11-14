@@ -4,6 +4,16 @@
   "scheme": "chain",
   "events": [
     {
+      "event_id": "evt-fc-with-context-0001",
+      "type": "transfer",
+      "occurred_at": "2026-11-12T17:00:00Z",
+      "from_account_id": "acc-victim-fc-1",
+      "from_client_id": "cli-victim-fc-1",
+      "to_account_id": "acc-oleg",
+      "to_client_id": "cli-oleg",
+      "amount": 8500000
+    },
+    {
       "event_id": "evt-fc-with-noise-0001",
       "type": "login",
       "occurred_at": "2026-11-12T17:40:00Z",
@@ -21,16 +31,6 @@
       "to_account_id": "acc-noise-fc-1",
       "to_client_id": "cli-noise-fc-1",
       "amount": 220000
-    },
-    {
-      "event_id": "evt-fc-with-context-0001",
-      "type": "transfer",
-      "occurred_at": "2026-11-12T17:56:00Z",
-      "from_account_id": "acc-victim-fc-1",
-      "from_client_id": "cli-victim-fc-1",
-      "to_account_id": "acc-oleg",
-      "to_client_id": "cli-oleg",
-      "amount": 8500000
     },
     {
       "event_id": "evt-fc-with-0001",
