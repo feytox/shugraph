@@ -139,6 +139,71 @@ paths:
       summary: Create a note in graph-api
       tags:
         - Notes
+  /admin-api/v1/scenario:
+    get:
+      operationId: list-scenarios
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                items:
+                  type: string
+                type:
+                  - array
+                  - "null"
+          description: OK
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Internal Server Error
+      summary: List a scenario
+      tags:
+        - Scenarios
+  /admin-api/v1/scenario/{scenario_id}/run:
+    post:
+      operationId: run-scenario
+      parameters:
+        - in: path
+          name: scenario_id
+          required: true
+          schema:
+            type: string
+        - explode: false
+          in: query
+          name: delay_s
+          schema:
+            default: 1
+            format: int64
+            maximum: 5
+            minimum: 0
+            type: integer
+      responses:
+        "202":
+          description: Accepted
+        "404":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Not Found
+        "422":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Unprocessable Entity
+        "500":
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ErrorModel"
+          description: Internal Server Error
+      summary: Run a scenario in graph-api
+      tags:
+        - Scenarios
   /healthz:
     get:
       operationId: health
