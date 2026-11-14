@@ -1,0 +1,86 @@
+{
+  "name": "fast_chain_two_transfers",
+  "description": "Быстрая цепочка: на фоне обычного потока деньги проходят только через два перевода — Олег → Игорь → Павел. До порога схемы (не меньше 3 переводов между счетами цепочки) не хватает, группы нет.",
+  "events": [
+    {
+      "event_id": "evt-fc-without-context-0001",
+      "type": "transfer",
+      "occurred_at": "2026-11-13T12:00:00Z",
+      "from_account_id": "acc-victim-fc-wo-1",
+      "from_client_id": "cli-victim-fc-wo-1",
+      "to_account_id": "acc-oleg",
+      "to_client_id": "cli-oleg",
+      "amount": 6000000
+    },
+    {
+      "event_id": "evt-fc-without-noise-0001",
+      "type": "login",
+      "occurred_at": "2026-11-13T13:00:00Z",
+      "account_id": "acc-ulyana",
+      "client_id": "cli-ulyana",
+      "device_id": "dev-ulyana",
+      "address_id": "203.0.113.91"
+    },
+    {
+      "event_id": "evt-fc-without-noise-0002",
+      "type": "transfer",
+      "occurred_at": "2026-11-13T13:05:00Z",
+      "from_account_id": "acc-ulyana",
+      "from_client_id": "cli-ulyana",
+      "to_account_id": "acc-noise-fc-wo-1",
+      "to_client_id": "cli-noise-fc-wo-1",
+      "amount": 190000
+    },
+    {
+      "event_id": "evt-fc-without-0001",
+      "type": "transfer",
+      "occurred_at": "2026-11-13T13:20:00Z",
+      "from_account_id": "acc-oleg",
+      "from_client_id": "cli-oleg",
+      "to_account_id": "acc-igor",
+      "to_client_id": "cli-igor",
+      "amount": 5800000
+    },
+    {
+      "event_id": "evt-fc-without-0002",
+      "type": "transfer",
+      "occurred_at": "2026-11-13T13:25:00Z",
+      "from_account_id": "acc-igor",
+      "from_client_id": "cli-igor",
+      "to_account_id": "acc-pavel",
+      "to_client_id": "cli-pavel",
+      "amount": 5600000
+    },
+    {
+      "event_id": "evt-fc-without-noise-0003",
+      "type": "login",
+      "occurred_at": "2026-11-13T13:40:00Z",
+      "account_id": "acc-ulyana",
+      "client_id": "cli-ulyana",
+      "device_id": "dev-ulyana",
+      "address_id": "203.0.113.91"
+    },
+    {
+      "event_id": "evt-fc-without-noise-0004",
+      "type": "transfer",
+      "occurred_at": "2026-11-13T14:00:00Z",
+      "from_account_id": "acc-ulyana",
+      "from_client_id": "cli-ulyana",
+      "to_account_id": "acc-noise-fc-wo-2",
+      "to_client_id": "cli-noise-fc-wo-2",
+      "amount": 160000
+    },
+    {
+      "event_id": "evt-fc-without-noise-0005",
+      "type": "login",
+      "occurred_at": "2026-11-13T14:20:00Z",
+      "account_id": "acc-ulyana",
+      "client_id": "cli-ulyana",
+      "device_id": "dev-ulyana",
+      "address_id": "203.0.113.91"
+    }
+  ],
+  "expected": {
+    "groups": []
+  }
+}
