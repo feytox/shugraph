@@ -52,8 +52,8 @@ func (s *ScenarioService) Run(ctx context.Context, scenarioID string, delaySecon
 		return fmt.Errorf("error getting scenario %q: %w", scenarioID, err)
 	}
 
+	s.wg.Add(1)
 	go func() {
-		s.wg.Add(1)
 		err := s.sendScenario(ctx, scenarioID, scenario, time.Duration(delaySecond)*time.Second)
 		if err != nil {
 			s.logger.Error("error sending scenario: %w", err)
@@ -71,10 +71,18 @@ func (s *ScenarioService) ListNames() ([]string, error) {
 	return scenarioNames, nil
 }
 
+func (s *ScenarioService) Wait() {
+	s.wg.Wait()
+}
+
 func (s *ScenarioService) sendScenario(ctx context.Context, scenarioID string, scenario *domain.Scenario, delay time.Duration) error {
 	defer s.wg.Done()
 	for _, raw := range scenario.Events {
-		time.Sleep(delay)
+		select {
+		case <-time.After(delay):
+		case <-ctx.Done():
+			s.logger.Info("shutdown detected, skipping scenario delay")
+		}
 		event, err := decodeScenarioEvent(raw)
 		if err != nil {
 			return fmt.Errorf("error decoding scenario %q: %w", scenarioID, err)
