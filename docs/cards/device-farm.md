@@ -33,7 +33,7 @@
 - при `collector > 0`: `С одного устройства заходили в личный кабинет разные клиенты (всего {clients_count}). Деньги с их счетов ушли на общий счёт для вывода — вероятный сборщик. Это признак фермы: возможно, за разными счетами стоит один организатор, который работает с одного устройства и собирает деньги на своём счёте.`
 - при `collector == 0`: `С одного устройства заходили в личный кабинет разные клиенты (всего {clients_count}). Общего счёта для вывода не видно, но несколько клиентов на одном устройстве — уже признак фермы: возможно, счетами управляет один человек.`
 
-## Сценарий `device_farm_with_group`
+## Сценарий `device_farm`
 
 Сценарий: [`backend/graph-admin-api/scenarios/device_farm.json`](../../backend/graph-admin-api/scenarios/device_farm.json). После запуска группа должна прийти с такими полями:
 
@@ -86,7 +86,7 @@
 | `features.total_amount` | `13400000` |
 | `clients_count` | `3` |
 
-Проверка чисел: `50 + 10 + 0 + 10 = 70`, уровень `medium` — диапазон 60–74. `span_minutes` — 35 минут (18:00–18:35), `total_amount` — 13 400 000 копеек (45 000 + 41 000 + 48 000 ₽). `accounts_count` — 4 счёта (`acc-anna`, `acc-boris`, `acc-vera`, `acc-collector`), `clients_count` — 3 клиента в `logins`.
+Проверка чисел: `50 + 10 + 0 + 10 = 70`, уровень `medium` — диапазон 60–74. `span_minutes` — 35 минут (18:00–18:35), `total_amount` — 13 400 000 копеек (52 000 + 43 000 + 39 000 ₽). `accounts_count` — 4 счёта (`acc-anna`, `acc-boris`, `acc-vera`, `acc-collector`), `clients_count` — 3 клиента в `logins`.
 
 Ожидаемый текст карточки:
 
@@ -124,7 +124,7 @@
 | `features.total_amount` | `12000000` |
 | `clients_count` | `3` |
 
-Проверка чисел: `50 + 10 + 0 + 10 = 70`, уровень `medium` — диапазон 60–74. `span_minutes` — 32 минуты (18:00–18:32), `total_amount` — 12 000 000 копеек (40 000 + 35 000 + 45 000 ₽). `accounts_count` — 4 счёта (`acc-anna`, `acc-boris`, `acc-vera`, `acc-collector`), `clients_count` — 3 клиента в `logins`.
+Проверка чисел: `50 + 10 + 0 + 10 = 70`, уровень `medium` — диапазон 60–74. `span_minutes` — 32 минуты (18:00–18:32), `total_amount` — 12 000 000 копеек (30 000 + 40 000 + 50 000 ₽). `accounts_count` — 4 счёта (`acc-anna`, `acc-boris`, `acc-vera`, `acc-collector`), `clients_count` — 3 клиента в `logins`.
 
 Ожидаемый текст карточки:
 
