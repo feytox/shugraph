@@ -50,7 +50,7 @@ type storedGroup struct {
 }
 
 func TestGroups_Scenarios(t *testing.T) {
-	for _, name := range []string{"device_farm_with_group", "device_farm_without_group"} {
+	for _, name := range []string{"device_farm", "without_group"} {
 		t.Run(name, func(t *testing.T) {
 			sc := loadScenario(t, name)
 
@@ -63,7 +63,7 @@ func TestGroups_Scenarios(t *testing.T) {
 }
 
 func TestGroups_ScenarioReplayOnEmptyDatabaseGivesSameGroup(t *testing.T) {
-	sc := loadScenario(t, "device_farm_with_group")
+	sc := loadScenario(t, "device_farm")
 
 	clearEventTables(t)
 	playScenario(t, sc)
@@ -78,7 +78,7 @@ func TestGroups_ScenarioReplayOnEmptyDatabaseGivesSameGroup(t *testing.T) {
 }
 
 func TestGroups_ScenarioInReverseOrderGivesSameGroup(t *testing.T) {
-	sc := loadScenario(t, "device_farm_with_group")
+	sc := loadScenario(t, "device_farm")
 	slices.Reverse(sc.Events)
 
 	clearEventTables(t)

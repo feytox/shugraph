@@ -3,6 +3,9 @@ name: down
 on:
   workflow_dispatch:
   workflow_call:
+    secrets:
+      YC_SA_KEY:
+        required: true
   schedule:
     - cron: '0 1 * * *'
       timezone: Europe/Moscow
@@ -14,6 +17,9 @@ jobs:
   down:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
     environment:
       name: vm
       deployment: false
@@ -23,13 +29,25 @@ jobs:
     env:
       VM_ID: ${{ vars.VM_ID }}
     steps:
+      - name: Check autodown is latest
+        id: stale
+        if: github.workflow == 'autodown'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          latest=$(gh run list -R "$GITHUB_REPOSITORY" -w autodown.yml -L 1 --json databaseId -q '.[0].databaseId')
+          [[ $latest == "$GITHUB_RUN_ID" ]] || echo "skip=true" >> "$GITHUB_OUTPUT"
+
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.stale.outputs.skip != 'true'
         with:
           persist-credentials: false
 
       - uses: ./.github/actions/setup-yc # zizmor: ignore[self-repository]
+        if: steps.stale.outputs.skip != 'true'
         with:
           sa-key: ${{ secrets.YC_SA_KEY }}
 
       - name: Down
+        if: steps.stale.outputs.skip != 'true'
         run: infra/vm/vm.sh down
