@@ -1,0 +1,49 @@
+name: Setup yc
+description: Ставит yc нужной версии из кэша Actions и авторизует его ключом сервисного аккаунта
+
+inputs:
+  sa-key:
+    description: JSON-ключ сервисного аккаунта
+    required: true
+  version:
+    description: Версия yc
+    default: 1.45.0
+
+runs:
+  using: composite
+  steps:
+    - id: dir
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+      run: echo "path=$RUNNER_TOOL_CACHE/yc/$VERSION" >> "$GITHUB_OUTPUT"
+
+    - id: cache
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ steps.dir.outputs.path }}
+        key: yc-linux-amd64-${{ inputs.version }}
+
+    - name: Download yc
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+        DIR: ${{ steps.dir.outputs.path }}
+      run: |
+        mkdir -p "$DIR"
+        curl -fsSL --retry 5 --connect-timeout 5 --max-time 300 -o "$DIR/yc" \
+          "https://storage.yandexcloud.net/yandexcloud-yc/release/$VERSION/linux/amd64/yc"
+        chmod +x "$DIR/yc"
+
+    - name: Install and auth yc
+      shell: bash
+      env:
+        DIR: ${{ steps.dir.outputs.path }}
+        YC_SA_KEY: ${{ inputs.sa-key }}
+      run: |
+        sudo ln -sf "$DIR/yc" /usr/local/bin/yc
+        install -m 600 /dev/null "$RUNNER_TEMP/yc-key.json"
+        printf '%s' "$YC_SA_KEY" > "$RUNNER_TEMP/yc-key.json"
+        yc config set service-account-key "$RUNNER_TEMP/yc-key.json"
+        yc iam create-token > /dev/null

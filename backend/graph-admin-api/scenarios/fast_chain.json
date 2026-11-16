@@ -1,0 +1,142 @@
+{
+  "name": "fast_chain",
+  "description": "Быстрая цепочка: деньги жертвы пролетают через Олега, Игоря, Павла и Романа к Тимуру за 11 минут, до конечного счёта дошло 94% суммы первого перевода. Входов у схемы нет, только переводы; вокруг идёт обычный поток событий. Входящий перевод жертвы Олегу до 18:03 — контекст, а не событие цепочки: SRD-5 считает путь от первого перевода цепочки.",
+  "events": [
+    {
+      "event_id": "evt-fc-with-context-0001",
+      "type": "transfer",
+      "occurred_at": "2026-11-11T17:00:00Z",
+      "from_account_id": "acc-victim-fc-1",
+      "from_client_id": "cli-victim-fc-1",
+      "to_account_id": "acc-oleg",
+      "to_client_id": "cli-oleg",
+      "amount": 8500000
+    },
+    {
+      "event_id": "evt-fc-with-noise-0001",
+      "type": "login",
+      "occurred_at": "2026-11-11T17:40:00Z",
+      "account_id": "acc-sofia",
+      "client_id": "cli-sofia",
+      "device_id": "dev-sofia",
+      "address_id": "203.0.113.81"
+    },
+    {
+      "event_id": "evt-fc-with-noise-0002",
+      "type": "transfer",
+      "occurred_at": "2026-11-11T17:48:00Z",
+      "from_account_id": "acc-sofia",
+      "from_client_id": "cli-sofia",
+      "to_account_id": "acc-noise-fc-1",
+      "to_client_id": "cli-noise-fc-1",
+      "amount": 220000
+    },
+    {
+      "event_id": "evt-fc-with-0001",
+      "type": "transfer",
+      "occurred_at": "2026-11-11T18:03:00Z",
+      "from_account_id": "acc-oleg",
+      "from_client_id": "cli-oleg",
+      "to_account_id": "acc-igor",
+      "to_client_id": "cli-igor",
+      "amount": 8350000
+    },
+    {
+      "event_id": "evt-fc-with-0002",
+      "type": "transfer",
+      "occurred_at": "2026-11-11T18:07:00Z",
+      "from_account_id": "acc-igor",
+      "from_client_id": "cli-igor",
+      "to_account_id": "acc-pavel",
+      "to_client_id": "cli-pavel",
+      "amount": 8200000
+    },
+    {
+      "event_id": "evt-fc-with-noise-0003",
+      "type": "login",
+      "occurred_at": "2026-11-11T18:09:00Z",
+      "account_id": "acc-nikita",
+      "client_id": "cli-nikita",
+      "device_id": "dev-nikita",
+      "address_id": "203.0.113.82"
+    },
+    {
+      "event_id": "evt-fc-with-0003",
+      "type": "transfer",
+      "occurred_at": "2026-11-11T18:11:00Z",
+      "from_account_id": "acc-pavel",
+      "from_client_id": "cli-pavel",
+      "to_account_id": "acc-roman",
+      "to_client_id": "cli-roman",
+      "amount": 8000000
+    },
+    {
+      "event_id": "evt-fc-with-0004",
+      "type": "transfer",
+      "occurred_at": "2026-11-11T18:14:00Z",
+      "from_account_id": "acc-roman",
+      "from_client_id": "cli-roman",
+      "to_account_id": "acc-timur",
+      "to_client_id": "cli-timur",
+      "amount": 7900000
+    },
+    {
+      "event_id": "evt-fc-with-noise-0004",
+      "type": "login",
+      "occurred_at": "2026-11-11T18:30:00Z",
+      "account_id": "acc-sofia",
+      "client_id": "cli-sofia",
+      "device_id": "dev-sofia",
+      "address_id": "203.0.113.81"
+    },
+    {
+      "event_id": "evt-fc-with-noise-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-11T18:45:00Z",
+      "from_account_id": "acc-nikita",
+      "from_client_id": "cli-nikita",
+      "to_account_id": "acc-noise-fc-2",
+      "to_client_id": "cli-noise-fc-2",
+      "amount": 130000
+    },
+    {
+      "event_id": "evt-fc-with-noise-0006",
+      "type": "login",
+      "occurred_at": "2026-11-11T19:05:00Z",
+      "account_id": "acc-sofia",
+      "client_id": "cli-sofia",
+      "device_id": "dev-sofia",
+      "address_id": "203.0.113.81"
+    }
+  ],
+  "expected": {
+    "groups": [
+      {
+        "scheme": "chain",
+        "member_account_ids": [
+          "acc-oleg",
+          "acc-igor",
+          "acc-pavel",
+          "acc-roman",
+          "acc-timur"
+        ],
+        "event_ids": [
+          "evt-fc-with-0001",
+          "evt-fc-with-0002",
+          "evt-fc-with-0003",
+          "evt-fc-with-0004"
+        ],
+        "risk_score": 85,
+        "risk_level": "high",
+        "risk_parts": {
+          "chain": {
+            "scheme": 55,
+            "speed": 15,
+            "hops": 10,
+            "preserved": 5
+          }
+        }
+      }
+    ]
+  }
+}
