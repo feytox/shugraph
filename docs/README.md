@@ -24,3 +24,4 @@ RFC:
 Планы спринтов:
 
 - [plans/sprint-2.md](plans/sprint-2.md) - план спринта 2
+
