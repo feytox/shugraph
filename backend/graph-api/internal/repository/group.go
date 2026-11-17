@@ -2,8 +2,10 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
 
@@ -14,12 +16,14 @@ import (
 var groupStruct = sqlbuilder.NewStruct(new(db.Group)).For(sqlbuilder.PostgreSQL)
 
 type PgGroupRepository struct {
-	pool db.DBTX
+	conn    db.DBTX
+	queries *db.Queries
 }
 
-func NewPgGroupRepository(pool db.DBTX) *PgGroupRepository {
+func NewPgGroupRepository(conn db.DBTX) *PgGroupRepository {
 	return &PgGroupRepository{
-		pool: pool,
+		conn:    conn,
+		queries: db.New(conn),
 	}
 }
 
@@ -49,7 +53,7 @@ func (p *PgGroupRepository) List(ctx context.Context, filter domain.GroupFilter)
 
 	query, args := sb.Build()
 
-	rows, err := p.pool.Query(ctx, query, args...)
+	rows, err := p.conn.Query(ctx, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("select groups: %w", err)
 	}
@@ -67,6 +71,76 @@ func (p *PgGroupRepository) List(ctx context.Context, filter domain.GroupFilter)
 	return groups, nil
 }
 
+func (p *PgGroupRepository) Get(ctx context.Context, id uuid.UUID) (domain.Group, error) {
+	record, err := p.queries.GetGroup(ctx, id)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return domain.Group{}, domain.ErrGroupNotFound
+	}
+
+	if err != nil {
+		return domain.Group{}, fmt.Errorf("select group: %w", err)
+	}
+
+	return groupFromRecord(record), nil
+}
+
+func (p *PgGroupRepository) ListMembers(ctx context.Context, groupID uuid.UUID) ([]domain.Account, error) {
+	rows, err := p.queries.ListGroupMembers(ctx, groupID)
+	if err != nil {
+		return nil, fmt.Errorf("select group members: %w", err)
+	}
+
+	members := make([]domain.Account, 0, len(rows))
+	for _, row := range rows {
+		members = append(members, domain.Account{ID: row.ID, ClientID: row.ClientID})
+	}
+
+	return members, nil
+}
+
+func (p *PgGroupRepository) ListLogins(ctx context.Context, groupID uuid.UUID) ([]domain.LoginEvent, error) {
+	rows, err := p.queries.ListGroupLogins(ctx, groupID)
+	if err != nil {
+		return nil, fmt.Errorf("select group logins: %w", err)
+	}
+
+	logins := make([]domain.LoginEvent, 0, len(rows))
+	for _, row := range rows {
+		logins = append(logins, domain.LoginEvent{
+			EventID:    row.EventID,
+			OccurredAt: row.OccurredAt,
+			AccountID:  row.AccountID,
+			ClientID:   row.ClientID,
+			DeviceID:   row.DeviceID,
+			AddressID:  row.AddressID,
+		})
+	}
+
+	return logins, nil
+}
+
+func (p *PgGroupRepository) ListTransfers(ctx context.Context, groupID uuid.UUID) ([]domain.TransferEvent, error) {
+	rows, err := p.queries.ListGroupTransfers(ctx, groupID)
+	if err != nil {
+		return nil, fmt.Errorf("select group transfers: %w", err)
+	}
+
+	transfers := make([]domain.TransferEvent, 0, len(rows))
+	for _, row := range rows {
+		transfers = append(transfers, domain.TransferEvent{
+			EventID:       row.EventID,
+			OccurredAt:    row.OccurredAt,
+			FromAccountID: row.FromAccountID,
+			FromClientID:  row.FromClientID,
+			ToAccountID:   row.ToAccountID,
+			ToClientID:    row.ToClientID,
+			Amount:        row.Amount,
+		})
+	}
+
+	return transfers, nil
+}
+
 func groupFromRecord(record db.Group) domain.Group {
 	group := domain.Group{
 		ID:            record.ID,
@@ -74,6 +148,7 @@ func groupFromRecord(record db.Group) domain.Group {
 		Status:        domain.GroupStatus(record.Status),
 		RiskScore:     int(record.RiskScore),
 		RiskParts:     record.RiskParts,
+		RiskLevel:     domain.RiskLevel(record.RiskLevel),
 		DetectedAt:    record.DetectedAt,
 		FirstEventAt:  record.FirstEventAt,
 		LastEventAt:   record.LastEventAt,

@@ -120,6 +120,7 @@ func (a groupAssembly) ensureFarmGroup(ctx context.Context, deviceID string, eve
 		Scheme:       domain.GroupSchemeFarm,
 		RiskScore:    risk.Score,
 		RiskParts:    risk.Parts,
+		RiskLevel:    risk.Level,
 		FirstEventAt: stats.FirstEventAt,
 		LastEventAt:  stats.LastEventAt,
 	}
