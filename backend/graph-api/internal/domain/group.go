@@ -93,6 +93,10 @@ type GroupCursor struct {
 	ID         uuid.UUID
 }
 
+func (g Group) SpanMinutes() int {
+	return int(g.LastEventAt.Sub(g.FirstEventAt) / time.Minute)
+}
+
 func (g Group) Cursor() GroupCursor {
 	return GroupCursor{DetectedAt: g.DetectedAt, ID: g.ID}
 }
@@ -101,5 +105,5 @@ type GroupFilter struct {
 	Status  *GroupStatus
 	Schemes []GroupScheme
 	After   *GroupCursor
-	Limit   int32
+	Limit   int
 }

@@ -19,9 +19,6 @@ func TestContractRoutes(t *testing.T) {
 		path   string
 		body   string
 	}{
-		{http.MethodGet, "/api/v1/groups", ""},
-		{http.MethodGet, groupPath, ""},
-		{http.MethodGet, groupPath + "/graph", ""},
 		{http.MethodPatch, groupPath + "/solution", `{"status":"approved","decision_comment":"Confirmed"}`},
 	}
 

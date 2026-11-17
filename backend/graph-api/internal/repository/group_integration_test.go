@@ -80,7 +80,7 @@ func listAll(t *testing.T, repo *repository.PgGroupRepository, filter domain.Gro
 
 		all = append(all, page...)
 
-		if len(page) < int(filter.Limit) {
+		if len(page) < filter.Limit {
 			return all
 		}
 
@@ -184,7 +184,7 @@ func TestGroupRepository_List(t *testing.T) {
 	})
 
 	t.Run("NonPositiveLimit", func(t *testing.T) {
-		for _, limit := range []int32{0, -1} {
+		for _, limit := range []int{0, -1} {
 			_, err := repo.List(t.Context(), domain.GroupFilter{Limit: limit})
 			require.Error(t, err, "limit %d", limit)
 		}

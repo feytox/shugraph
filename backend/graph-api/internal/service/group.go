@@ -43,7 +43,7 @@ func NewGroupService(groups groupRepository, snapshot Transactor[GroupRepositori
 }
 
 func (s *GroupService) List(ctx context.Context, filter domain.GroupFilter) (GroupPage, error) {
-	limit := int(filter.Limit)
+	limit := filter.Limit
 	if limit <= 0 {
 		return GroupPage{}, fmt.Errorf("list groups: limit must be positive, got %d", limit)
 	}

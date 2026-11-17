@@ -34,7 +34,7 @@ func (p *PgGroupRepository) List(ctx context.Context, filter domain.GroupFilter)
 
 	sb := groupStruct.SelectFrom("groups")
 	sb.OrderBy("detected_at DESC", "id DESC")
-	sb.Limit(int(filter.Limit))
+	sb.Limit(filter.Limit)
 
 	if filter.Status != nil {
 		sb.Where(sb.Equal("status", string(*filter.Status)))
