@@ -22,12 +22,12 @@ type scenarioHandlers struct {
 	log      *slog.Logger
 }
 
-func registerService(api huma.API, h *scenarioHandlers) {
+func registerScenarios(api huma.API, h *scenarioHandlers) {
 	huma.Register(api, huma.Operation{
 		OperationID:   "run-scenario",
 		Summary:       "Run a scenario in graph-api",
 		Method:        http.MethodPost,
-		Path:          "/admin-api/v1/scenario/{scenario_id}/run",
+		Path:          "/admin-api/v1/scenarios/{scenario_id}/run",
 		Tags:          []string{scenarioTag},
 		DefaultStatus: http.StatusAccepted,
 		Errors:        []int{http.StatusNotFound},
@@ -35,9 +35,9 @@ func registerService(api huma.API, h *scenarioHandlers) {
 
 	huma.Register(api, huma.Operation{
 		OperationID:   "list-scenarios",
-		Summary:       "List a scenario",
+		Summary:       "List a scenarios",
 		Method:        http.MethodGet,
-		Path:          "/admin-api/v1/scenario",
+		Path:          "/admin-api/v1/scenarios",
 		Tags:          []string{scenarioTag},
 		DefaultStatus: http.StatusOK,
 		Errors:        []int{http.StatusInternalServerError},
