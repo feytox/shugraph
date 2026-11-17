@@ -32,9 +32,9 @@ func (r *ScenarioReadOnlyRepository) GetByName(name string) (*domain.Scenario, e
 
 	var sc domain.Scenario
 
-	errUnmarshal := json.Unmarshal(data, &sc)
-	if errUnmarshal != nil {
-		return nil, errUnmarshal
+	err = json.Unmarshal(data, &sc)
+	if err != nil {
+		return nil, fmt.Errorf("decode scenario %q: %w", name, err)
 	}
 
 	return &sc, nil
