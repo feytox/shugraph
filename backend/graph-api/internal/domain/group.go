@@ -93,6 +93,10 @@ type GroupCursor struct {
 	ID         uuid.UUID
 }
 
+func (g Group) Cursor() GroupCursor {
+	return GroupCursor{DetectedAt: g.DetectedAt, ID: g.ID}
+}
+
 type GroupFilter struct {
 	Status  *GroupStatus
 	Schemes []GroupScheme

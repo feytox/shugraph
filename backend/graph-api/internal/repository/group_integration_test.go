@@ -84,8 +84,8 @@ func listAll(t *testing.T, repo *repository.PgGroupRepository, filter domain.Gro
 			return all
 		}
 
-		last := page[len(page)-1]
-		filter.After = &domain.GroupCursor{DetectedAt: last.DetectedAt, ID: last.ID}
+		next := page[len(page)-1].Cursor()
+		filter.After = &next
 	}
 }
 
