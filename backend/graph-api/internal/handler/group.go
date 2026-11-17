@@ -178,30 +178,13 @@ type GroupIDInput struct {
 }
 
 type ListGroupInput struct {
-	Limit  int    `query:"limit" default:"10" minimum:"1" maximum:"100"`
-	Cursor string `query:"cursor" doc:"Opaque continuation token. Omit for the first page."`
-	Status string `query:"status" doc:"Status to filter groups to." enum:"new,approved,declined"`
-
-	after *domain.GroupCursor
-}
-
-func (in *ListGroupInput) Resolve(huma.Context) []error {
-	if in.Cursor == "" {
-		return nil
-	}
-
-	cursor, err := decodeCursor(in.Cursor)
-	if err != nil {
-		return []error{&huma.ErrorDetail{Location: "query.cursor", Message: "invalid cursor", Value: in.Cursor}}
-	}
-
-	in.after = &cursor
-
-	return nil
+	Limit  int         `query:"limit" default:"10" minimum:"1" maximum:"100"`
+	Cursor cursorParam `query:"cursor" doc:"Opaque continuation token. Omit for the first page."`
+	Status string      `query:"status" doc:"Status to filter groups to." enum:"new,approved,declined"`
 }
 
 func (in *ListGroupInput) filter() domain.GroupFilter {
-	filter := domain.GroupFilter{After: in.after, Limit: in.Limit}
+	filter := domain.GroupFilter{After: in.Cursor.after, Limit: in.Limit}
 
 	if in.Status != "" {
 		status := domain.GroupStatus(in.Status)

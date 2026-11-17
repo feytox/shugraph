@@ -53,63 +53,84 @@ type TransferEdge struct {
 
 func groupGraph(details service.GroupDetails) GroupGraph {
 	accounts := graphAccounts(details)
-	clients := uniqueBy(accounts, func(a domain.Account) string { return a.ClientID })
-	devices := uniqueBy(details.Logins, func(l domain.LoginEvent) string { return l.DeviceID })
-	addresses := uniqueBy(details.Logins, func(l domain.LoginEvent) string { return l.AddressID })
 
-	graph := GroupGraph{
+	return GroupGraph{
 		GroupID:    details.Group.ID.String(),
-		Nodes:      make([]GraphNode, 0, len(clients)+len(accounts)+len(devices)+len(addresses)),
-		Ownerships: make([]OwnershipEdge, 0, len(accounts)),
-		Logins:     make([]LoginEdge, 0, 2*len(details.Logins)),
-		Transfers:  make([]TransferEdge, 0, len(details.Transfers)),
+		Nodes:      graphNodes(accounts, details.Logins),
+		Ownerships: ownershipEdges(accounts),
+		Logins:     loginEdges(details.Logins),
+		Transfers:  transferEdges(details.Transfers),
 	}
+}
+
+func graphNodes(accounts []domain.Account, logins []domain.LoginEvent) []GraphNode {
+	clients := uniqueBy(accounts, func(a domain.Account) string { return a.ClientID })
+	devices := uniqueBy(logins, func(l domain.LoginEvent) string { return l.DeviceID })
+	addresses := uniqueBy(logins, func(l domain.LoginEvent) string { return l.AddressID })
+
+	nodes := make([]GraphNode, 0, len(clients)+len(accounts)+len(devices)+len(addresses))
 
 	for _, client := range clients {
-		graph.Nodes = append(graph.Nodes, graphNode(nodeClient, client.ClientID))
+		nodes = append(nodes, graphNode(nodeClient, client.ClientID))
 	}
 
 	for _, account := range accounts {
-		graph.Nodes = append(graph.Nodes, graphNode(nodeAccount, account.ID))
+		nodes = append(nodes, graphNode(nodeAccount, account.ID))
 	}
 
 	for _, login := range devices {
-		graph.Nodes = append(graph.Nodes, graphNode(nodeDevice, login.DeviceID))
+		nodes = append(nodes, graphNode(nodeDevice, login.DeviceID))
 	}
 
 	for _, login := range addresses {
-		graph.Nodes = append(graph.Nodes, graphNode(nodeNetworkAddress, login.AddressID))
+		nodes = append(nodes, graphNode(nodeNetworkAddress, login.AddressID))
 	}
 
+	return nodes
+}
+
+func ownershipEdges(accounts []domain.Account) []OwnershipEdge {
+	edges := make([]OwnershipEdge, 0, len(accounts))
+
 	for _, account := range accounts {
-		graph.Ownerships = append(graph.Ownerships, OwnershipEdge{EdgeEndpoints{
+		edges = append(edges, OwnershipEdge{EdgeEndpoints{
 			ID:     "ownership:" + account.ClientID + ":" + account.ID,
 			Source: nodeID(nodeClient, account.ClientID),
 			Target: nodeID(nodeAccount, account.ID),
 		}})
 	}
 
-	for _, login := range details.Logins {
-		graph.Logins = append(graph.Logins,
+	return edges
+}
+
+func loginEdges(logins []domain.LoginEvent) []LoginEdge {
+	edges := make([]LoginEdge, 0, 2*len(logins))
+
+	for _, login := range logins {
+		edges = append(edges,
 			loginEdge(login, "device", nodeID(nodeDevice, login.DeviceID)),
 			loginEdge(login, "address", nodeID(nodeNetworkAddress, login.AddressID)),
 		)
 	}
 
-	for _, transfer := range details.Transfers {
-		graph.Transfers = append(graph.Transfers, TransferEdge{
-			EdgeEndpoints: EdgeEndpoints{
-				ID:     "transfer:" + transfer.EventID,
-				Source: nodeID(nodeAccount, transfer.FromAccountID),
-				Target: nodeID(nodeAccount, transfer.ToAccountID),
-			},
+	return edges
+}
+
+func transferEdges(transfers []domain.TransferEvent) []TransferEdge {
+	edges := make([]TransferEdge, 0, len(transfers))
+
+	for _, transfer := range transfers {
+		edges = append(edges, TransferEdge{
+			ID:         "transfer:" + transfer.EventID,
+			Source:     nodeID(nodeAccount, transfer.FromAccountID),
+			Target:     nodeID(nodeAccount, transfer.ToAccountID),
 			EventID:    transfer.EventID,
 			OccurredAt: transfer.OccurredAt,
 			Amount:     transfer.Amount,
 		})
 	}
 
-	return graph
+	return edges
 }
 
 func graphAccounts(details service.GroupDetails) []domain.Account {
@@ -158,11 +179,9 @@ func graphNode(nodeType, entityID string) GraphNode {
 
 func loginEdge(login domain.LoginEvent, target, targetID string) LoginEdge {
 	return LoginEdge{
-		EdgeEndpoints: EdgeEndpoints{
-			ID:     "login:" + login.EventID + ":" + target,
-			Source: nodeID(nodeAccount, login.AccountID),
-			Target: targetID,
-		},
+		ID:         "login:" + login.EventID + ":" + target,
+		Source:     nodeID(nodeAccount, login.AccountID),
+		Target:     targetID,
 		EventID:    login.EventID,
 		OccurredAt: login.OccurredAt,
 	}
