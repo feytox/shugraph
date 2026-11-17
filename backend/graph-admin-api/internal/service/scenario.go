@@ -43,7 +43,6 @@ func NewScenarioService(eventAPI eventAPI, scenarioRepository scenarioRepository
 		scenarioRepository: scenarioRepository,
 		logger:             logger,
 	}
-	s.wg = sync.WaitGroup{}
 
 	return s
 }
@@ -54,13 +53,12 @@ func (s *ScenarioService) Run(ctx context.Context, scenarioID string, delaySecon
 		return fmt.Errorf("error getting scenario %q: %w", scenarioID, err)
 	}
 
-	s.wg.Add(1)
-	go func() {
+	s.wg.Go(func() {
 		err := s.sendScenario(context.WithoutCancel(ctx), scenarioID, scenario, time.Duration(delaySecond)*time.Second)
 		if err != nil {
 			s.logger.Error("send scenario failed", logattr.Error(err))
 		}
-	}()
+	})
 
 	return nil
 }
@@ -79,8 +77,6 @@ func (s *ScenarioService) Wait() {
 }
 
 func (s *ScenarioService) sendScenario(ctx context.Context, scenarioID string, scenario *domain.Scenario, delay time.Duration) error {
-	defer s.wg.Done()
-
 	for _, raw := range scenario.Events {
 		select {
 		case <-time.After(delay):
