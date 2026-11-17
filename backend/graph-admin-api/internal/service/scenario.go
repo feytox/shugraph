@@ -96,7 +96,7 @@ func (s *ScenarioService) sendScenario(ctx context.Context, scenarioID string, s
 		switch event.Type {
 		case domain.EventTypeLogin:
 			if err := handleEvent(ctx, event.EventID, raw, s.eventAPI.LoginEvent); err != nil {
-				return fmt.Errorf("send login event %q for scenario %q: %w", event.Type, scenarioID, err)
+				return fmt.Errorf("send login event %q for scenario %q: %w", event.EventID, scenarioID, err)
 			}
 		case domain.EventTypeTransfer:
 			if err := handleEvent(ctx, event.EventID, raw, s.eventAPI.TransferEvent); err != nil {
