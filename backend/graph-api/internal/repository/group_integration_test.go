@@ -98,6 +98,32 @@ func ids(groups []domain.Group) []int {
 	return result
 }
 
+func requireGroup4(t *testing.T, got domain.Group) {
+	t.Helper()
+
+	require.JSONEq(t, `{"scheme": 55, "speed": 15}`, string(got.RiskParts))
+
+	got.RiskParts = nil
+	detectedAt := seedBase.Add(4 * time.Minute)
+	require.Equal(t, domain.Group{
+		ID:            groupID(4),
+		Scheme:        domain.GroupSchemeRing,
+		Status:        domain.GroupStatusDeclined,
+		RiskScore:     40,
+		RiskLevel:     domain.RiskLevelLow,
+		DetectedAt:    detectedAt,
+		FirstEventAt:  detectedAt.Add(-10 * time.Minute),
+		LastEventAt:   detectedAt,
+		AccountsCount: 4,
+		TotalAmount:   4000,
+		IsFrozen:      true,
+		Decision: &domain.Decision{
+			Comment:   "решение по группе",
+			DecidedAt: detectedAt.Add(time.Hour),
+		},
+	}, got)
+}
+
 func TestGroupRepository_List(t *testing.T) {
 	insertGroups(t)
 
@@ -154,29 +180,7 @@ func TestGroupRepository_List(t *testing.T) {
 	t.Run("AllFields", func(t *testing.T) {
 		groups, err := repo.List(t.Context(), domain.GroupFilter{Limit: 100})
 		require.NoError(t, err)
-
-		got := groups[4]
-		require.JSONEq(t, `{"scheme": 55, "speed": 15}`, string(got.RiskParts))
-
-		got.RiskParts = nil
-		detectedAt := seedBase.Add(4 * time.Minute)
-		require.Equal(t, domain.Group{
-			ID:            groupID(4),
-			Scheme:        domain.GroupSchemeRing,
-			Status:        domain.GroupStatusDeclined,
-			RiskScore:     40,
-			RiskLevel:     domain.RiskLevelLow,
-			DetectedAt:    detectedAt,
-			FirstEventAt:  detectedAt.Add(-10 * time.Minute),
-			LastEventAt:   detectedAt,
-			AccountsCount: 4,
-			TotalAmount:   4000,
-			IsFrozen:      true,
-			Decision: &domain.Decision{
-				Comment:   "решение по группе",
-				DecidedAt: detectedAt.Add(time.Hour),
-			},
-		}, got)
+		requireGroup4(t, groups[4])
 	})
 
 	t.Run("NonPositiveLimit", func(t *testing.T) {
@@ -209,34 +213,34 @@ func insertGroupEvents(t *testing.T) {
 	truncate(t, "events", "accounts", "clients", "devices", "network_addresses")
 
 	_, err := testPool.Exec(t.Context(), `
-		INSERT INTO clients (id) VALUES ('cli-a'), ('cli-b'), ('cli-c');
-		INSERT INTO accounts (id, client_id) VALUES ('acc-a', 'cli-a'), ('acc-b', 'cli-b'), ('acc-c', 'cli-c');
+		INSERT INTO clients (id) VALUES ('cli-c'), ('cli-b'), ('cli-a');
+		INSERT INTO accounts (id, client_id) VALUES ('acc-c', 'cli-c'), ('acc-b', 'cli-b'), ('acc-a', 'cli-a');
 		INSERT INTO devices (device_id) VALUES ('dev-1'), ('dev-2');
 		INSERT INTO network_addresses (address_id) VALUES ('10.0.0.1'), ('10.0.0.2');
 		INSERT INTO events (event_id, type, occurred_at) VALUES
-			('login-b', 'login', '2026-10-12 18:02:00Z'),
-			('login-a', 'login', '2026-10-12 18:01:00Z'),
-			('login-other', 'login', '2026-10-12 18:03:00Z'),
-			('transfer-a', 'transfer', '2026-10-12 18:04:00Z'),
-			('transfer-other', 'transfer', '2026-10-12 18:05:00Z');
+			('transfer-1805', 'transfer', '2026-10-12 18:05:00Z'),
+			('transfer-1804', 'transfer', '2026-10-12 18:04:00Z'),
+			('login-1803', 'login', '2026-10-12 18:03:00Z'),
+			('login-1802', 'login', '2026-10-12 18:02:00Z'),
+			('login-1801', 'login', '2026-10-12 18:01:00Z');
 		INSERT INTO login_events (event_id, account_id, device_id, address_id) VALUES
-			('login-a', 'acc-a', 'dev-1', '10.0.0.1'),
-			('login-b', 'acc-b', 'dev-1', '10.0.0.2'),
-			('login-other', 'acc-a', 'dev-2', '10.0.0.1');
+			('login-1803', 'acc-a', 'dev-2', '10.0.0.1'),
+			('login-1802', 'acc-b', 'dev-1', '10.0.0.2'),
+			('login-1801', 'acc-a', 'dev-1', '10.0.0.1');
 		INSERT INTO transfers (event_id, from_account_id, to_account_id, amount) VALUES
-			('transfer-a', 'acc-a', 'acc-c', 5000),
-			('transfer-other', 'acc-b', 'acc-c', 7000);
+			('transfer-1805', 'acc-b', 'acc-c', 7000),
+			('transfer-1804', 'acc-a', 'acc-c', 5000);
 		INSERT INTO group_members (group_id, account_id) VALUES
 			('00000000-0000-0000-0000-000000000001', 'acc-c'),
-			('00000000-0000-0000-0000-000000000001', 'acc-a'),
 			('00000000-0000-0000-0000-000000000001', 'acc-b'),
+			('00000000-0000-0000-0000-000000000001', 'acc-a'),
 			('00000000-0000-0000-0000-000000000002', 'acc-b');
 		INSERT INTO group_events (group_id, event_id) VALUES
-			('00000000-0000-0000-0000-000000000001', 'login-b'),
-			('00000000-0000-0000-0000-000000000001', 'login-a'),
-			('00000000-0000-0000-0000-000000000001', 'transfer-a'),
-			('00000000-0000-0000-0000-000000000002', 'login-other'),
-			('00000000-0000-0000-0000-000000000002', 'transfer-other');`)
+			('00000000-0000-0000-0000-000000000001', 'transfer-1804'),
+			('00000000-0000-0000-0000-000000000001', 'login-1802'),
+			('00000000-0000-0000-0000-000000000001', 'login-1801'),
+			('00000000-0000-0000-0000-000000000002', 'transfer-1805'),
+			('00000000-0000-0000-0000-000000000002', 'login-1803');`)
 	require.NoError(t, err)
 }
 
@@ -246,14 +250,9 @@ func TestGroupRepository_Get(t *testing.T) {
 	repo := repository.NewPgGroupRepository(testPool)
 
 	t.Run("Found", func(t *testing.T) {
-		listed, err := repo.List(t.Context(), domain.GroupFilter{Limit: 100})
+		got, err := repo.Get(t.Context(), groupID(4))
 		require.NoError(t, err)
-
-		for _, want := range listed {
-			got, err := repo.Get(t.Context(), want.ID)
-			require.NoError(t, err)
-			require.Equal(t, want, got)
-		}
+		requireGroup4(t, got)
 	})
 
 	t.Run("NotFound", func(t *testing.T) {
@@ -282,7 +281,7 @@ func TestGroupRepository_Contents(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, []domain.LoginEvent{
 			{
-				EventID:    "login-a",
+				EventID:    "login-1801",
 				OccurredAt: seedBase.Add(time.Minute),
 				AccountID:  "acc-a",
 				ClientID:   "cli-a",
@@ -290,7 +289,7 @@ func TestGroupRepository_Contents(t *testing.T) {
 				AddressID:  "10.0.0.1",
 			},
 			{
-				EventID:    "login-b",
+				EventID:    "login-1802",
 				OccurredAt: seedBase.Add(2 * time.Minute),
 				AccountID:  "acc-b",
 				ClientID:   "cli-b",
@@ -304,7 +303,7 @@ func TestGroupRepository_Contents(t *testing.T) {
 		transfers, err := repo.ListTransfers(t.Context(), groupID(1))
 		require.NoError(t, err)
 		require.Equal(t, []domain.TransferEvent{{
-			EventID:       "transfer-a",
+			EventID:       "transfer-1804",
 			OccurredAt:    seedBase.Add(4 * time.Minute),
 			FromAccountID: "acc-a",
 			FromClientID:  "cli-a",
