@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"sync"
@@ -33,32 +34,41 @@ type ScenarioService struct {
 	scenarioRepository scenarioRepository
 	logger             *slog.Logger
 	wg                 sync.WaitGroup
+	ctx                context.Context
+	cancel             context.CancelFunc
 }
 
 func NewScenarioService(eventAPI eventAPI, scenarioRepository scenarioRepository, logger *slog.Logger) *ScenarioService {
+	ctx, cancel := context.WithCancel(context.Background())
 	s := &ScenarioService{
 		eventAPI:           eventAPI,
 		scenarioRepository: scenarioRepository,
 		logger:             logger,
+		ctx:                ctx,
+		cancel:             cancel,
 	}
 
 	return s
 }
 
-func (s *ScenarioService) Run(ctx context.Context, scenarioID string, delaySecond int) error {
+func (s *ScenarioService) Run(scenarioID string, delaySecond int) error {
 	scenario, err := s.scenarioRepository.GetByName(scenarioID)
 	if err != nil {
 		return fmt.Errorf("error getting scenario %q: %w", scenarioID, err)
 	}
 
-	sendersEvents, err := s.prepareEvents(scenario, s.eventAPI)
+	events, err := s.prepareEvents(scenario, s.eventAPI)
 	if err != nil {
 		return domain.ErrScenarioUnsupportedFormat
 	}
 
 	s.wg.Go(func() {
-		err := s.sendScenario(context.WithoutCancel(ctx), sendersEvents, time.Duration(delaySecond)*time.Second)
+		err := s.playScenario(s.ctx, events, time.Duration(delaySecond)*time.Second)
 		if err != nil {
+			if errors.Is(err, context.Canceled) {
+				s.logger.Info("scenario cancelled", logattr.Error(err))
+				return
+			}
 			s.logger.Error("send scenario failed", logattr.Error(err))
 		}
 	})
@@ -75,7 +85,8 @@ func (s *ScenarioService) ListNames() ([]string, error) {
 	return scenarioNames, nil
 }
 
-func (s *ScenarioService) Wait() {
+func (s *ScenarioService) Stop() {
+	s.cancel()
 	s.wg.Wait()
 }
 
@@ -115,14 +126,14 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario, api eventAPI)
 	return events, nil
 }
 
-func (s *ScenarioService) sendScenario(ctx context.Context, senders []func(context.Context) error, delay time.Duration) error {
-	for _, send := range senders {
+func (s *ScenarioService) playScenario(ctx context.Context, events []func(context.Context) error, delay time.Duration) error {
+	for _, sendEvent := range events {
 		select {
 		case <-time.After(delay):
 		case <-ctx.Done():
-			s.logger.Info("shutdown detected, skipping scenario delay")
+			return ctx.Err()
 		}
-		err := send(ctx)
+		err := sendEvent(ctx)
 		if err != nil {
 			return fmt.Errorf("error sending scenario: %w", err)
 		}

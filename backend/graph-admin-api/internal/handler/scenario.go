@@ -13,7 +13,7 @@ import (
 const scenarioTag = "Scenarios"
 
 type ScenarioService interface {
-	Run(ctx context.Context, scenarioID string, delay int) error
+	Run(scenarioID string, delay int) error
 	ListNames() ([]string, error)
 }
 
@@ -54,7 +54,7 @@ type ListScenarioOutput struct {
 }
 
 func (h scenarioHandlers) run(ctx context.Context, i *RunScenarioInput) (*struct{}, error) {
-	err := h.scenario.Run(ctx, i.ScenarioID, i.DelaySeconds)
+	err := h.scenario.Run(i.ScenarioID, i.DelaySeconds)
 	if err != nil {
 		if errors.Is(err, domain.ErrScenarioNotFound) {
 			return nil, huma.Error404NotFound("Scenario not found")

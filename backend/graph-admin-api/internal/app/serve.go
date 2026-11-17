@@ -37,8 +37,8 @@ func Serve(ctx context.Context, log *slog.Logger) error {
 	return srv.run(ctx)
 }
 
-type waiter interface {
-	Wait()
+type stopper interface {
+	Stop()
 }
 
 type server struct {
@@ -46,7 +46,7 @@ type server struct {
 	pool            *pgxpool.Pool
 	httpServer      *http.Server
 	shutdownTimeout time.Duration
-	waiter          waiter
+	stopper         stopper
 }
 
 func newServer(ctx context.Context, cfg config.Serve, log *slog.Logger) (*server, error) {
@@ -82,7 +82,7 @@ func newServer(ctx context.Context, cfg config.Serve, log *slog.Logger) (*server
 		pool:            pool,
 		httpServer:      httpServer,
 		shutdownTimeout: cfg.HTTP.ShutdownTimeout,
-		waiter:          scenarios,
+		stopper:         scenarios,
 	}, nil
 }
 
@@ -118,7 +118,7 @@ func (s *server) shutdown() {
 	}
 
 	s.log.Info("waiting for all services to complete")
-	s.waiter.Wait()
+	s.stopper.Stop()
 
 	s.log.Info("shutdown complete")
 }
