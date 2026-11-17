@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"encoding/json/v2"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/fs"
