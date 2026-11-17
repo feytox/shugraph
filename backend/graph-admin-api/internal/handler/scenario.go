@@ -50,7 +50,7 @@ type RunScenarioInput struct {
 }
 
 type ListScenarioOutput struct {
-	Body []string
+	Body []string `nullable:"false"`
 }
 
 func (h scenarioHandlers) run(ctx context.Context, i *RunScenarioInput) (*struct{}, error) {

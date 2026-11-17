@@ -139,7 +139,7 @@ paths:
       summary: Create a note in graph-api
       tags:
         - Notes
-  /admin-api/v1/scenario:
+  /admin-api/v1/scenarios:
     get:
       operationId: list-scenarios
       responses:
@@ -149,9 +149,7 @@ paths:
               schema:
                 items:
                   type: string
-                type:
-                  - array
-                  - "null"
+                type: array
           description: OK
         "500":
           content:
@@ -159,10 +157,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Internal Server Error
-      summary: List a scenario
+      summary: List a scenarios
       tags:
         - Scenarios
-  /admin-api/v1/scenario/{scenario_id}/run:
+  /admin-api/v1/scenarios/{scenario_id}/run:
     post:
       operationId: run-scenario
       parameters:

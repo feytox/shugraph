@@ -46,7 +46,7 @@ func (r *ScenarioReadOnlyRepository) ListNames() ([]string, error) {
 		return nil, fmt.Errorf("read scenarios dir: %w", err)
 	}
 
-	var scenarioNames []string
+	var scenarioNames = make([]string, 0, len(entries))
 
 	for _, entry := range entries {
 		if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".json") {
