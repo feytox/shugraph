@@ -30,7 +30,7 @@ func registerScenarios(api huma.API, h *scenarioHandlers) {
 		Path:          "/admin-api/v1/scenarios/{scenario_id}/run",
 		Tags:          []string{scenarioTag},
 		DefaultStatus: http.StatusAccepted,
-		Errors:        []int{http.StatusNotFound},
+		Errors:        []int{http.StatusNotFound, http.StatusInternalServerError},
 	}, h.run)
 
 	huma.Register(api, huma.Operation{
@@ -59,7 +59,9 @@ func (h scenarioHandlers) run(ctx context.Context, i *RunScenarioInput) (*struct
 		if errors.Is(err, domain.ErrScenarioNotFound) {
 			return nil, huma.Error404NotFound("Scenario not found")
 		}
-
+		if errors.Is(err, domain.ErrScenarioUnsupportedFormat) {
+			return nil, huma.Error500InternalServerError("Scenario contains a format error")
+		}
 		return nil, problem(ctx, h.log, err)
 	}
 

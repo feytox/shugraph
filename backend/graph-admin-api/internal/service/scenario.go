@@ -24,10 +24,8 @@ type scenarioRepository interface {
 }
 
 type scenarioEvent struct {
-	EventID    string    `json:"event_id"`
-	Type       string    `json:"type"`
-	OccurredAt time.Time `json:"occurred_at"`
-	Amount     int64     `json:"amount"`
+	EventID string `json:"event_id"`
+	Type    string `json:"type"`
 }
 
 type ScenarioService struct {
@@ -53,8 +51,13 @@ func (s *ScenarioService) Run(ctx context.Context, scenarioID string, delaySecon
 		return fmt.Errorf("error getting scenario %q: %w", scenarioID, err)
 	}
 
+	sendersEvents, err := s.prepareEvents(scenario, s.eventAPI)
+	if err != nil {
+		return domain.ErrScenarioUnsupportedFormat
+	}
+
 	s.wg.Go(func() {
-		err := s.sendScenario(context.WithoutCancel(ctx), scenarioID, scenario, time.Duration(delaySecond)*time.Second)
+		err := s.sendScenario(context.WithoutCancel(ctx), sendersEvents, time.Duration(delaySecond)*time.Second)
 		if err != nil {
 			s.logger.Error("send scenario failed", logattr.Error(err))
 		}
@@ -76,53 +79,54 @@ func (s *ScenarioService) Wait() {
 	s.wg.Wait()
 }
 
-func (s *ScenarioService) sendScenario(ctx context.Context, scenarioID string, scenario *domain.Scenario, delay time.Duration) error {
+func (s *ScenarioService) prepareEvents(scenario *domain.Scenario, api eventAPI) ([]func(context.Context) error, error) {
+	var events []func(context.Context) error
 	for _, raw := range scenario.Events {
+		var event scenarioEvent
+
+		err := json.Unmarshal(raw, &event)
+		if err != nil {
+			return nil, fmt.Errorf("error decoding scenario %q: %w", scenario.Name, err)
+		}
+
+		switch event.Type {
+		case domain.EventTypeLogin:
+			var loginEvent oapi.LoginPayload
+			err := json.Unmarshal(raw, &loginEvent)
+			if err != nil {
+				return nil, fmt.Errorf("error decoding login event in scenario %q: %w", scenario.Name, err)
+			}
+			events = append(events, func(ctx context.Context) error {
+				return api.LoginEvent(ctx, event.EventID, loginEvent)
+			})
+		case domain.EventTypeTransfer:
+			var transferEvent oapi.TransferPayload
+			err := json.Unmarshal(raw, &transferEvent)
+			if err != nil {
+				return nil, fmt.Errorf("error decoding transfer event in scenario %q: %w", scenario.Name, err)
+			}
+			events = append(events, func(ctx context.Context) error {
+				return api.TransferEvent(ctx, event.EventID, transferEvent)
+			})
+		default:
+			return nil, fmt.Errorf("unknown event type %q", event.Type)
+		}
+	}
+	return events, nil
+}
+
+func (s *ScenarioService) sendScenario(ctx context.Context, senders []func(context.Context) error, delay time.Duration) error {
+	for _, send := range senders {
 		select {
 		case <-time.After(delay):
 		case <-ctx.Done():
 			s.logger.Info("shutdown detected, skipping scenario delay")
 		}
-
-		event, err := decodeScenarioEvent(raw)
+		err := send(ctx)
 		if err != nil {
-			return fmt.Errorf("error decoding scenario %q: %w", scenarioID, err)
-		}
-
-		switch event.Type {
-		case domain.EventTypeLogin:
-			if err := handleEvent(ctx, event.EventID, raw, s.eventAPI.LoginEvent); err != nil {
-				return fmt.Errorf("send login event %q for scenario %q: %w", event.EventID, scenarioID, err)
-			}
-		case domain.EventTypeTransfer:
-			if err := handleEvent(ctx, event.EventID, raw, s.eventAPI.TransferEvent); err != nil {
-				return fmt.Errorf("send transfer event %q for scenario %q: %w", event.Type, scenarioID, err)
-			}
-		default:
-			return fmt.Errorf("unknown event type %q", event.Type)
+			return fmt.Errorf("error sending scenario: %w", err)
 		}
 	}
 
 	return nil
-}
-
-func handleEvent[T any](ctx context.Context, eventID string, raw json.RawMessage,
-	send func(context.Context, string, T) error) error {
-	var event T
-	if err := json.Unmarshal(raw, &event); err != nil {
-		return err
-	}
-
-	return send(ctx, eventID, event)
-}
-
-func decodeScenarioEvent(raw json.RawMessage) (scenarioEvent, error) {
-	var event scenarioEvent
-
-	err := json.Unmarshal(raw, &event)
-	if err != nil {
-		return scenarioEvent{}, err
-	}
-
-	return event, nil
 }
