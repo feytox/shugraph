@@ -13,40 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-type eventAPIMock struct {
-	login    func(ctx context.Context, eventID string, payload oapi.LoginPayload) error
-	transfer func(ctx context.Context, eventID string, payload oapi.TransferPayload) error
-}
-
-func (m eventAPIMock) LoginEvent(ctx context.Context, eventID string, payload oapi.LoginPayload) error {
-	if m.login != nil {
-		return m.login(ctx, eventID, payload)
-	}
-
-	return nil
-}
-
-func (m eventAPIMock) TransferEvent(ctx context.Context, eventID string, payload oapi.TransferPayload) error {
-	if m.transfer != nil {
-		return m.transfer(ctx, eventID, payload)
-	}
-
-	return nil
-}
-
-type scenarioRepositoryMock struct {
-	scenarioRepository
-	getScenarios func(name string) (*domain.Scenario, error)
-}
-
-func (r scenarioRepositoryMock) GetByName(name string) (*domain.Scenario, error) {
-	if r.getScenarios != nil {
-		return r.getScenarios(name)
-	}
-
-	return nil, nil
-}
-
 const validScenarioJSON = `{
   "name": "test_scenario",
   "events": [
@@ -86,6 +52,40 @@ const invalidScenarioJSON = `{
     }
   ]
 }`
+
+type eventAPIMock struct {
+	login    func(ctx context.Context, eventID string, payload oapi.LoginPayload) error
+	transfer func(ctx context.Context, eventID string, payload oapi.TransferPayload) error
+}
+
+func (m eventAPIMock) LoginEvent(ctx context.Context, eventID string, payload oapi.LoginPayload) error {
+	if m.login != nil {
+		return m.login(ctx, eventID, payload)
+	}
+
+	return nil
+}
+
+func (m eventAPIMock) TransferEvent(ctx context.Context, eventID string, payload oapi.TransferPayload) error {
+	if m.transfer != nil {
+		return m.transfer(ctx, eventID, payload)
+	}
+
+	return nil
+}
+
+type scenarioRepositoryMock struct {
+	scenarioRepository
+	getScenarios func(name string) (*domain.Scenario, error)
+}
+
+func (r scenarioRepositoryMock) GetByName(name string) (*domain.Scenario, error) {
+	if r.getScenarios != nil {
+		return r.getScenarios(name)
+	}
+
+	return nil, nil
+}
 
 func TestScenarioServiceRunSuccess(t *testing.T) {
 	domainScenario := testScenario(t, validScenarioJSON)
