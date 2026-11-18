@@ -17,7 +17,7 @@ func (m scenarioServiceMock) Run(scenarioID string, delay int) error {
 	return m.run(scenarioID, delay)
 }
 
-func TestScenarioRun(t *testing.T) {
+func TestScenarioHandlerRun(t *testing.T) {
 	tests := map[string]struct {
 		mockRun    func(scenarioID string, delay int) error
 		url        string
@@ -34,14 +34,14 @@ func TestScenarioRun(t *testing.T) {
 			mockRun: func(string, int) error {
 				return domain.ErrScenarioNotFound
 			},
-			url:        "/admin-api/v1/scenarios/unknown/run",
+			url:        "/admin-api/v1/scenarios/unknown-scenario/run",
 			wantStatus: http.StatusNotFound,
 		},
 		"scenario format error": {
 			mockRun: func(scenarioID string, delay int) error {
 				return domain.ErrScenarioUnsupportedFormat
 			},
-			url:        "/admin-api/v1/scenarios/my-broke-scenario/run",
+			url:        "/admin-api/v1/scenarios/my-broken-scenario/run",
 			wantStatus: http.StatusInternalServerError,
 		},
 	}
