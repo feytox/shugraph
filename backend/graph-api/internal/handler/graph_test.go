@@ -54,9 +54,9 @@ func TestGroupGraph_Farm(t *testing.T) {
 			{ID: "network_address:10.0.0.2", Type: "network_address", EntityID: "10.0.0.2"},
 		},
 		Ownerships: []OwnershipEdge{
-			{edge("ownership:cli-organizer:acc-collector", "client:cli-organizer", "account:acc-collector")},
-			{edge("ownership:cli-ravil:acc-ravil", "client:cli-ravil", "account:acc-ravil")},
-			{edge("ownership:cli-sasha:acc-sasha", "client:cli-sasha", "account:acc-sasha")},
+			{edge("ownership:acc-collector", "client:cli-organizer", "account:acc-collector")},
+			{edge("ownership:acc-ravil", "client:cli-ravil", "account:acc-ravil")},
+			{edge("ownership:acc-sasha", "client:cli-sasha", "account:acc-sasha")},
 		},
 		Logins: []LoginEdge{
 			{edge("login:login-1:device", "account:acc-ravil", "device:dev-1"), "login-1", at(1)},
@@ -70,4 +70,14 @@ func TestGroupGraph_Farm(t *testing.T) {
 			{edge("transfer:transfer-1", "account:acc-ravil", "account:acc-collector"), "transfer-1", at(4), 5000},
 		},
 	}, graph)
+}
+
+func TestOwnershipEdges_UniqueIDsWithColons(t *testing.T) {
+	edges := ownershipEdges([]domain.Account{
+		{ID: "c", ClientID: "a:b"},
+		{ID: "b:c", ClientID: "a"},
+	})
+
+	require.Len(t, edges, 2)
+	require.NotEqual(t, edges[0].ID, edges[1].ID)
 }

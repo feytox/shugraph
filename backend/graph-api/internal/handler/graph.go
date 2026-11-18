@@ -94,7 +94,7 @@ func ownershipEdges(accounts []domain.Account) []OwnershipEdge {
 
 	for _, account := range accounts {
 		edges = append(edges, OwnershipEdge{EdgeEndpoints{
-			ID:     "ownership:" + account.ClientID + ":" + account.ID,
+			ID:     "ownership:" + account.ID,
 			Source: nodeID(nodeClient, account.ClientID),
 			Target: nodeID(nodeAccount, account.ID),
 		}})

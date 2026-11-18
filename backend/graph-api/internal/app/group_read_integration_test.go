@@ -141,8 +141,8 @@ func TestGroupRead_GraphHasOnlyGroupEvidence(t *testing.T) {
 		"network_address:198.51.100.21", "network_address:198.51.100.22", "network_address:198.51.100.23",
 	}, idsOf(graph.Nodes, func(n handler.GraphNode) string { return n.ID }))
 	require.ElementsMatch(t, []string{
-		"ownership:cli-ravil:acc-ravil", "ownership:cli-sasha:acc-sasha",
-		"ownership:cli-dima:acc-dima", "ownership:cli-organizer:acc-collector",
+		"ownership:acc-ravil", "ownership:acc-sasha",
+		"ownership:acc-dima", "ownership:acc-collector",
 	}, idsOf(graph.Ownerships, func(e handler.OwnershipEdge) string { return e.ID }))
 	require.ElementsMatch(t, []string{
 		"login:evt-df-with-0001:device", "login:evt-df-with-0001:address",
