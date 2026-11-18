@@ -69,6 +69,7 @@ func (s *ScenarioService) Run(scenarioID string, delaySecond int) error {
 				s.logger.Info("scenario cancelled", logattr.Error(err))
 				return
 			}
+
 			s.logger.Error("send scenario failed", logattr.Error(err))
 		}
 	})
@@ -92,6 +93,7 @@ func (s *ScenarioService) Stop() {
 
 func (s *ScenarioService) prepareEvents(scenario *domain.Scenario, api eventAPI) ([]func(context.Context) error, error) {
 	var events []func(context.Context) error
+
 	for _, raw := range scenario.Events {
 		var event scenarioEvent
 
@@ -103,19 +105,23 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario, api eventAPI)
 		switch event.Type {
 		case domain.EventTypeLogin:
 			var loginEvent oapi.LoginPayload
+
 			err := json.Unmarshal(raw, &loginEvent)
 			if err != nil {
 				return nil, fmt.Errorf("error decoding login event in scenario %q: %w", scenario.Name, err)
 			}
+
 			events = append(events, func(ctx context.Context) error {
 				return api.LoginEvent(ctx, event.EventID, loginEvent)
 			})
 		case domain.EventTypeTransfer:
 			var transferEvent oapi.TransferPayload
+
 			err := json.Unmarshal(raw, &transferEvent)
 			if err != nil {
 				return nil, fmt.Errorf("error decoding transfer event in scenario %q: %w", scenario.Name, err)
 			}
+
 			events = append(events, func(ctx context.Context) error {
 				return api.TransferEvent(ctx, event.EventID, transferEvent)
 			})
@@ -123,6 +129,7 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario, api eventAPI)
 			return nil, fmt.Errorf("unknown event type %q", event.Type)
 		}
 	}
+
 	return events, nil
 }
 
@@ -133,6 +140,7 @@ func (s *ScenarioService) playScenario(ctx context.Context, events []func(contex
 		case <-ctx.Done():
 			return ctx.Err()
 		}
+
 		err := sendEvent(ctx)
 		if err != nil {
 			return fmt.Errorf("error sending scenario: %w", err)
