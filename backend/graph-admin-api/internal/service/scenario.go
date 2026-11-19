@@ -113,7 +113,7 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]preparedEv
 
 			err := json.Unmarshal(raw, &loginEvent)
 			if err != nil {
-				return nil, fmt.Errorf("decoding login event in scenario %q: %w", scenario.Name, err)
+				return nil, fmt.Errorf("decoding login event %q: %w", event.EventID, err)
 			}
 			send := func(ctx context.Context) error {
 				return s.eventAPI.LoginEvent(ctx, event.EventID, loginEvent)
@@ -124,7 +124,7 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]preparedEv
 
 			err := json.Unmarshal(raw, &transferEvent)
 			if err != nil {
-				return nil, fmt.Errorf("decoding transfer event in scenario %q: %w", scenario.Name, err)
+				return nil, fmt.Errorf("decoding transfer event %q: %w", event.EventID, err)
 			}
 			send := func(ctx context.Context) error {
 				return s.eventAPI.TransferEvent(ctx, event.EventID, transferEvent)
