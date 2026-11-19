@@ -57,7 +57,7 @@ func (s *ScenarioService) Run(scenarioID string, delaySecond int) error {
 		return fmt.Errorf("error getting scenario %q: %w", scenarioID, err)
 	}
 
-	events, err := s.prepareEvents(scenario, s.eventAPI)
+	events, err := s.prepareEvents(scenario)
 	if err != nil {
 		return domain.ErrScenarioUnsupportedFormat
 	}
@@ -91,7 +91,7 @@ func (s *ScenarioService) Stop() {
 	s.wg.Wait()
 }
 
-func (s *ScenarioService) prepareEvents(scenario *domain.Scenario, api eventAPI) ([]func(context.Context) error, error) {
+func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]func(context.Context) error, error) {
 	var events []func(context.Context) error
 
 	for _, raw := range scenario.Events {
@@ -99,7 +99,7 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario, api eventAPI)
 
 		err := json.Unmarshal(raw, &event)
 		if err != nil {
-			return nil, fmt.Errorf("error decoding scenario %q: %w", scenario.Name, err)
+			return nil, fmt.Errorf("decoding scenario %q: %w", scenario.Name, err)
 		}
 
 		switch event.Type {
@@ -108,22 +108,22 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario, api eventAPI)
 
 			err := json.Unmarshal(raw, &loginEvent)
 			if err != nil {
-				return nil, fmt.Errorf("error decoding login event in scenario %q: %w", scenario.Name, err)
+				return nil, fmt.Errorf("decoding login event in scenario %q: %w", scenario.Name, err)
 			}
 
 			events = append(events, func(ctx context.Context) error {
-				return api.LoginEvent(ctx, event.EventID, loginEvent)
+				return s.eventAPI.LoginEvent(ctx, event.EventID, loginEvent)
 			})
 		case domain.EventTypeTransfer:
 			var transferEvent oapi.TransferPayload
 
 			err := json.Unmarshal(raw, &transferEvent)
 			if err != nil {
-				return nil, fmt.Errorf("error decoding transfer event in scenario %q: %w", scenario.Name, err)
+				return nil, fmt.Errorf("decoding transfer event in scenario %q: %w", scenario.Name, err)
 			}
 
 			events = append(events, func(ctx context.Context) error {
-				return api.TransferEvent(ctx, event.EventID, transferEvent)
+				return s.eventAPI.TransferEvent(ctx, event.EventID, transferEvent)
 			})
 		default:
 			return nil, fmt.Errorf("unknown event type %q", event.Type)
@@ -143,7 +143,7 @@ func (s *ScenarioService) playScenario(ctx context.Context, events []func(contex
 
 		err := sendEvent(ctx)
 		if err != nil {
-			return fmt.Errorf("error sending scenario: %w", err)
+			return fmt.Errorf("sending scenario: %w", err)
 		}
 	}
 
