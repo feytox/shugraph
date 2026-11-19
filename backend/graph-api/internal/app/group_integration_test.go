@@ -24,9 +24,12 @@ type scenario struct {
 	Events   []json.RawMessage `json:"events"`
 	Expected struct {
 		Groups []struct {
-			Scheme           string   `json:"scheme"`
-			MemberAccountIDs []string `json:"member_account_ids"`
-			EventIDs         []string `json:"event_ids"`
+			Scheme           string                    `json:"scheme"`
+			MemberAccountIDs []string                  `json:"member_account_ids"`
+			EventIDs         []string                  `json:"event_ids"`
+			RiskScore        int                       `json:"risk_score"`
+			RiskLevel        string                    `json:"risk_level"`
+			RiskParts        map[string]map[string]int `json:"risk_parts"`
 		} `json:"groups"`
 	} `json:"expected"`
 }
@@ -47,6 +50,21 @@ type storedGroup struct {
 	AccountsCount int
 	TotalAmount   int64
 	IsFrozen      bool
+	Risk          storedRisk
+}
+
+type storedRisk struct {
+	Score int
+	Level string
+	Parts map[string]int
+}
+
+func farmRisk(score int, level string, speed, clients, collector int) storedRisk {
+	return storedRisk{
+		Score: score,
+		Level: level,
+		Parts: map[string]int{"scheme": 50, "speed": speed, "clients": clients, "collector": collector},
+	}
 }
 
 func TestGroups_Scenarios(t *testing.T) {
@@ -95,15 +113,29 @@ func TestGroups_FarmGrowsUntilFrozen(t *testing.T) {
 
 	putLogins(t, "dev-farm", 2, "c")
 	require.Equal(t, []string{"acc-a", "acc-b", "acc-c"}, onlyGroup(t).Members)
+	require.Equal(t, farmRisk(70, "medium", 20, 0, 0), onlyGroup(t).Risk)
 
 	putLogins(t, "dev-farm", 3, "d")
 	require.Equal(t, []string{"acc-a", "acc-b", "acc-c", "acc-d"}, onlyGroup(t).Members)
+	require.Equal(t, farmRisk(75, "high", 20, 5, 0), onlyGroup(t).Risk)
 
 	putLogins(t, "dev-other", 3+24*60+1, "x")
 	require.True(t, onlyGroup(t).IsFrozen)
 
 	putLogins(t, "dev-farm", 3+24*60+2, "e")
 	require.Len(t, storedGroups(t), 1)
+	require.Equal(t, farmRisk(75, "high", 20, 5, 0), onlyGroup(t).Risk)
+}
+
+func TestGroups_FarmRiskCountsClientsOfWholeGroup(t *testing.T) {
+	clearEventTables(t)
+
+	putLogins(t, "dev-farm", 0, "a", "b", "c")
+	putLogins(t, "dev-farm", 24*60+1, "d", "e")
+
+	group := onlyGroup(t)
+	require.Equal(t, []string{"acc-a", "acc-b", "acc-c", "acc-d", "acc-e"}, group.Members)
+	require.Equal(t, farmRisk(60, "medium", 0, 10, 0), group.Risk)
 }
 
 func TestGroups_LateLoginAfterFreezeStaysOutOfGroup(t *testing.T) {
@@ -256,6 +288,11 @@ func expectedGroups(t *testing.T, sc scenario) []storedGroup {
 			Members:       slices.Sorted(slices.Values(expected.MemberAccountIDs)),
 			Events:        slices.Sorted(slices.Values(expected.EventIDs)),
 			AccountsCount: len(expected.MemberAccountIDs),
+			Risk: storedRisk{
+				Score: expected.RiskScore,
+				Level: expected.RiskLevel,
+				Parts: expected.RiskParts[expected.Scheme],
+			},
 		}
 
 		for i, id := range group.Events {
@@ -286,7 +323,8 @@ func storedGroups(t *testing.T) []storedGroup {
 		SELECT g.scheme,
 		       ARRAY(SELECT account_id FROM group_members WHERE group_id = g.id ORDER BY account_id),
 		       ARRAY(SELECT event_id FROM group_events WHERE group_id = g.id ORDER BY event_id),
-		       g.first_event_at, g.last_event_at, g.accounts_count, g.total_amount, g.is_frozen
+		       g.first_event_at, g.last_event_at, g.accounts_count, g.total_amount, g.is_frozen,
+			       g.risk_score, g.risk_level, g.risk_parts
 		FROM groups g
 		ORDER BY g.first_event_at, g.id`)
 	require.NoError(t, err)
@@ -299,7 +337,7 @@ func storedGroups(t *testing.T) []storedGroup {
 		var g storedGroup
 
 		err := rows.Scan(&g.Scheme, &g.Members, &g.Events, &g.FirstEventAt, &g.LastEventAt,
-			&g.AccountsCount, &g.TotalAmount, &g.IsFrozen)
+			&g.AccountsCount, &g.TotalAmount, &g.IsFrozen, &g.Risk.Score, &g.Risk.Level, &g.Risk.Parts)
 		require.NoError(t, err)
 
 		groups = append(groups, g)
