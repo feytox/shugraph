@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/domain"
@@ -13,7 +14,7 @@ import (
 const scenarioTag = "Scenarios"
 
 type ScenarioService interface {
-	Run(scenarioID string, delay int) error
+	Run(scenarioID string, delay time.Duration) error
 	ListNames() ([]string, error)
 }
 
@@ -54,7 +55,7 @@ type ListScenarioOutput struct {
 }
 
 func (h scenarioHandlers) run(ctx context.Context, i *RunScenarioInput) (*struct{}, error) {
-	err := h.scenario.Run(i.ScenarioID, i.DelaySeconds)
+	err := h.scenario.Run(i.ScenarioID, time.Duration(i.DelaySeconds)*time.Second)
 	if err != nil {
 		if errors.Is(err, domain.ErrScenarioNotFound) {
 			return nil, huma.Error404NotFound("Scenario not found")

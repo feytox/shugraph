@@ -56,7 +56,7 @@ func NewScenarioService(eventAPI eventAPI, scenarioRepository scenarioRepository
 	return s
 }
 
-func (s *ScenarioService) Run(scenarioID string, delaySecond int) error {
+func (s *ScenarioService) Run(scenarioID string, delay time.Duration) error {
 	scenario, err := s.scenarioRepository.GetByName(scenarioID)
 	if err != nil {
 		return fmt.Errorf("error getting scenario %q: %w", scenarioID, err)
@@ -68,7 +68,7 @@ func (s *ScenarioService) Run(scenarioID string, delaySecond int) error {
 	}
 
 	s.wg.Go(func() {
-		err := s.playScenario(s.ctx, events, time.Duration(delaySecond)*time.Second)
+		err := s.playScenario(s.ctx, events, delay)
 		if err != nil {
 			if errors.Is(err, context.Canceled) {
 				s.logger.Info("scenario cancelled", logattr.Error(err))
