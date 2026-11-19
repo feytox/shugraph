@@ -20,6 +20,7 @@ const (
 type GroupRules struct {
 	Window time.Duration
 	Farm   FarmRules
+	Risk   RiskRules
 }
 
 type TimeWindow struct {
