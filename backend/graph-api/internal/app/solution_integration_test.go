@@ -50,7 +50,7 @@ func TestGroupSolution_Success(t *testing.T) {
 			clearGroups(t)
 			insertTestGroup(t, testGroupID)
 
-			before := time.Now()
+			before := time.Now().Add(-time.Second)
 
 			resp := patchSolution(t, testGroupID, tt.body)
 			defer func() { _ = resp.Body.Close() }()

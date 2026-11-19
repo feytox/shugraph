@@ -83,6 +83,7 @@ func run(m *testing.M) int {
 	repo := repository.NewPgNoteRepository(testPool)
 	noteService := service.NewNoteService(repo)
 	eventService := service.NewEventService(inTx(testPool, eventRepositories), groupsCfg.Rules())
+	solutionService := service.NewGroupSolutionService(inTx(testPool, solutionRepositories))
 
 	errMigrate := pgdb.Migrate(ctx, testPool, slog.Default())
 	if errMigrate != nil {
@@ -93,6 +94,7 @@ func run(m *testing.M) int {
 	server := httptest.NewServer(handler.New(handler.Deps{
 		Notes:    noteService,
 		Events:   eventService,
+		Solution: solutionService,
 		Database: testPool,
 		Log:      slog.Default(),
 	}))
