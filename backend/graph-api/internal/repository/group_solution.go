@@ -24,7 +24,7 @@ func NewPgGroupSolutionRepository(tx pgx.Tx) *PgGroupSolutionRepository {
 func (p *PgGroupSolutionRepository) GetGroupStatus(ctx context.Context, groupID uuid.UUID) (domain.GroupStatus, error) {
 	statusStr, err := p.queries.GetGroupStatus(ctx, groupID)
 	if err != nil {
-		return "", fmt.Errorf("get group status %w", err)
+		return "", fmt.Errorf("get group status: %w", err)
 	}
 
 	return domain.GroupStatus(statusStr), nil
