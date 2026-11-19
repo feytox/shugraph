@@ -29,6 +29,11 @@ type scenarioEvent struct {
 	Type    string `json:"type"`
 }
 
+type preparedEvent struct {
+	id   string
+	send func(context.Context) error
+}
+
 type ScenarioService struct {
 	eventAPI           eventAPI
 	scenarioRepository scenarioRepository
@@ -91,8 +96,8 @@ func (s *ScenarioService) Stop() {
 	s.wg.Wait()
 }
 
-func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]func(context.Context) error, error) {
-	var events []func(context.Context) error
+func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]preparedEvent, error) {
+	var events []preparedEvent
 
 	for _, raw := range scenario.Events {
 		var event scenarioEvent
@@ -110,10 +115,10 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]func(conte
 			if err != nil {
 				return nil, fmt.Errorf("decoding login event in scenario %q: %w", scenario.Name, err)
 			}
-
-			events = append(events, func(ctx context.Context) error {
+			send := func(ctx context.Context) error {
 				return s.eventAPI.LoginEvent(ctx, event.EventID, loginEvent)
-			})
+			}
+			events = append(events, preparedEvent{event.EventID, send})
 		case domain.EventTypeTransfer:
 			var transferEvent oapi.TransferPayload
 
@@ -121,10 +126,10 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]func(conte
 			if err != nil {
 				return nil, fmt.Errorf("decoding transfer event in scenario %q: %w", scenario.Name, err)
 			}
-
-			events = append(events, func(ctx context.Context) error {
+			send := func(ctx context.Context) error {
 				return s.eventAPI.TransferEvent(ctx, event.EventID, transferEvent)
-			})
+			}
+			events = append(events, preparedEvent{event.EventID, send})
 		default:
 			return nil, fmt.Errorf("unknown event type %q", event.Type)
 		}
@@ -133,17 +138,17 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]func(conte
 	return events, nil
 }
 
-func (s *ScenarioService) playScenario(ctx context.Context, events []func(context.Context) error, delay time.Duration) error {
-	for _, sendEvent := range events {
+func (s *ScenarioService) playScenario(ctx context.Context, events []preparedEvent, delay time.Duration) error {
+	for _, event := range events {
 		select {
 		case <-time.After(delay):
 		case <-ctx.Done():
 			return ctx.Err()
 		}
 
-		err := sendEvent(ctx)
+		err := event.send(ctx)
 		if err != nil {
-			return fmt.Errorf("sending scenario: %w", err)
+			return fmt.Errorf("send event %q: %w", event.id, err)
 		}
 	}
 
