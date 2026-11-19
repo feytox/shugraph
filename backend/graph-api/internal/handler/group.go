@@ -2,15 +2,26 @@ package handler
 
 import (
 	"context"
+	"errors"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/danielgtaylor/huma/v2"
+	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
+	"github.com/google/uuid"
 )
 
 const groupsTag = "Groups"
 
-type groupHandlers struct{}
+type GroupSolutionService interface {
+	ApplySolution(ctx context.Context, solution domain.GroupSolution) (domain.GroupSolution, error)
+}
+
+type groupHandlers struct {
+	solutionService GroupSolutionService
+	log             *slog.Logger
+}
 
 func registerGroups(api huma.API, h *groupHandlers) {
 	huma.Register(api, huma.Operation{
@@ -51,7 +62,6 @@ func registerGroups(api huma.API, h *groupHandlers) {
 			http.StatusNotFound,
 			http.StatusConflict,
 			http.StatusUnprocessableEntity,
-			http.StatusNotImplemented,
 		},
 	}, h.applySolution)
 }
@@ -197,6 +207,34 @@ func (h *groupHandlers) getByID(context.Context, *GroupIDInput) (*GetByIDOutput,
 func (h *groupHandlers) getGraph(context.Context, *GroupIDInput) (*GetGraphOutput, error) {
 	return nil, huma.Error501NotImplemented("Group graph retrieval is not implemented yet.")
 }
-func (h *groupHandlers) applySolution(context.Context, *GroupSolutionInput) (*GroupSolutionOutput, error) {
-	return nil, huma.Error501NotImplemented("Group decisions are not implemented yet.")
+
+func (h *groupHandlers) applySolution(ctx context.Context, i *GroupSolutionInput) (*GroupSolutionOutput, error) {
+	solution := domain.GroupSolution{
+		GroupID:  uuid.MustParse(i.GroupID),
+		Decision: &domain.Decision{Comment: i.Body.DecisionComment},
+		Status:   domain.GroupStatus(i.Body.Status),
+	}
+
+	appliedSolution, err := h.solutionService.ApplySolution(ctx, solution)
+	if err != nil {
+		if e, ok := errors.AsType[domain.ErrGroupNotFound](err); ok {
+			return nil, huma.Error404NotFound(e.Error())
+		}
+
+		if e, ok := errors.AsType[domain.ErrGroupSolutionAlreadyExists](err); ok {
+			return nil, huma.Error409Conflict(e.Error())
+		}
+
+		return nil, problem(ctx, h.log, err)
+	}
+
+	out := &GroupSolutionOutput{}
+
+	out.Body.Status = GroupStatusType(appliedSolution.Status)
+	out.Body.Decision = Decision{
+		Comment:   appliedSolution.Decision.Comment,
+		DecidedAt: appliedSolution.Decision.DecidedAt,
+	}
+
+	return out, nil
 }

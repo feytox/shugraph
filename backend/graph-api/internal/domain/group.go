@@ -2,6 +2,7 @@ package domain
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -65,6 +66,12 @@ type Group struct {
 	Decision      *Decision
 }
 
+type GroupSolution struct {
+	GroupID  uuid.UUID
+	Status   GroupStatus
+	Decision *Decision
+}
+
 type Decision struct {
 	Comment   string
 	DecidedAt time.Time
@@ -80,4 +87,21 @@ type GroupFilter struct {
 	Schemes []GroupScheme
 	After   *GroupCursor
 	Limit   int32
+}
+
+type ErrGroupNotFound struct {
+	GroupID uuid.UUID
+}
+
+func (e ErrGroupNotFound) Error() string {
+	return fmt.Sprintf("group %q not found", e.GroupID)
+}
+
+type ErrGroupSolutionAlreadyExists struct {
+	GroupID uuid.UUID
+	Status  GroupStatus
+}
+
+func (e ErrGroupSolutionAlreadyExists) Error() string {
+	return fmt.Sprintf("status of the group with ID %q has already been set to %q", e.GroupID, e.Status)
 }

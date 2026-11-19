@@ -25,3 +25,10 @@ func eventRepositories(tx pgx.Tx) service.EventRepositories {
 		Farms:  repository.NewPgFarmRepository(tx),
 	}
 }
+
+func solutionRepositories(tx pgx.Tx) service.GroupSolutionRepositories {
+	return service.GroupSolutionRepositories{
+		GroupAssemblyLocker:     repository.NewPgGroupAssemblyRepository(tx),
+		GroupSolutionRepository: repository.NewPgGroupSolutionRepository(tx),
+	}
+}
