@@ -54,7 +54,10 @@ func (srv GroupSolutionService) ApplySolution(ctx context.Context, solution doma
 		if err != nil {
 			status, err := r.GroupSolutionRepository.GetGroupStatus(ctx, solution.GroupID)
 			if err != nil {
-				return domain.ErrGroupNotFound{GroupID: solution.GroupID}
+				if notFound, ok := errors.AsType[domain.ErrGroupNotFound](err); ok {
+					return notFound
+				}
+				return fmt.Errorf("get group status: %w", err)
 			}
 
 			return domain.ErrGroupSolutionAlreadyExists{GroupID: solution.GroupID, Status: status}

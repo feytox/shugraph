@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
@@ -24,6 +25,9 @@ func NewPgGroupSolutionRepository(tx pgx.Tx) *PgGroupSolutionRepository {
 func (p *PgGroupSolutionRepository) GetGroupStatus(ctx context.Context, groupID uuid.UUID) (domain.GroupStatus, error) {
 	statusStr, err := p.queries.GetGroupStatus(ctx, groupID)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", domain.ErrGroupNotFound{GroupID: groupID}
+		}
 		return "", fmt.Errorf("get group status: %w", err)
 	}
 
