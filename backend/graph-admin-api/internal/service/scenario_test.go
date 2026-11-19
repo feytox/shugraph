@@ -100,11 +100,13 @@ func (r scenarioRepositoryMock) GetByName(name string) (*domain.Scenario, error)
 func TestScenarioServiceRunSuccess(t *testing.T) {
 	synctest.Test(t, func(t *testing.T) {
 		domainScenario := testScenario(t, validScenarioJSON)
+
 		var sent []string
 
 		api := &eventAPIMock{
 			login: func(ctx context.Context, eventID string, payload oapi.LoginPayload) error {
 				sent = append(sent, eventID)
+
 				assert.Equal(t, oapi.LoginPayload{
 					AccountId:  "acc-1",
 					ClientId:   "cli-1",
@@ -117,6 +119,7 @@ func TestScenarioServiceRunSuccess(t *testing.T) {
 			},
 			transfer: func(ctx context.Context, eventID string, payload oapi.TransferPayload) error {
 				sent = append(sent, eventID)
+
 				assert.Equal(t, oapi.TransferPayload{
 					Amount:        50000,
 					FromAccountId: "acc-1",
