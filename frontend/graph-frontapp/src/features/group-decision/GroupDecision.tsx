@@ -4,10 +4,13 @@ import type { GroupSolutionInput } from '@/api/client';
 import { useGroupDecision } from '@/features/group-decision/useGroupDecision';
 import { ErrorNotice } from '@/shared/ErrorNotice';
 
-export function GroupDecision({ groupId }: { groupId: string }) {
+export function GroupDecision({ groupId, canDecide }: { groupId: string; canDecide: boolean }) {
   const [comment, setComment] = useState('');
   const { save, pending, error } = useGroupDecision(groupId);
   const decisionComment = comment.trim();
+  const errorNotice = error && <ErrorNotice title={error} wrapText />;
+
+  if (!canDecide) return errorNotice;
 
   const submit = (status: GroupSolutionInput['status']) => {
     if (!decisionComment) return;
@@ -47,7 +50,7 @@ export function GroupDecision({ groupId }: { groupId: string }) {
           Сохранение решения…
         </Text>
       )}
-      {error && <ErrorNotice title={error} />}
+      {errorNotice}
     </Stack>
   );
 }

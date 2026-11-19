@@ -1,18 +1,23 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
-import { afterEach, beforeEach, expect, it } from 'vitest';
-import type { Group, GroupItem } from '@/api/client';
+import { afterEach, beforeEach, expect, it, vi } from 'vitest';
+import { apiClient, type ErrorModel, type Group, type GroupItem } from '@/api/client';
 import { createGroupsDemo } from '@/mocks/groupsDemo';
 import { mockGroups } from '@/mocks/groupGraphs';
 import { groupsPage } from '@/mocks/groupsPage';
 import { server } from '@/mocks/server';
-import { renderScreen } from '@/test/renderScreen';
+import { advance, renderScreen, waitForScreen } from '@/test/renderScreen';
 
 const card = () => within(screen.getByRole('complementary', { name: 'Карточка расследования' }));
 const openAddress = () =>
   fireEvent.click(screen.getByRole('link', { name: /^Адрес.*Риск средний/ }));
-const farmPath = `*/api/v1/groups/${mockGroups[0].item.id}`;
+const farm = mockGroups.find(({ item }) => item.scheme === 'farm');
+if (!farm) throw new Error('Нет моковой фермы');
+const farmDetailPath = `/api/v1/groups/${farm.item.id}`;
+const farmPath = `*${farmDetailPath}`;
 const farmSolutionPath = `${farmPath}/solution`;
+const evolvingGroupId = '00000000-0000-4000-8000-000000000025';
+const evolvingGroupUrl = `/?group=${evolvingGroupId}`;
 const decisionComment = 'Переводы проверены';
 const currentGroup = () => screen.getByRole('link', { current: true });
 const loadedGroups = () => within(screen.getByRole('list', { name: 'Список групп' }));
@@ -27,7 +32,7 @@ async function openFarm() {
   return currentGroup();
 }
 
-function delaySaveError() {
+function delaySaveError(detail?: string) {
   let finish = () => {};
   const ready = new Promise<void>((resolve) => {
     finish = resolve;
@@ -37,12 +42,32 @@ function delaySaveError() {
       farmSolutionPath,
       async () => {
         await ready;
-        return new HttpResponse(null, { status: 500 });
+        return detail ? problem(500, detail) : new HttpResponse(null, { status: 500 });
       },
       { once: true }
     )
   );
   return finish;
+}
+
+function problem(status: number, detail: string) {
+  return HttpResponse.json<ErrorModel>(
+    { type: 'about:blank', status, detail },
+    { status, headers: { 'Content-Type': 'application/problem+json' } }
+  );
+}
+
+function startDemoClock() {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-10-07T11:00:00Z'));
+}
+
+async function nextDemoStep() {
+  vi.setSystemTime(Date.now() + 10000);
+  await advance(3000);
+  await waitForScreen(() =>
+    expect(loadedGroups().getByLabelText('Риск высокий: 86')).toBeVisible()
+  );
 }
 
 beforeEach(() => {
@@ -51,6 +76,7 @@ beforeEach(() => {
 
 afterEach(() => {
   server.events.removeAllListeners();
+  vi.useRealTimers();
 });
 
 it('показывает карточку фермы с текстом и слагаемыми риска по шаблону', async () => {
@@ -86,7 +112,7 @@ it('показывает карточку фермы с текстом и сла
 });
 
 it('объясняет риск фермы без общего счёта и считает уникальных клиентов', async () => {
-  const group = createGroupsDemo().getGroup(mockGroups[0].item.id);
+  const group = createGroupsDemo().getGroup(farm.item.id);
   if (!group) throw new Error('Нет моковой фермы');
   server.use(
     http.get(farmPath, () =>
@@ -125,6 +151,62 @@ it('сообщает об ошибке карточки в её панели и 
   expect(await card().findByText('Риск: средний (70/100)')).toBeVisible();
 });
 
+it('показывает причину ошибки API и позволяет повторно загрузить карточку', async () => {
+  const detail = 'Хранилище временно недоступно. Повторите запрос через несколько секунд.';
+  server.use(http.get(farmPath, () => problem(503, detail), { once: true }));
+  renderScreen();
+  await screen.findByRole('complementary', { name: 'Карточка расследования' });
+  expect(await card().findByRole('alert')).toHaveTextContent(detail);
+  fireEvent.click(card().getByRole('button', { name: /^Повторить/ }));
+  expect(await card().findByText('Риск: высокий (75/100)')).toBeVisible();
+});
+
+it('показывает причину отсутствия карточки без кнопки повтора', async () => {
+  const detail = 'Группа удалена';
+  server.use(http.get(farmPath, () => problem(404, detail)));
+  renderScreen();
+  await screen.findByRole('complementary', { name: 'Карточка расследования' });
+  expect(await card().findByText(detail)).toBeVisible();
+  expect(card().queryByRole('button', { name: /^Повторить/ })).not.toBeInTheDocument();
+});
+
+it('после опроса списка обновляет открытую карточку и сохраняет введённый комментарий', async () => {
+  startDemoClock();
+  renderScreen(evolvingGroupUrl);
+  await waitForScreen(() => expect(card().getByText('Риск: высокий (87/100)')).toBeVisible());
+  fireEvent.change(comment(), { target: { value: decisionComment } });
+
+  await nextDemoStep();
+  expect(within(currentGroup()).getByLabelText('Риск высокий: 88')).toBeVisible();
+  await waitForScreen(() => expect(card().getByText('Риск: высокий (88/100)')).toBeVisible());
+  expect(card().getByText('Счетов в группе: 25, оборот: 223,45 ₽.')).toBeVisible();
+  expect(comment()).toHaveValue(decisionComment);
+});
+
+it('сохраняет риск, оборот и время события решённой демогруппы на следующем шаге потока', async () => {
+  startDemoClock();
+  const view = renderScreen(evolvingGroupUrl);
+  await waitForScreen(() => expect(approve()).toBeDisabled());
+  fireEvent.change(comment(), { target: { value: decisionComment } });
+  fireEvent.click(approve());
+  await waitForScreen(() => expect(card().getByText('Подтверждена')).toBeVisible());
+
+  await nextDemoStep();
+  const row = within(currentGroup());
+  expect(row.getByLabelText('Риск высокий: 87')).toBeVisible();
+  expect(row.getByText(/123,45/)).toBeVisible();
+
+  view.unmount();
+  renderScreen(evolvingGroupUrl);
+  await waitForScreen(() => expect(card().getByText('Риск: высокий (87/100)')).toBeVisible());
+  expect(card().getByText('Счетов в группе: 25, оборот: 123,45 ₽.')).toBeVisible();
+  expect(card().getByText('Подтверждена')).toBeVisible();
+  const { data } = await apiClient.GET('/api/v1/groups/{group_id}', {
+    params: { path: { group_id: evolvingGroupId } },
+  });
+  expect(data).toMatchObject({ last_event_at: '2026-10-07T10:30:45Z', is_frozen: true });
+});
+
 it.each([
   ['Подтвердить', 'approved', 'Подтверждена'],
   ['Отклонить', 'declined', 'Отклонена'],
@@ -132,7 +214,6 @@ it.each([
   'действием «%s» меняет статус карточки и списка и сохраняет его после обновления',
   async (action, status, label) => {
     const requests: { path: string; body: unknown }[] = [];
-    const farmDetailPath = `/api/v1/groups/${mockGroups[0].item.id}`;
     let listResponses = 0;
     let farmDetailResponses = 0;
     server.events.on('request:start', async ({ request }) => {
@@ -195,7 +276,8 @@ it.each([
 );
 
 it('блокирует оба решения во время отправки и сохраняет комментарий для повтора после ошибки', async () => {
-  const finish = delaySaveError();
+  const detail = 'Сохранение решений временно приостановлено';
+  const finish = delaySaveError(detail);
   const requests: unknown[] = [];
   server.events.on('request:start', async ({ request }) => {
     if (request.method === 'PATCH') requests.push(await request.clone().json());
@@ -211,7 +293,7 @@ it('блокирует оба решения во время отправки и
   await waitFor(() => expect(requests).toHaveLength(1));
 
   finish();
-  expect(await card().findByRole('alert')).toHaveTextContent('Не удалось сохранить решение');
+  expect(await card().findByRole('alert')).toHaveTextContent(detail);
   expect(comment()).toHaveValue(decisionComment);
   expect(approve()).toBeEnabled();
   fireEvent.click(approve());
@@ -251,12 +333,13 @@ it('открывает другую группу без черновика и с
 
 it('при конфликте перечитывает статус карточки и списка с сервера', async () => {
   const demo = createGroupsDemo();
-  const groupId = mockGroups[0].item.id;
+  const groupId = farm.item.id;
+  const detail = 'По группе уже вынесено решение';
   let status: GroupItem['status'] = 'new';
   server.use(
     http.patch(farmSolutionPath, () => {
       status = 'declined';
-      return new HttpResponse(null, { status: 409 });
+      return problem(409, detail);
     }),
     http.get(farmPath, () => {
       const group = demo.getGroup(groupId);
@@ -277,5 +360,6 @@ it('при конфликте перечитывает статус карточ
   fireEvent.click(approve());
   expect(await card().findByText('Отклонена')).toBeVisible();
   expect(await within(farmLink).findByText('Отклонена')).toBeVisible();
+  expect(await card().findByRole('alert')).toHaveTextContent(detail);
   expect(card().queryByRole('textbox', { name: 'Комментарий' })).not.toBeInTheDocument();
 });

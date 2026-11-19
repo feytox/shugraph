@@ -6,6 +6,7 @@ import {
 } from '@tanstack/react-query';
 import {
   apiClient,
+  getProblemDetail,
   type Group,
   type GroupListResponse,
   type GroupSolutionInput,
@@ -20,31 +21,35 @@ export function useGroupDecision(groupId: string) {
   const queryClient = useQueryClient();
   const mutationKey = ['group-decision', groupId];
   const groupDecision = { mutationKey, exact: true };
-  const detail = { queryKey: groupDetailKey(groupId), exact: true };
+  const detail = { queryKey: groupDetailKey(groupId) };
   const list = { queryKey: groupsListKey, exact: true };
   const pending = useIsMutating(groupDecision) > 0;
 
   const refresh = () =>
-    Promise.all([
-      queryClient.invalidateQueries({ ...detail, refetchType: 'all' }),
-      queryClient.invalidateQueries(list),
-    ]);
+    Promise.all([queryClient.invalidateQueries(detail), queryClient.invalidateQueries(list)]);
 
   const mutation = useMutation({
     mutationKey,
     mutationFn: async (input: GroupSolutionInput) => {
-      const { data, response } = await apiClient.PATCH('/api/v1/groups/{group_id}/solution', {
-        params: { path: { group_id: groupId } },
-        body: input,
-      });
-      if (response.status === 409) throw new DecisionConflict('Не удалось обновить статус группы');
-      if (!response.ok || !data) throw new Error(saveError);
+      const { data, error, response } = await apiClient
+        .PATCH('/api/v1/groups/{group_id}/solution', {
+          params: { path: { group_id: groupId } },
+          body: input,
+        })
+        .catch(() => {
+          throw new Error(saveError);
+        });
+      const reason = getProblemDetail(error);
+      if (response.status === 409) {
+        throw new DecisionConflict(reason ?? 'Не удалось обновить статус группы');
+      }
+      if (!response.ok || !data) throw new Error(reason ?? saveError);
       return data;
     },
     onSuccess: async (solution) => {
       await Promise.all([queryClient.cancelQueries(detail), queryClient.cancelQueries(list)]);
-      queryClient.setQueryData<Group>(detail.queryKey, (group) =>
-        group ? { ...group, ...solution } : group
+      queryClient.setQueriesData<Group>(detail, (group) =>
+        group ? { ...group, ...solution, is_frozen: true } : group
       );
       queryClient.setQueryData<InfiniteData<GroupListResponse>>(
         list.queryKey,
@@ -69,10 +74,6 @@ export function useGroupDecision(groupId: string) {
       if (!queryClient.isMutating(groupDecision)) mutation.mutate(input);
     },
     pending,
-    error: mutation.isError
-      ? mutation.error instanceof DecisionConflict
-        ? mutation.error.message
-        : saveError
-      : null,
+    error: mutation.error?.message,
   };
 }

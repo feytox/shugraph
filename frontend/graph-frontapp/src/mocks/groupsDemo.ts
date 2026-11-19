@@ -6,7 +6,7 @@ import { mockGroups } from '@/mocks/groupGraphs';
 dayjs.extend(utc);
 
 export function createGroupsDemo() {
-  const solutions = new Map<string, GroupSolutionResponse>();
+  const decisions = new Map<string, { item: GroupItem; solution: GroupSolutionResponse }>();
   let startedAt: number | undefined;
   function elapsed() {
     startedAt ??= Date.now();
@@ -37,31 +37,35 @@ export function createGroupsDemo() {
         },
       };
     });
-    return [...mockGroups.map((group) => group.item), ...generated].map((item) => {
-      const solution = solutions.get(item.id);
-      return solution ? { ...item, status: solution.status } : item;
-    });
+    return [...mockGroups.map((group) => group.item), ...generated].map(
+      (item) => decisions.get(item.id)?.item ?? item
+    );
+  }
+
+  function getItem(groupId: string) {
+    return getItems().find(({ id }) => id === groupId);
   }
 
   return {
     getItems,
+    getItem,
     getGroup(groupId: string): Group | undefined {
-      const item = getItems().find(({ id }) => id === groupId);
+      const item = getItem(groupId);
       if (!item) return undefined;
       const evidence = mockGroups.find((group) => group.item.id === groupId)?.evidence ?? {
         members: [],
         logins: [],
         transfers: [],
       };
-      const solution = solutions.get(groupId);
+      const solution = decisions.get(groupId)?.solution;
       return { ...item, ...evidence, is_frozen: Boolean(solution), decision: solution?.decision };
     },
-    saveSolution(groupId: string, input: GroupSolutionInput): GroupSolutionResponse {
+    saveSolution(item: GroupItem, input: GroupSolutionInput): GroupSolutionResponse {
       const solution = {
         status: input.status,
         decision: { comment: input.decision_comment, decided_at: dayjs.utc().toISOString() },
       };
-      solutions.set(groupId, solution);
+      decisions.set(item.id, { item: { ...item, status: solution.status }, solution });
       return solution;
     },
   };

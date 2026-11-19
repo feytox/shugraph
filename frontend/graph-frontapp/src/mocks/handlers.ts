@@ -24,10 +24,10 @@ export function createHandlers() {
         const input = parseSolution(await request.json().catch(() => undefined));
         if (!input)
           return problem(400, 'Bad Request', 'a status and a decision comment are required');
-        const group = demo.getGroup(groupId);
+        const group = demo.getItem(groupId);
         if (!group) return groupNotFound();
         if (group.status !== 'new') return problem(409, 'Conflict', 'group already has a decision');
-        return HttpResponse.json<GroupSolutionResponse>(demo.saveSolution(groupId, input));
+        return HttpResponse.json<GroupSolutionResponse>(demo.saveSolution(group, input));
       }
     ),
 

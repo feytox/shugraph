@@ -1,15 +1,42 @@
 import { Badge, Box, Group, Loader, Stack, Text } from '@mantine/core';
 import type { ReactNode } from 'react';
 import { FarmExplanation } from '@/features/group-card/FarmExplanation';
-import { useGroupDetails } from '@/features/group-card/useGroupDetails';
+import { GroupNotFound, useGroupDetails } from '@/features/group-card/useGroupDetails';
 import { ErrorNotice } from '@/shared/ErrorNotice';
 import { riskColors, riskLabels, statusColors, statusLabels } from '@/shared/groupLabels';
 import { formatRub, formatWholeRub } from '@/shared/money';
 
-export function GroupCard({ groupId, decision }: { groupId: string; decision: ReactNode }) {
-  const { data: group, isPending, isFetching, isError, refetch } = useGroupDetails(groupId);
+export function GroupCard({
+  groupId,
+  lastEventAt,
+  decision,
+}: {
+  groupId: string;
+  lastEventAt: string;
+  decision: (canDecide: boolean) => ReactNode;
+}) {
+  const { data: group, isFetching, error, refetch } = useGroupDetails(groupId, lastEventAt);
 
-  if (isPending) {
+  if (error instanceof GroupNotFound) {
+    return (
+      <Text px="md" size="sm" c="dimmed">
+        {error.message}
+      </Text>
+    );
+  }
+
+  const errorNotice = error && (
+    <ErrorNotice
+      title={error.message}
+      wrapText
+      onRetry={() => void refetch()}
+      retrying={isFetching}
+    />
+  );
+  if (!group && errorNotice) {
+    return <Box px="md">{errorNotice}</Box>;
+  }
+  if (!group) {
     return (
       <Group gap="xs" px="md" role="status">
         <Loader size="sm" />
@@ -17,29 +44,14 @@ export function GroupCard({ groupId, decision }: { groupId: string; decision: Re
       </Group>
     );
   }
-  if (!group) {
-    return (
-      <Box px="md">
-        {isError ? (
-          <ErrorNotice
-            title="Не удалось загрузить карточку группы"
-            onRetry={() => void refetch()}
-            retrying={isFetching}
-          />
-        ) : (
-          <Text size="sm" c="dimmed">
-            Карточка группы не найдена
-          </Text>
-        )}
-      </Box>
-    );
-  }
 
   const { accounts_count, total_amount } = group.features;
-  const turnover = group.scheme === 'farm' ? formatWholeRub(total_amount) : formatRub(total_amount);
+  const farmRisk = group.scheme === 'farm' && group.logins.length > 0 && group.risk_parts.farm;
+  const turnover = farmRisk ? formatWholeRub(total_amount) : formatRub(total_amount);
 
   return (
     <Stack px="md" pb="md" gap="md">
+      {errorNotice}
       <Stack gap={4}>
         <Group justify="space-between" gap="xs">
           <Text size="sm" fw={700} c={`${riskColors[group.risk_level]}.9`}>
@@ -59,8 +71,8 @@ export function GroupCard({ groupId, decision }: { groupId: string; decision: Re
           Счетов в группе: {accounts_count}, оборот: {turnover}.
         </Text>
       </Stack>
-      <FarmExplanation group={group} />
-      {group.status === 'new' && decision}
+      {farmRisk && <FarmExplanation group={group} risk={farmRisk} />}
+      {decision(group.status === 'new')}
     </Stack>
   );
 }

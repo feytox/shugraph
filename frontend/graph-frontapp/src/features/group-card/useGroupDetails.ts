@@ -1,17 +1,37 @@
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/api/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiClient, getProblemDetail, type Group } from '@/api/client';
 import { groupDetailKey } from '@/shared/groupQueries';
 
-export function useGroupDetails(groupId: string) {
+const loadError = 'Не удалось загрузить карточку группы';
+
+export class GroupNotFound extends Error {}
+
+export function useGroupDetails(groupId: string, lastEventAt: string) {
+  const queryClient = useQueryClient();
+  const detailKey = groupDetailKey(groupId);
+
   return useQuery({
-    queryKey: groupDetailKey(groupId),
+    queryKey: [...detailKey, lastEventAt],
+    initialData: () =>
+      queryClient
+        .getQueriesData<Group>({ queryKey: detailKey })
+        .reverse()
+        .find(([, group]) => group !== undefined)?.[1],
+    initialDataUpdatedAt: 0,
     queryFn: async ({ signal }) => {
-      const { data, response } = await apiClient.GET('/api/v1/groups/{group_id}', {
-        params: { path: { group_id: groupId } },
-        signal,
-      });
-      if (response.status === 404) return null;
-      if (!response.ok || !data) throw new Error('Не удалось загрузить карточку группы');
+      const { data, error, response } = await apiClient
+        .GET('/api/v1/groups/{group_id}', {
+          params: { path: { group_id: groupId } },
+          signal,
+        })
+        .catch(() => {
+          throw new Error(loadError);
+        });
+      const reason = getProblemDetail(error);
+      if (response.status === 404) {
+        throw new GroupNotFound(reason ?? 'Карточка группы не найдена');
+      }
+      if (!response.ok || !data) throw new Error(reason ?? loadError);
       return data;
     },
     retry: false,

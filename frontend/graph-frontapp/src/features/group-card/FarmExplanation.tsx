@@ -2,10 +2,13 @@ import { List, Stack, Text, Title } from '@mantine/core';
 import type { Group } from '@/api/client';
 import { riskLabels } from '@/shared/groupLabels';
 
-export function FarmExplanation({ group }: { group: Group }) {
-  const risk = group.risk_parts.farm;
-  if (group.scheme !== 'farm' || !risk || !group.logins.length) return null;
-
+export function FarmExplanation({
+  group,
+  risk,
+}: {
+  group: Group;
+  risk: NonNullable<Group['risk_parts']['farm']>;
+}) {
   const clientCount = new Set(group.logins.map(({ client_id }) => client_id)).size;
   const collectorSummary =
     risk.collector > 0

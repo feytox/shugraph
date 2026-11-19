@@ -43,7 +43,8 @@ function AnalystScreen() {
           <GroupCard
             key={selected.id}
             groupId={selected.id}
-            decision={<GroupDecision groupId={selected.id} />}
+            lastEventAt={selected.last_event_at}
+            decision={(canDecide) => <GroupDecision groupId={selected.id} canDecide={canDecide} />}
           />
         </SidePanel>
       )}
