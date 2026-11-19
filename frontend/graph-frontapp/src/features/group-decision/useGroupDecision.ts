@@ -1,6 +1,6 @@
 import {
-  useIsMutating,
   useMutation,
+  useMutationState,
   useQueryClient,
   type InfiniteData,
 } from '@tanstack/react-query';
@@ -23,10 +23,25 @@ export function useGroupDecision(groupId: string) {
   const groupDecision = { mutationKey, exact: true };
   const detail = { queryKey: groupDetailKey(groupId) };
   const list = { queryKey: groupsListKey, exact: true };
-  const pending = useIsMutating(groupDecision) > 0;
+  const latest = useMutationState({ filters: groupDecision, select: ({ state }) => state }).at(-1);
+  const pending = latest?.status === 'pending';
 
-  const refresh = () =>
-    Promise.all([queryClient.invalidateQueries(detail), queryClient.invalidateQueries(list)]);
+  const pendingNextPage = () => {
+    const query = queryClient.getQueryCache().find(list);
+    if (
+      query &&
+      query.state.fetchStatus !== 'idle' &&
+      query.state.fetchMeta?.fetchMore?.direction === 'forward'
+    ) {
+      return query.promise;
+    }
+  };
+
+  const refreshList = (canRefetch = true) =>
+    queryClient.invalidateQueries(
+      { ...list, refetchType: canRefetch ? 'active' : 'none' },
+      { cancelRefetch: false }
+    );
 
   const mutation = useMutation({
     mutationKey,
@@ -47,33 +62,63 @@ export function useGroupDecision(groupId: string) {
       return data;
     },
     onSuccess: async (solution) => {
-      await Promise.all([queryClient.cancelQueries(detail), queryClient.cancelQueries(list)]);
+      const nextPage = pendingNextPage();
+      await Promise.all([
+        queryClient.cancelQueries(detail),
+        nextPage ? undefined : queryClient.cancelQueries(list),
+      ]);
       queryClient.setQueriesData<Group>(detail, (group) =>
         group ? { ...group, ...solution, is_frozen: true } : group
       );
-      queryClient.setQueryData<InfiniteData<GroupListResponse>>(
-        list.queryKey,
-        (groups) =>
-          groups && {
-            ...groups,
-            pages: groups.pages.map((page) => ({
-              ...page,
-              items: page.items.map((item) =>
-                item.id === groupId ? { ...item, status: solution.status } : item
-              ),
-            })),
-          }
+      const updateListStatus = () =>
+        queryClient.setQueryData<InfiniteData<GroupListResponse>>(
+          list.queryKey,
+          (groups) =>
+            groups && {
+              ...groups,
+              pages: groups.pages.map((page) => ({
+                ...page,
+                items: page.items.map((item) =>
+                  item.id === groupId ? { ...item, status: solution.status } : item
+                ),
+              })),
+            }
+        );
+      updateListStatus();
+
+      const refreshDetails = queryClient.invalidateQueries(detail);
+      const pageLoaded = await nextPage?.then(
+        () => true,
+        () => false
       );
-      await refresh();
+      // The next page response can include the earlier snapshot of already loaded pages.
+      if (pageLoaded) updateListStatus();
+      await Promise.all([refreshDetails, refreshList(pageLoaded !== false)]);
     },
-    onError: (error) => (error instanceof DecisionConflict ? refresh() : undefined),
+    onError: async (error) => {
+      if (!(error instanceof DecisionConflict)) return;
+      const refreshDetails = queryClient.invalidateQueries(detail);
+      await pendingNextPage()?.catch(() => undefined);
+      await Promise.all([refreshDetails, refreshList()]);
+    },
   });
+
+  const submitted = latest?.variables;
+  const submittedComment =
+    (pending || latest?.status === 'error') &&
+    submitted &&
+    typeof submitted === 'object' &&
+    'decision_comment' in submitted &&
+    typeof submitted.decision_comment === 'string'
+      ? submitted.decision_comment
+      : undefined;
 
   return {
     save(input: GroupSolutionInput) {
       if (!queryClient.isMutating(groupDecision)) mutation.mutate(input);
     },
     pending,
-    error: mutation.error?.message,
+    error: latest?.error?.message,
+    submittedComment,
   };
 }

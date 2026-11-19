@@ -42,8 +42,7 @@ function AnalystScreen() {
         <SidePanel side="right" title="Карточка расследования" storageKey="investigation-panel">
           <GroupCard
             key={selected.id}
-            groupId={selected.id}
-            lastEventAt={selected.last_event_at}
+            summary={selected}
             decision={(canDecide) => <GroupDecision groupId={selected.id} canDecide={canDecide} />}
           />
         </SidePanel>

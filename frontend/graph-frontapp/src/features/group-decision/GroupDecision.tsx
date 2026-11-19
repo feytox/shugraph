@@ -5,8 +5,9 @@ import { useGroupDecision } from '@/features/group-decision/useGroupDecision';
 import { ErrorNotice } from '@/shared/ErrorNotice';
 
 export function GroupDecision({ groupId, canDecide }: { groupId: string; canDecide: boolean }) {
-  const [comment, setComment] = useState('');
-  const { save, pending, error } = useGroupDecision(groupId);
+  const [draft, setDraft] = useState<string>();
+  const { save, pending, error, submittedComment } = useGroupDecision(groupId);
+  const comment = draft ?? submittedComment ?? '';
   const decisionComment = comment.trim();
   const errorNotice = error && <ErrorNotice title={error} wrapText />;
 
@@ -26,7 +27,7 @@ export function GroupDecision({ groupId, canDecide }: { groupId: string; canDeci
         minRows={3}
         disabled={pending}
         value={comment}
-        onChange={(event) => setComment(event.currentTarget.value)}
+        onChange={(event) => setDraft(event.currentTarget.value)}
       />
       <Group grow gap="xs">
         <Button

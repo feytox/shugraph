@@ -1,5 +1,6 @@
 import { Badge, Box, Group, Loader, Stack, Text } from '@mantine/core';
 import type { ReactNode } from 'react';
+import type { GroupItem } from '@/api/client';
 import { FarmExplanation } from '@/features/group-card/FarmExplanation';
 import { GroupNotFound, useGroupDetails } from '@/features/group-card/useGroupDetails';
 import { ErrorNotice } from '@/shared/ErrorNotice';
@@ -7,15 +8,13 @@ import { riskColors, riskLabels, statusColors, statusLabels } from '@/shared/gro
 import { formatRub, formatWholeRub } from '@/shared/money';
 
 export function GroupCard({
-  groupId,
-  lastEventAt,
+  summary,
   decision,
 }: {
-  groupId: string;
-  lastEventAt: string;
+  summary: GroupItem;
   decision: (canDecide: boolean) => ReactNode;
 }) {
-  const { data: group, isFetching, error, refetch } = useGroupDetails(groupId, lastEventAt);
+  const { data: group, isFetching, error, refetch } = useGroupDetails(summary);
 
   if (error instanceof GroupNotFound) {
     return (
@@ -72,7 +71,7 @@ export function GroupCard({
         </Text>
       </Stack>
       {farmRisk && <FarmExplanation group={group} risk={farmRisk} />}
-      {decision(group.status === 'new')}
+      {decision(group.status === 'new' && summary.status === 'new')}
     </Stack>
   );
 }

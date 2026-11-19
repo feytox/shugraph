@@ -304,7 +304,7 @@ it('блокирует оба решения во время отправки и
   ]);
 });
 
-it('открывает другую группу без черновика и сохраняет блокировку при возврате к группе с отправкой', async () => {
+it('сбрасывает черновик при переходе и восстанавливает отправленный комментарий после ошибки', async () => {
   const finish = delaySaveError();
 
   const farmLink = await openFarm();
@@ -328,7 +328,72 @@ it('открывает другую группу без черновика и с
   expect(approve()).toBeDisabled();
   expect(decline()).toBeDisabled();
   finish();
-  await waitFor(() => expect(comment()).toBeEnabled());
+  expect(await card().findByRole('alert')).toHaveTextContent('Не удалось сохранить решение');
+  expect(comment()).toHaveValue(decisionComment);
+  expect(approve()).toBeEnabled();
+});
+
+it('после опроса обновляет оборот и статус карточки при прежнем времени последнего события', async () => {
+  startDemoClock();
+  const demo = createGroupsDemo();
+  const group = demo.getGroup(farm.item.id);
+  if (!group) throw new Error('Нет деталей моковой фермы');
+  let item: GroupItem = farm.item;
+  server.use(
+    http.get(farmPath, () => HttpResponse.json<Group>({ ...group, ...item })),
+    http.get('*/api/v1/groups', ({ request }) =>
+      HttpResponse.json(
+        groupsPage(
+          demo.getItems().map((row) => (row.id === item.id ? item : row)),
+          request
+        )
+      )
+    )
+  );
+
+  renderScreen(`/?group=${farm.item.id}`);
+  await waitForScreen(() => expect(approve()).toBeDisabled());
+  fireEvent.change(comment(), { target: { value: decisionComment } });
+  item = { ...item, features: { ...item.features, total_amount: 17000000 } };
+  await advance(3000);
+  await waitForScreen(() => expect(card().getByText(/оборот: 170 000/)).toBeVisible());
+  expect(comment()).toHaveValue(decisionComment);
+
+  item = { ...item, status: 'declined' };
+  await advance(3000);
+  await waitForScreen(() => expect(card().getByText('Отклонена')).toBeVisible());
+  expect(within(currentGroup()).getByText('Отклонена')).toBeVisible();
+  expect(card().queryByRole('button', { name: 'Подтвердить' })).not.toBeInTheDocument();
+});
+
+it('завершает начатую загрузку следующей страницы после сохранения решения', async () => {
+  let finish = () => {};
+  const gate = new Promise<void>((resolve) => {
+    finish = resolve;
+  });
+  let started = false;
+  server.use(
+    http.get('*/api/v1/groups', async ({ request }) => {
+      if (new URL(request.url).searchParams.has('cursor')) {
+        started = true;
+        await gate;
+      }
+    })
+  );
+
+  const farmLink = await openFarm();
+  fireEvent.click(screen.getByRole('button', { name: 'Показать ещё' }));
+  await waitFor(() => expect(started).toBe(true));
+  fireEvent.change(comment(), { target: { value: decisionComment } });
+  fireEvent.click(approve());
+  try {
+    expect(await card().findByText('Подтверждена')).toBeVisible();
+    expect(within(farmLink).getByText('Подтверждена')).toBeVisible();
+  } finally {
+    finish();
+  }
+  await waitFor(() => expect(loadedGroups().getAllByRole('listitem')).toHaveLength(29));
+  expect(within(farmLink).getByText('Подтверждена')).toBeVisible();
 });
 
 it('при конфликте перечитывает статус карточки и списка с сервера', async () => {
