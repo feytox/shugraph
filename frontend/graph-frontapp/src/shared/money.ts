@@ -9,5 +9,7 @@ const rubles = (fractionDigits: number) =>
 const wholeRubles = rubles(0);
 const withKopecks = rubles(2);
 
+export const formatWholeRub = (kopecks: number) => wholeRubles.format(kopecks / 100);
+
 export const formatRub = (kopecks: number) =>
-  (kopecks % 100 === 0 ? wholeRubles : withKopecks).format(kopecks / 100);
+  kopecks % 100 === 0 ? formatWholeRub(kopecks) : withKopecks.format(kopecks / 100);
