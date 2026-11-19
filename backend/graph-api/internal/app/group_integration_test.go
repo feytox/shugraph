@@ -127,6 +127,34 @@ func TestGroups_FarmGrowsUntilFrozen(t *testing.T) {
 	require.Equal(t, farmRisk(75, "high", 20, 5, 0), onlyGroup(t).Risk)
 }
 
+func TestGroups_FarmRiskGrowsWhenCollectorAppears(t *testing.T) {
+	clearEventTables(t)
+
+	putLogins(t, "dev-farm", 0, "a", "b", "c")
+	require.Equal(t, farmRisk(70, "medium", 20, 0, 0), onlyGroup(t).Risk)
+
+	putTransferToCollector(t, 3, "a")
+	require.Equal(t, farmRisk(70, "medium", 20, 0, 0), onlyGroup(t).Risk)
+
+	putTransferToCollector(t, 4, "b")
+	require.Equal(t, farmRisk(80, "high", 20, 0, 10), onlyGroup(t).Risk)
+}
+
+func putTransferToCollector(t *testing.T, minute int, client string) {
+	t.Helper()
+
+	transfer := handler.TransferPayload{
+		OccurredAt:    eventTime.Add(time.Duration(minute) * time.Minute),
+		FromAccountID: "acc-" + client,
+		FromClientID:  "cli-" + client,
+		ToAccountID:   "acc-collector",
+		ToClientID:    "cli-organizer",
+		Amount:        5000,
+	}
+
+	require.Equal(t, http.StatusCreated, putEvent(t, transfersPath+"transfer-"+client, transfer))
+}
+
 func TestGroups_FarmRiskCountsClientsOfWholeGroup(t *testing.T) {
 	clearEventTables(t)
 

@@ -60,6 +60,7 @@ func TestRisk_RejectsBrokenSteps(t *testing.T) {
 		{"points are not a number", "RISK_SPEED_POINTS_BY_SPAN_MINUTES", "0:twenty"},
 		{"repeated threshold", "RISK_SPEED_POINTS_BY_SPAN_MINUTES", "0:20,0:15"},
 		{"decreasing thresholds", "RISK_SPEED_POINTS_BY_SPAN_MINUTES", "11:15,0:20"},
+		{"speed does not start at zero", "RISK_SPEED_POINTS_BY_SPAN_MINUTES", "5:20,11:15"},
 		{"unknown level", "RISK_LEVEL_BY_SCORE", "0:low,60:mid,75:high"},
 		{"levels do not start at zero", "RISK_LEVEL_BY_SCORE", "10:low,60:medium,75:high"},
 	}

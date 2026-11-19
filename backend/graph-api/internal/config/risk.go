@@ -12,7 +12,7 @@ import (
 
 type Risk struct {
 	LevelByScore             levelByScore      `env:"RISK_LEVEL_BY_SCORE" envDefault:"0:low,60:medium,75:high"`
-	SpeedPointsBySpanMinutes pointsByThreshold `env:"RISK_SPEED_POINTS_BY_SPAN_MINUTES" envDefault:"0:20,11:15,31:10,61:5,181:0"`
+	SpeedPointsBySpanMinutes pointsFromZero    `env:"RISK_SPEED_POINTS_BY_SPAN_MINUTES" envDefault:"0:20,11:15,31:10,61:5,181:0"`
 	FarmSchemePoints         int               `env:"RISK_FARM_SCHEME_POINTS" envDefault:"50"`
 	FarmPointsByClients      pointsByThreshold `env:"RISK_FARM_POINTS_BY_CLIENTS" envDefault:"3:0,4:5,5:10,6:15"`
 	FarmCollectorPoints      int               `env:"RISK_FARM_COLLECTOR_POINTS" envDefault:"10"`
@@ -43,9 +43,26 @@ func (t *pointsByThreshold) UnmarshalText(text []byte) error {
 	return nil
 }
 
+type pointsFromZero domain.RiskSteps[int]
+
+func (t *pointsFromZero) UnmarshalText(text []byte) error {
+	steps, err := parseSteps(string(text), strconv.Atoi)
+	if err != nil {
+		return err
+	}
+
+	if steps[0].From != 0 {
+		return errStepsMustStartAtZero
+	}
+
+	*t = pointsFromZero(steps)
+
+	return nil
+}
+
 type levelByScore domain.RiskSteps[domain.RiskLevel]
 
-var errLevelsMustStartAtZero = errors.New("risk levels must start at score 0")
+var errStepsMustStartAtZero = errors.New("risk steps must start at 0")
 
 func (t *levelByScore) UnmarshalText(text []byte) error {
 	steps, err := parseSteps(string(text), parseRiskLevel)
@@ -54,7 +71,7 @@ func (t *levelByScore) UnmarshalText(text []byte) error {
 	}
 
 	if steps[0].From != 0 {
-		return errLevelsMustStartAtZero
+		return errStepsMustStartAtZero
 	}
 
 	*t = levelByScore(steps)
