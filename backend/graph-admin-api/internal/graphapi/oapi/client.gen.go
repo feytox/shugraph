@@ -1860,8 +1860,6 @@ type ResolveGroupResponse struct {
 	ApplicationproblemJSON422 *ErrorModel
 	// ApplicationproblemJSON500 the response for an HTTP 500 `application/problem+json` response
 	ApplicationproblemJSON500 *ErrorModel
-	// ApplicationproblemJSON501 the response for an HTTP 501 `application/problem+json` response
-	ApplicationproblemJSON501 *ErrorModel
 }
 
 // GetJSON200 returns the response for an HTTP 200 `application/json` response
@@ -1892,11 +1890,6 @@ func (r ResolveGroupResponse) GetApplicationproblemJSON422() *ErrorModel {
 // GetApplicationproblemJSON500 returns the response for an HTTP 500 `application/problem+json` response
 func (r ResolveGroupResponse) GetApplicationproblemJSON500() *ErrorModel {
 	return r.ApplicationproblemJSON500
-}
-
-// GetApplicationproblemJSON501 returns the response for an HTTP 501 `application/problem+json` response
-func (r ResolveGroupResponse) GetApplicationproblemJSON501() *ErrorModel {
-	return r.ApplicationproblemJSON501
 }
 
 // GetBody returns the raw response body bytes
@@ -2646,13 +2639,6 @@ func ParseResolveGroupResponse(rsp *http.Response) (*ResolveGroupResponse, error
 			return nil, err
 		}
 		response.ApplicationproblemJSON500 = &dest
-
-	case strings.Contains(rsp.Header.Get("Content-Type"), "json") && rsp.StatusCode == 501:
-		var dest ErrorModel
-		if err := json.Unmarshal(bodyBytes, &dest); err != nil {
-			return nil, err
-		}
-		response.ApplicationproblemJSON501 = &dest
 
 	}
 

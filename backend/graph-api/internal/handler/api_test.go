@@ -22,7 +22,6 @@ func TestContractRoutes(t *testing.T) {
 		{http.MethodGet, "/api/v1/groups", ""},
 		{http.MethodGet, groupPath, ""},
 		{http.MethodGet, groupPath + "/graph", ""},
-		{http.MethodPatch, groupPath + "/solution", `{"status":"approved","decision_comment":"Confirmed"}`},
 	}
 
 	handler := New(Deps{Log: slog.New(slog.DiscardHandler)})
