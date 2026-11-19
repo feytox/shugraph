@@ -20,6 +20,7 @@ const noTapMarkOnBackground = { 'active-bg-opacity': 0 } as Css.Core;
 export const graphStylesheet = (theme: MantineTheme): StylesheetJson => [
   { selector: 'core', style: noTapMarkOnBackground },
   { selector: 'node:active', style: { 'overlay-opacity': 0 } },
+  { selector: 'node, edge', style: { 'font-family': theme.fontFamily } },
   {
     selector: 'node',
     style: {
