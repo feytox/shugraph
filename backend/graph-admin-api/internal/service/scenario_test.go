@@ -42,6 +42,15 @@ const validScenarioJSON = `{
 const invalidScenarioJSON = `{
   "name": "test_invalid_scenario",
   "events": [
+{
+      "event_id": "evt-login-1",
+      "type": "login",
+      "occurred_at": "2026-11-12T13:20:00Z",
+      "account_id": "acc-1",
+      "client_id": "cli-1",
+      "device_id": "dev-1",
+      "address_id": "192.168.1.1"
+    },
     {
       "event_id": "evt-exit-1",
       "type": "exit",
@@ -145,7 +154,16 @@ func TestScenarioServiceRunSuccess(t *testing.T) {
 
 func TestScenarioServiceRunInvalidType(t *testing.T) {
 	domainScenario := testScenario(t, invalidScenarioJSON)
-	api := &eventAPIMock{}
+	api := &eventAPIMock{
+		login: func(ctx context.Context, eventID string, payload oapi.LoginPayload) error {
+			t.Error("event must not be sent")
+			return nil
+		},
+		transfer: func(ctx context.Context, eventID string, payload oapi.TransferPayload) error {
+			t.Error("event must not be sent")
+			return nil
+		},
+	}
 	repo := scenarioRepositoryMock{
 		getScenarios: func(name string) (*domain.Scenario, error) {
 			return domainScenario, nil
