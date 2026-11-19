@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"testing"
 
@@ -39,7 +40,7 @@ func TestScenarioHandlerRun(t *testing.T) {
 		},
 		"scenario format error": {
 			mockRun: func(scenarioID string, delay int) error {
-				return domain.ErrScenarioUnsupportedFormat
+				return fmt.Errorf("prepare scenario")
 			},
 			url:        "/admin-api/v1/scenarios/my-broken-scenario/run",
 			wantStatus: http.StatusInternalServerError,

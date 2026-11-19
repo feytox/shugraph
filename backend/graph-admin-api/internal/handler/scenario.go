@@ -60,10 +60,6 @@ func (h scenarioHandlers) run(ctx context.Context, i *RunScenarioInput) (*struct
 			return nil, huma.Error404NotFound("Scenario not found")
 		}
 
-		if errors.Is(err, domain.ErrScenarioUnsupportedFormat) {
-			return nil, huma.Error500InternalServerError("Scenario contains a format error")
-		}
-
 		return nil, problem(ctx, h.log, err)
 	}
 

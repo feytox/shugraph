@@ -16,5 +16,3 @@ type Scenario struct {
 }
 
 var ErrScenarioNotFound = errors.New("scenario not found")
-
-var ErrScenarioUnsupportedFormat = errors.New("scenario unsupported format")

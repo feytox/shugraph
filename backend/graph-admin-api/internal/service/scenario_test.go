@@ -148,7 +148,7 @@ func TestScenarioServiceRunInvalidType(t *testing.T) {
 	t.Cleanup(svc.Stop)
 
 	err := svc.Run(domainScenario.Name, 0)
-	require.ErrorIs(t, err, domain.ErrScenarioUnsupportedFormat)
+	require.Error(t, err)
 }
 
 func TestScenarioServiceRunStop(t *testing.T) {

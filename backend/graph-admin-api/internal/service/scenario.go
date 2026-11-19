@@ -64,7 +64,7 @@ func (s *ScenarioService) Run(scenarioID string, delaySecond int) error {
 
 	events, err := s.prepareEvents(scenario)
 	if err != nil {
-		return domain.ErrScenarioUnsupportedFormat
+		return fmt.Errorf("prepare scenario %q: %w", scenarioID, err)
 	}
 
 	s.wg.Go(func() {
