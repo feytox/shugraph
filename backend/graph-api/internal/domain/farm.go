@@ -2,7 +2,6 @@ package domain
 
 import (
 	"cmp"
-	"encoding/json"
 	"maps"
 	"slices"
 	"time"
@@ -88,11 +87,6 @@ func (r GroupRules) FarmEvidence(farm Farm, transfers []FarmTransfer) GroupEvide
 	slices.Sort(events)
 
 	return GroupEvidence{EventIDs: events, AccountIDs: slices.Sorted(maps.Keys(accounts))}
-}
-
-// TODO(GSD-31): посчитать риск фермы по risk.md, вход расширить числом клиентов и признаком сборщика.
-func FarmRisk(GroupStats) Risk {
-	return Risk{Score: 0, Parts: json.RawMessage(`{}`), Level: RiskLevelLow}
 }
 
 func (f Farm) members() accountSet {

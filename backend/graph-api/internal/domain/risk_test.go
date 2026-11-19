@@ -42,11 +42,10 @@ func statsWithSpan(span time.Duration) GroupStats {
 func farmParts(t *testing.T, risk Risk) farmRiskParts {
 	t.Helper()
 
-	var parts map[GroupScheme]farmRiskParts
+	var parts farmRiskParts
 	require.NoError(t, json.Unmarshal(risk.Parts, &parts))
-	require.Len(t, parts, 1)
 
-	return parts[GroupSchemeFarm]
+	return parts
 }
 
 func TestRiskRules_ScoreFarm(t *testing.T) {
@@ -66,7 +65,7 @@ func TestRiskRules_ScoreFarm(t *testing.T) {
 			facts:     FarmFacts{ClientsCount: 3, HasCollector: true},
 			wantScore: 75,
 			wantLevel: RiskLevelHigh,
-			wantParts: `{"farm": {"scheme": 50, "speed": 15, "clients": 0, "collector": 10}}`,
+			wantParts: `{"scheme": 50, "speed": 15, "clients": 0, "collector": 10}`,
 		},
 		{
 			name:      "scenario farm_and_address",
@@ -75,7 +74,7 @@ func TestRiskRules_ScoreFarm(t *testing.T) {
 			facts:     FarmFacts{ClientsCount: 3, HasCollector: true},
 			wantScore: 70,
 			wantLevel: RiskLevelMedium,
-			wantParts: `{"farm": {"scheme": 50, "speed": 10, "clients": 0, "collector": 10}}`,
+			wantParts: `{"scheme": 50, "speed": 10, "clients": 0, "collector": 10}`,
 		},
 		{
 			name:      "no collector",
@@ -84,7 +83,7 @@ func TestRiskRules_ScoreFarm(t *testing.T) {
 			facts:     FarmFacts{ClientsCount: 3},
 			wantScore: 50,
 			wantLevel: RiskLevelLow,
-			wantParts: `{"farm": {"scheme": 50, "speed": 0, "clients": 0, "collector": 0}}`,
+			wantParts: `{"scheme": 50, "speed": 0, "clients": 0, "collector": 0}`,
 		},
 		{
 			name: "score is capped at 100",
@@ -98,7 +97,7 @@ func TestRiskRules_ScoreFarm(t *testing.T) {
 			facts:     FarmFacts{ClientsCount: 6, HasCollector: true},
 			wantScore: 100,
 			wantLevel: RiskLevelHigh,
-			wantParts: `{"farm": {"scheme": 90, "speed": 20, "clients": 15, "collector": 10}}`,
+			wantParts: `{"scheme": 90, "speed": 20, "clients": 15, "collector": 10}`,
 		},
 	}
 

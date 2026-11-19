@@ -64,7 +64,7 @@ func (r RiskRules) ScoreFarm(stats GroupStats, facts FarmFacts) Risk {
 
 	return Risk{
 		Score: score,
-		Parts: mustJSON(map[GroupScheme]farmRiskParts{GroupSchemeFarm: parts}),
+		Parts: mustJSON(parts),
 		Level: r.Levels.At(score),
 	}
 }
