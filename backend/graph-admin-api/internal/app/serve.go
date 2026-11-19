@@ -46,7 +46,7 @@ type server struct {
 	pool            *pgxpool.Pool
 	httpServer      *http.Server
 	shutdownTimeout time.Duration
-	stopper         stopper
+	scenarioStopper stopper
 }
 
 func newServer(ctx context.Context, cfg config.Serve, log *slog.Logger) (*server, error) {
@@ -82,7 +82,7 @@ func newServer(ctx context.Context, cfg config.Serve, log *slog.Logger) (*server
 		pool:            pool,
 		httpServer:      httpServer,
 		shutdownTimeout: cfg.HTTP.ShutdownTimeout,
-		stopper:         scenarios,
+		scenarioStopper: scenarios,
 	}, nil
 }
 
@@ -117,8 +117,8 @@ func (s *server) shutdown() {
 		s.log.Error("http server shutdown failed", logattr.Error(err))
 	}
 
-	s.log.Info("waiting for all services to complete")
-	s.stopper.Stop()
+	s.log.Info("stopping scenarios")
+	s.scenarioStopper.Stop()
 
 	s.log.Info("shutdown complete")
 }
