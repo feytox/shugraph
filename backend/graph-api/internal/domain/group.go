@@ -94,7 +94,15 @@ type GroupCursor struct {
 }
 
 func (g Group) SpanMinutes() int {
-	return int(g.LastEventAt.Sub(g.FirstEventAt) / time.Minute)
+	return wholeMinutesBetween(g.FirstEventAt, g.LastEventAt)
+}
+
+func (s GroupStats) SpanMinutes() int {
+	return wholeMinutesBetween(s.FirstEventAt, s.LastEventAt)
+}
+
+func wholeMinutesBetween(from, to time.Time) int {
+	return int(to.Sub(from) / time.Minute)
 }
 
 func (g Group) Cursor() GroupCursor {
