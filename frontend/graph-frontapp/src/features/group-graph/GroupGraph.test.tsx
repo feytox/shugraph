@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MantineProvider } from '@mantine/core';
+import { DEFAULT_THEME, MantineProvider } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import cytoscape, { type CytoscapeOptions, type ElementsDefinition } from 'cytoscape';
 import { http, HttpResponse } from 'msw';
@@ -56,6 +56,28 @@ describe('GroupGraph', () => {
   it('пока граф грузится, показывает загрузку', () => {
     renderGraph();
     expect(screen.getByRole('status')).toHaveTextContent('Загрузка графа');
+  });
+
+  it('пока шрифт темы не загружен, вместо графа показывает загрузку', async () => {
+    let fontLoaded = () => {};
+    const load = vi
+      .spyOn(document.fonts, 'load')
+      .mockImplementationOnce(() => new Promise((resolve) => (fontLoaded = () => resolve([]))));
+    renderGraph();
+    expect(await screen.findByText('устройство')).toBeVisible();
+    expect(load).toHaveBeenCalledWith(expect.stringContaining(DEFAULT_THEME.fontFamily));
+    expect(screen.getByRole('status')).toHaveTextContent('Загрузка графа');
+    expect(cytoscape).not.toHaveBeenCalled();
+
+    fontLoaded();
+    await waitFor(() => expect(cytoscape).toHaveBeenCalled());
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('если шрифт не загрузился, рисует граф запасным', async () => {
+    vi.spyOn(document.fonts, 'load').mockRejectedValueOnce(new Error('font failed'));
+    renderGraph();
+    await waitFor(() => expect(cytoscape).toHaveBeenCalled());
   });
 
   it('рисует граф запрошенной группы и раскладывает его по схеме', async () => {
