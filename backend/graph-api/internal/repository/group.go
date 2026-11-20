@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
+	"github.com/feytox/shugraph/backend/graph-api/internal/repository/db"
 	"github.com/google/uuid"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
-
-	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
-	"github.com/feytox/shugraph/backend/graph-api/internal/repository/db"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 var groupStruct = sqlbuilder.NewStruct(new(db.Group)).For(sqlbuilder.PostgreSQL)
@@ -139,6 +139,21 @@ func (p *PgGroupRepository) ListTransfers(ctx context.Context, groupID uuid.UUID
 	}
 
 	return transfers, nil
+}
+
+func (p *PgGroupRepository) UpdateGroupSolution(ctx context.Context, groupID uuid.UUID, status domain.GroupStatus, comment string) (domain.Group, error) {
+	updateGroup := db.UpdateGroupSolutionParams{
+		DecisionComment: pgtype.Text{String: comment, Valid: true},
+		Status:          string(status),
+		GroupID:         groupID,
+	}
+
+	record, err := p.queries.UpdateGroupSolution(ctx, updateGroup)
+	if err != nil {
+		return domain.Group{}, fmt.Errorf("update group solution: %w", err)
+	}
+
+	return groupFromRecord(record), nil
 }
 
 func groupFromRecord(record db.Group) domain.Group {

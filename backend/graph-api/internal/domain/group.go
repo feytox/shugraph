@@ -87,7 +87,10 @@ type Account struct {
 	ClientID string
 }
 
-var ErrGroupNotFound = errors.New("group not found")
+var (
+	ErrGroupNotFound = errors.New("group not found")
+	ErrGroupResolved = errors.New("group already resolved")
+)
 
 type GroupCursor struct {
 	DetectedAt time.Time

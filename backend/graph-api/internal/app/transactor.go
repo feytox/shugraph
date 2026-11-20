@@ -31,3 +31,10 @@ func eventRepositories(tx pgx.Tx) service.EventRepositories {
 func groupRepositories(tx pgx.Tx) service.GroupRepositories {
 	return service.GroupRepositories{Groups: repository.NewPgGroupRepository(tx)}
 }
+
+func solutionRepositories(tx pgx.Tx) service.GroupSolutionRepositories {
+	return service.GroupSolutionRepositories{
+		Groups:              repository.NewPgGroupRepository(tx),
+		GroupAssemblyLocker: repository.NewPgGroupAssemblyRepository(tx),
+	}
+}

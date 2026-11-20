@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/google/uuid"
-
 	"github.com/feytox/shugraph/backend/graph-api/internal/domain"
+	"github.com/google/uuid"
 )
+
+type groupAssemblyLocker interface {
+	LockAssembly(ctx context.Context) error
+}
 
 type groupRepository interface {
 	List(ctx context.Context, filter domain.GroupFilter) ([]domain.Group, error)
@@ -15,6 +18,12 @@ type groupRepository interface {
 	ListMembers(ctx context.Context, groupID uuid.UUID) ([]domain.Account, error)
 	ListLogins(ctx context.Context, groupID uuid.UUID) ([]domain.LoginEvent, error)
 	ListTransfers(ctx context.Context, groupID uuid.UUID) ([]domain.TransferEvent, error)
+	UpdateGroupSolution(ctx context.Context, groupID uuid.UUID, status domain.GroupStatus, comment string) (domain.Group, error)
+}
+
+type GroupSolutionRepositories struct {
+	GroupAssemblyLocker groupAssemblyLocker
+	Groups              groupRepository
 }
 
 type GroupRepositories struct {
@@ -34,12 +43,14 @@ type GroupDetails struct {
 }
 
 type GroupService struct {
-	groups   groupRepository
-	snapshot Transactor[GroupRepositories]
+	groups     groupRepository
+	snapshot   Transactor[GroupRepositories]
+	transactor Transactor[GroupSolutionRepositories]
 }
 
-func NewGroupService(groups groupRepository, snapshot Transactor[GroupRepositories]) *GroupService {
-	return &GroupService{groups: groups, snapshot: snapshot}
+func NewGroupService(groups groupRepository, snapshot Transactor[GroupRepositories],
+	transactor Transactor[GroupSolutionRepositories]) *GroupService {
+	return &GroupService{groups: groups, snapshot: snapshot, transactor: transactor}
 }
 
 func (s *GroupService) List(ctx context.Context, filter domain.GroupFilter) (GroupPage, error) {
@@ -92,4 +103,32 @@ func (s *GroupService) Get(ctx context.Context, id uuid.UUID) (GroupDetails, err
 	}
 
 	return details, nil
+}
+
+func (s *GroupService) Resolve(ctx context.Context, id uuid.UUID, status domain.GroupStatus, comment string) (domain.Group, error) {
+	var resolvedGroup domain.Group
+
+	if err := s.transactor(ctx, func(r GroupSolutionRepositories) error {
+		err := r.GroupAssemblyLocker.LockAssembly(ctx)
+		if err != nil {
+			return fmt.Errorf("take assembly lock: %w", err)
+		}
+
+		group, err := r.Groups.Get(ctx, id)
+		if err != nil {
+			return err
+		}
+
+		if group.Status != domain.GroupStatusNew {
+			return domain.ErrGroupResolved
+		}
+
+		resolvedGroup, err = r.Groups.UpdateGroupSolution(ctx, id, status, comment)
+
+		return err
+	}); err != nil {
+		return domain.Group{}, fmt.Errorf("resolve group %s: %w", id, err)
+	}
+
+	return resolvedGroup, nil
 }

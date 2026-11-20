@@ -84,7 +84,8 @@ func run(m *testing.M) int {
 	repo := repository.NewPgNoteRepository(testPool)
 	noteService := service.NewNoteService(repo)
 	eventService := service.NewEventService(inTx(testPool, pgx.TxOptions{}, eventRepositories), groupsCfg.Rules())
-	groupService := service.NewGroupService(repository.NewPgGroupRepository(testPool), inTx(testPool, snapshotTx, groupRepositories))
+	groupService := service.NewGroupService(repository.NewPgGroupRepository(testPool), inTx(testPool, snapshotTx, groupRepositories),
+		inTx(testPool, pgx.TxOptions{}, solutionRepositories))
 
 	errMigrate := pgdb.Migrate(ctx, testPool, slog.Default())
 	if errMigrate != nil {

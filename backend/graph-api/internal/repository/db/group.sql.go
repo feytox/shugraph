@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const getGroup = `-- name: GetGroup :one
@@ -167,4 +168,42 @@ func (q *Queries) ListGroupTransfers(ctx context.Context, groupID uuid.UUID) ([]
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateGroupSolution = `-- name: UpdateGroupSolution :one
+UPDATE groups
+SET is_frozen = TRUE,
+    status = $1,
+    decision_comment = $2,
+    decided_at = NOW()
+WHERE id = $3 AND status = 'new'
+RETURNING id, scheme, status, risk_score, risk_parts, detected_at, first_event_at, last_event_at, accounts_count, total_amount, is_frozen, decision_comment, decided_at, risk_level
+`
+
+type UpdateGroupSolutionParams struct {
+	Status          string      `db:"status"`
+	DecisionComment pgtype.Text `db:"decision_comment"`
+	GroupID         uuid.UUID   `db:"group_id"`
+}
+
+func (q *Queries) UpdateGroupSolution(ctx context.Context, arg UpdateGroupSolutionParams) (Group, error) {
+	row := q.db.QueryRow(ctx, updateGroupSolution, arg.Status, arg.DecisionComment, arg.GroupID)
+	var i Group
+	err := row.Scan(
+		&i.ID,
+		&i.Scheme,
+		&i.Status,
+		&i.RiskScore,
+		&i.RiskParts,
+		&i.DetectedAt,
+		&i.FirstEventAt,
+		&i.LastEventAt,
+		&i.AccountsCount,
+		&i.TotalAmount,
+		&i.IsFrozen,
+		&i.DecisionComment,
+		&i.DecidedAt,
+		&i.RiskLevel,
+	)
+	return i, err
 }
