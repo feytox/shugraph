@@ -65,7 +65,10 @@ describe('GroupGraph', () => {
       .mockImplementationOnce(() => new Promise((resolve) => (fontLoaded = () => resolve([]))));
     renderGraph();
     expect(await screen.findByText('устройство')).toBeVisible();
-    expect(load).toHaveBeenCalledWith(expect.stringContaining(DEFAULT_THEME.fontFamily));
+    expect(load).toHaveBeenCalledWith(
+      expect.stringContaining(DEFAULT_THEME.fontFamily),
+      expect.stringMatching(/[а-я].*₽|₽.*[а-я]/)
+    );
     expect(screen.getByRole('status')).toHaveTextContent('Загрузка графа');
     expect(cytoscape).not.toHaveBeenCalled();
 
