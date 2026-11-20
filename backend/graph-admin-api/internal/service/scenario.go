@@ -59,7 +59,7 @@ func NewScenarioService(eventAPI eventAPI, scenarioRepository scenarioRepository
 func (s *ScenarioService) Run(scenarioID string, delay time.Duration) error {
 	scenario, err := s.scenarioRepository.GetByName(scenarioID)
 	if err != nil {
-		return fmt.Errorf("error getting scenario %q: %w", scenarioID, err)
+		return fmt.Errorf("get scenario %q: %w", scenarioID, err)
 	}
 
 	events, err := s.prepareEvents(scenario)
@@ -99,12 +99,12 @@ func (s *ScenarioService) Stop() {
 func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]preparedEvent, error) {
 	var events []preparedEvent
 
-	for _, raw := range scenario.Events {
+	for i, raw := range scenario.Events {
 		var event scenarioEvent
 
 		err := json.Unmarshal(raw, &event)
 		if err != nil {
-			return nil, fmt.Errorf("decoding scenario %q: %w", scenario.Name, err)
+			return nil, fmt.Errorf("decode event %q: %w", i, err)
 		}
 
 		switch event.Type {
@@ -113,7 +113,7 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]preparedEv
 
 			err := json.Unmarshal(raw, &loginEvent)
 			if err != nil {
-				return nil, fmt.Errorf("decoding login event %q: %w", event.EventID, err)
+				return nil, fmt.Errorf("decode login event %q: %w", event.EventID, err)
 			}
 
 			send := func(ctx context.Context) error {
@@ -125,7 +125,7 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]preparedEv
 
 			err := json.Unmarshal(raw, &transferEvent)
 			if err != nil {
-				return nil, fmt.Errorf("decoding transfer event %q: %w", event.EventID, err)
+				return nil, fmt.Errorf("decode transfer event %q: %w", event.EventID, err)
 			}
 
 			send := func(ctx context.Context) error {
@@ -133,7 +133,7 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]preparedEv
 			}
 			events = append(events, preparedEvent{event.EventID, send})
 		default:
-			return nil, fmt.Errorf("unknown event type %q", event.Type)
+			return nil, fmt.Errorf("unknown event %q type %q", event.EventID, event.Type)
 		}
 	}
 
