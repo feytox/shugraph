@@ -27,9 +27,12 @@ func TestScenarioHandlerRun(t *testing.T) {
 	}{
 		"success": {
 			mockRun: func(scenarioID string, delay time.Duration) error {
+				assert.Equal(t, "my-scenario", scenarioID)
+				assert.Equal(t, 2*time.Second, delay)
+
 				return nil
 			},
-			url:        "/admin-api/v1/scenarios/my-scenario/run",
+			url:        "/admin-api/v1/scenarios/my-scenario/run?delay_s=2",
 			wantStatus: http.StatusAccepted,
 		},
 		"scenario not found": {
