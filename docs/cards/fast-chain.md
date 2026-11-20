@@ -7,14 +7,16 @@
 | Что | Откуда в ответе API | Пример |
 |---|---|---|
 | Слагаемые риска | `risk_parts.chain` | `{"scheme": 55, "speed": 15, "hops": 10, "preserved": 5}` |
-| Число переводов | `hops_count`, придёт с бэкенда | `4` |
-| Дошедшая сумма | `preserved_percent`, придёт с бэкенда | `94` |
+| Число переводов | `features.chain.hops_count` | `4` |
+| Дошедшая сумма | `features.chain.preserved_percent` | `94` |
 
 `risk_parts.chain` содержит баллы: `hops` — баллы за число переводов (хопов), `preserved` — баллы за процент дошедшей суммы.
 
-- `hops_count` — число переводов между счетами цепочки, приходит с бэкенда.
+- `features.chain.hops_count` — число переводов между счетами цепочки.
 - `hops_count_text` — число переводов с существительным в правильной форме: `1 перевод`, `2–4 перевода`, `5–20 переводов` (склонение числительных по правилам `Intl.PluralRules('ru-RU')`).
-- `preserved_percent` — процент дошедшей суммы, приходит с бэкенда.
+- `features.chain.preserved_percent` — процент дошедшей суммы.
+
+Признаки схемы хранятся вместе с `risk_parts` и обновляются вместе с риском; фронт берёт готовые числа.
 
 В схеме цепочки входы в кабинет не участвуют — схема выявляется исключительно по переводам.
 
@@ -23,8 +25,8 @@
 | Слагаемое из [risk.md](../schemes/risk.md) | Плейсхолдер | Что подставляем | Формулировка |
 |---|---|---|---|
 | Тип схемы «цепочка» | `scheme_line` | `risk_parts.chain.scheme` | `Тип схемы «цепочка»: +{scheme}.` |
-| Число переводов | `hops_line` | `hops_count`, `risk_parts.chain.hops` | `Переводов в цепочке: {hops_count} — +{hops}.` |
-| Дошедшая сумма | `preserved_line` | `preserved_percent`, `risk_parts.chain.preserved` | `Дошло до конца цепочки: {preserved_percent}% — +{preserved}.` |
+| Число переводов | `hops_line` | `features.chain.hops_count`, `risk_parts.chain.hops` | `Переводов в цепочке: {hops_count} — +{hops}.` |
+| Дошедшая сумма | `preserved_line` | `features.chain.preserved_percent`, `risk_parts.chain.preserved` | `Дошло до конца цепочки: {preserved_percent}% — +{preserved}.` |
 
 Строка скорости (`speed_line`) формируется по [общим правилам](README.md#общие-слагаемые-риска).
 
@@ -51,10 +53,10 @@
 | `features.span_minutes` | `11` |
 | `features.accounts_count` | `5` |
 | `features.total_amount` | `32450000` |
-| `hops_count` | `4` |
-| `preserved_percent` | `94` |
+| `features.chain.hops_count` | `4` |
+| `features.chain.preserved_percent` | `94` |
 
-Проверка чисел: `55 + 15 + 10 + 5 = 85`, уровень `high` — диапазон 75–100. `span_minutes` — 11 минут (18:03–18:14), `total_amount` — 32 450 000 копеек (83 500 + 82 000 + 80 000 + 79 000 ₽). `accounts_count` — 5 счетов, `hops_count` — 4 перевода, `preserved_percent` — 94% (79 000 * 100 / 83 500 = 94.61%).
+Проверка чисел: `55 + 15 + 10 + 5 = 85`, уровень `high` — диапазон 75–100. `span_minutes` — 11 минут (18:03–18:14), `total_amount` — 32 450 000 копеек (83 500 + 82 000 + 80 000 + 79 000 ₽). `accounts_count` — 5 счетов, `features.chain.hops_count` — 4 перевода, `features.chain.preserved_percent` — 94% (79 000 * 100 / 83 500 = 94.61%).
 
 Ожидаемый текст карточки:
 
@@ -90,10 +92,10 @@
 | `features.span_minutes` | `14` |
 | `features.accounts_count` | `4` |
 | `features.total_amount` | `5850000` |
-| `hops_count` | `3` |
-| `preserved_percent` | `95` |
+| `features.chain.hops_count` | `3` |
+| `features.chain.preserved_percent` | `95` |
 
-Проверка чисел: `55 + 15 + 0 + 5 = 75`, уровень `high` — диапазон 75–100. `span_minutes` — 14 минут (18:40–18:54), `total_amount` — 5 850 000 копеек (20 000 + 19 500 + 19 000 ₽). `accounts_count` — 4 счёта (`acc-anna`, `acc-petr`, `acc-sveta`, `acc-timur`), `hops_count` — 3 перевода, `preserved_percent` — 95% (1 900 000 * 100 / 2 000 000 = 95%).
+Проверка чисел: `55 + 15 + 0 + 5 = 75`, уровень `high` — диапазон 75–100. `span_minutes` — 14 минут (18:40–18:54), `total_amount` — 5 850 000 копеек (20 000 + 19 500 + 19 000 ₽). `accounts_count` — 4 счёта (`acc-anna`, `acc-petr`, `acc-sveta`, `acc-timur`), `features.chain.hops_count` — 3 перевода, `features.chain.preserved_percent` — 95% (1 900 000 * 100 / 2 000 000 = 95%).
 
 Ожидаемый текст карточки:
 
@@ -129,10 +131,10 @@
 | `features.span_minutes` | `14` |
 | `features.accounts_count` | `4` |
 | `features.total_amount` | `26450000` |
-| `hops_count` | `3` |
-| `preserved_percent` | `96` |
+| `features.chain.hops_count` | `3` |
+| `features.chain.preserved_percent` | `96` |
 
-Проверка чисел: `55 + 15 + 0 + 10 = 80`, уровень `high` — диапазон 75–100. `span_minutes` — 14 минут (14:00–14:14), `total_amount` — 26 450 000 копеек (90 000 + 88 000 + 86 500 ₽). `accounts_count` — 4 счёта (`acc-kirill`, `acc-lada`, `acc-marat`, `acc-nika`), `hops_count` — 3 перевода, `preserved_percent` — 96% (8 650 000 * 100 / 9 000 000 = 96.11%).
+Проверка чисел: `55 + 15 + 0 + 10 = 80`, уровень `high` — диапазон 75–100. `span_minutes` — 14 минут (14:00–14:14), `total_amount` — 26 450 000 копеек (90 000 + 88 000 + 86 500 ₽). `accounts_count` — 4 счёта (`acc-kirill`, `acc-lada`, `acc-marat`, `acc-nika`), `features.chain.hops_count` — 3 перевода, `features.chain.preserved_percent` — 96% (8 650 000 * 100 / 9 000 000 = 96.11%).
 
 Ожидаемый текст карточки:
 

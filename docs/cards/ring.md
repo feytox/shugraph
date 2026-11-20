@@ -7,17 +7,19 @@
 | Что | Откуда в ответе API | Пример |
 |---|---|---|
 | Слагаемые риска | `risk_parts.ring` | `{"scheme": 65, "speed": 10, "rounds": 0, "accounts": 0, "preserved": 10}` |
-| Число кругов | `rounds_count`, придёт с бэкенда | `2` |
-| Счетов в кольце | `accounts_in_ring`, придёт с бэкенда | `3` |
-| Доля возврата | `preserved_percent`, придёт с бэкенда | `97` |
+| Число кругов | `features.ring.rounds_count` | `2` |
+| Счетов в кольце | `features.accounts_count` | `3` |
+| Доля возврата | `features.ring.preserved_percent` | `97` |
 
 `risk_parts.ring` содержит баллы: `rounds` — баллы за число кругов, `accounts` — баллы за число счетов в кольце, `preserved` — баллы за долю вернувшейся суммы.
 
-- `rounds_count` — число завершённых кругов в кольце, приходит с бэкенда.
+- `features.ring.rounds_count` — число завершённых кругов в кольце.
 - `rounds_count_text` — число кругов со словом «раз» в правильной форме: `1 раз`, `2–4 раза`, `5–20 раз` (склонение числительных по правилам `Intl.PluralRules('ru-RU')`).
-- `accounts_in_ring` — количество уникальных счетов в контуре кольца, приходит с бэкенда.
-- `accounts_in_ring_text` — число счетов со словом «счёт» в правильной форме: `1 счёт`, `2–4 счёта`, `5–20 счетов`.
-- `preserved_percent` — доля вернувшейся суммы, приходит с бэкенда.
+- `accounts_count` — число счетов в группе, берётся из `features.accounts_count`. По [SRD-6](../schemes/ring.md) круги идут одним составом, поэтому счетов в кольце столько же, сколько счетов в группе.
+- `accounts_count_text` — число счетов со словом «счёт» в правильной форме: `1 счёт`, `2–4 счёта`, `5–20 счетов`.
+- `features.ring.preserved_percent` — доля вернувшейся суммы.
+
+Признаки схемы хранятся вместе с `risk_parts` и обновляются вместе с риском; фронт берёт готовые числа.
 
 В схеме кольца входы в кабинет не участвуют — схема выявляется исключительно по переводам.
 
@@ -26,9 +28,9 @@
 | Слагаемое из [risk.md](../schemes/risk.md) | Плейсхолдер | Что подставляем | Формулировка |
 |---|---|---|---|
 | Тип схемы «кольцо» | `scheme_line` | `risk_parts.ring.scheme` | `Тип схемы «кольцо»: +{scheme}.` |
-| Число кругов | `rounds_line` | `rounds_count`, `risk_parts.ring.rounds` | `Кругов в кольце: {rounds_count} — +{rounds}.` |
-| Счетов в кольце | `accounts_line` | `accounts_in_ring`, `risk_parts.ring.accounts` | `Счетов в кольце: {accounts_in_ring} — +{accounts}.` |
-| Доля возврата | `preserved_line` | `preserved_percent`, `risk_parts.ring.preserved` | `Вернулось на стартовый счёт: {preserved_percent}% — +{preserved}.` |
+| Число кругов | `rounds_line` | `features.ring.rounds_count`, `risk_parts.ring.rounds` | `Кругов в кольце: {rounds_count} — +{rounds}.` |
+| Счетов в кольце | `accounts_line` | `features.accounts_count`, `risk_parts.ring.accounts` | `Счетов в кольце: {accounts_count} — +{accounts}.` |
+| Доля возврата | `preserved_line` | `features.ring.preserved_percent`, `risk_parts.ring.preserved` | `Вернулось на стартовый счёт: {preserved_percent}% — +{preserved}.` |
 
 Строка скорости (`speed_line`) формируется по [общим правилам](README.md#общие-слагаемые-риска).
 
@@ -41,7 +43,7 @@
 
 ## Формулировка `scheme_summary`
 
-`Деньги перемещались по замкнутому кругу между счетами участников (всего {accounts_in_ring_text}) и вернулись на стартовый счёт, причём деньги прошли круг {rounds_count_text} (вернулось {preserved_percent}% суммы). Это признак циклической схемы: деньги гоняют по кругу между своими, чтобы создать видимость оборота в выписке или запутать след транзакций.`
+`Деньги перемещались по замкнутому кругу между счетами участников (всего {accounts_count_text}) и вернулись на стартовый счёт, причём деньги прошли круг {rounds_count_text} (вернулось {preserved_percent}% суммы). Это признак циклической схемы: деньги гоняют по кругу между своими, чтобы создать видимость оборота в выписке или запутать след транзакций.`
 
 ## Сценарий `ring`
 
@@ -56,11 +58,10 @@
 | `features.span_minutes` | `57` |
 | `features.accounts_count` | `3` |
 | `features.total_amount` | `59000000` |
-| `rounds_count` | `2` |
-| `accounts_in_ring` | `3` |
-| `preserved_percent` | `97` |
+| `features.ring.rounds_count` | `2` |
+| `features.ring.preserved_percent` | `97` |
 
-Проверка чисел: `65 + 10 + 0 + 0 + 10 = 85`, уровень `high` — диапазон 75–100. `span_minutes` — 57 минут (20:00–20:57), `total_amount` — 59 000 000 копеек (100 000 + 98 000 + 97 000 + 100 000 + 98 000 + 97 000 ₽). `accounts_count` — 3 счёта, `rounds_count` — 2 круга, `accounts_in_ring` — 3 счёта, `preserved_percent` — 97% ((97 000 + 97 000) * 100 / (100 000 + 100 000) = 194 000 / 200 000 = 97%).
+Проверка чисел: `65 + 10 + 0 + 0 + 10 = 85`, уровень `high` — диапазон 75–100. `span_minutes` — 57 минут (20:00–20:57), `total_amount` — 59 000 000 копеек (100 000 + 98 000 + 97 000 + 100 000 + 98 000 + 97 000 ₽). `features.accounts_count` — 3 счёта в группе и в кольце, `features.ring.rounds_count` — 2 круга, `features.ring.preserved_percent` — 97% ((97 000 + 97 000) * 100 / (100 000 + 100 000) = 194 000 / 200 000 = 97%).
 
 Ожидаемый текст карточки:
 
@@ -97,11 +98,10 @@
 | `features.span_minutes` | `56` |
 | `features.accounts_count` | `3` |
 | `features.total_amount` | `59000000` |
-| `rounds_count` | `2` |
-| `accounts_in_ring` | `3` |
-| `preserved_percent` | `97` |
+| `features.ring.rounds_count` | `2` |
+| `features.ring.preserved_percent` | `97` |
 
-Проверка чисел: `65 + 10 + 0 + 0 + 10 = 85`, уровень `high` — диапазон 75–100. `span_minutes` — 56 минут (20:00–20:56), `total_amount` — 59 000 000 копеек (100 000 + 98 000 + 97 000 + 100 000 + 98 000 + 97 000 ₽). `accounts_count` — 3 счёта (`acc-vera`, `acc-igor`, `acc-pavel`), `rounds_count` — 2 круга, `accounts_in_ring` — 3 счёта, `preserved_percent` — 97% ((97 000 + 97 000) * 100 / (100 000 + 100 000) = 194 000 / 200 000 = 97%).
+Проверка чисел: `65 + 10 + 0 + 0 + 10 = 85`, уровень `high` — диапазон 75–100. `span_minutes` — 56 минут (20:00–20:56), `total_amount` — 59 000 000 копеек (100 000 + 98 000 + 97 000 + 100 000 + 98 000 + 97 000 ₽). `features.accounts_count` — 3 счёта в группе и в кольце (`acc-vera`, `acc-igor`, `acc-pavel`), `features.ring.rounds_count` — 2 круга, `features.ring.preserved_percent` — 97% ((97 000 + 97 000) * 100 / (100 000 + 100 000) = 194 000 / 200 000 = 97%).
 
 Ожидаемый текст карточки:
 
@@ -138,11 +138,10 @@
 | `features.span_minutes` | `58` |
 | `features.accounts_count` | `3` |
 | `features.total_amount` | `41260000` |
-| `rounds_count` | `2` |
-| `accounts_in_ring` | `3` |
-| `preserved_percent` | `96` |
+| `features.ring.rounds_count` | `2` |
+| `features.ring.preserved_percent` | `96` |
 
-Проверка чисел: `65 + 10 + 0 + 0 + 10 = 85`, уровень `high` — диапазон 75–100. `span_minutes` — 58 минут (16:00–16:58), `total_amount` — 41 260 000 копеек (70 000 + 68 500 + 67 800 + 70 000 + 68 500 + 67 800 ₽). `accounts_count` — 3 счёта (`acc-sofia`, `acc-timur`, `acc-ulyana`), `rounds_count` — 2 круга, `accounts_in_ring` — 3 счёта, `preserved_percent` — 96% ((6 780 000 + 6 780 000) * 100 / (7 000 000 + 7 000 000) = 13 560 000 / 14 000 000 = 96.85% -> 96%).
+Проверка чисел: `65 + 10 + 0 + 0 + 10 = 85`, уровень `high` — диапазон 75–100. `span_minutes` — 58 минут (16:00–16:58), `total_amount` — 41 260 000 копеек (70 000 + 68 500 + 67 800 + 70 000 + 68 500 + 67 800 ₽). `features.accounts_count` — 3 счёта в группе и в кольце (`acc-sofia`, `acc-timur`, `acc-ulyana`), `features.ring.rounds_count` — 2 круга, `features.ring.preserved_percent` — 96% ((6 780 000 + 6 780 000) * 100 / (7 000 000 + 7 000 000) = 13 560 000 / 14 000 000 = 96.85% -> 96%).
 
 Ожидаемый текст карточки:
 

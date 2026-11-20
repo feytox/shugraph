@@ -7,24 +7,26 @@
 | Что | Откуда в ответе API | Пример |
 |---|---|---|
 | Слагаемые риска | `risk_parts.address` | `{"scheme": 40, "speed": 10, "clients": 0, "devices": 5, "burst": 10}` |
-| Число клиентов | `clients_count`, придёт с бэкенда | `4` |
-| Число устройств | `devices_count`, придёт с бэкенда | `3` |
-| Кучность первых входов | `burst_minutes`, придёт с бэкенда | `10` |
+| Число клиентов | `features.address.clients_count` | `4` |
+| Число устройств | `features.address.devices_count` | `3` |
+| Кучность первых входов | `features.address.burst_minutes` | `10` |
 
 `risk_parts.address` содержит баллы: `clients` — баллы за число клиентов, `devices` — баллы за число устройств, `burst` — баллы за кучность первых входов.
 
-- `clients_count` — число различных `client_id` в `logins` группы, приходит с бэкенда.
-- `devices_count` — число различных `device_id` в `logins` группы, приходит с бэкенда.
-- `burst_minutes` — время в минутах между самым ранним и самым поздним первым входом клиента в окне группы, приходит с бэкенда.
+- `features.address.clients_count` — число различных `client_id` в `logins` группы.
+- `features.address.devices_count` — число различных `device_id` в `logins` группы.
+- `features.address.burst_minutes` — время в минутах между самым ранним и самым поздним первым входом клиента в окне группы.
+
+Признаки схемы хранятся вместе с `risk_parts` и обновляются вместе с риском; фронт берёт готовые числа.
 
 ## Слагаемые риска
 
 | Слагаемое из [risk.md](../schemes/risk.md) | Плейсхолдер | Что подставляем | Формулировка |
 |---|---|---|---|
 | Тип схемы «адрес» | `scheme_line` | `risk_parts.address.scheme` | `Тип схемы «адрес»: +{scheme}.` |
-| Число клиентов | `clients_line` | `clients_count`, `risk_parts.address.clients` | `Клиентов на одном адресе: {clients_count} — +{clients}.` |
-| Число устройств | `devices_line` | `devices_count`, `risk_parts.address.devices` | `Устройств на одном адресе: {devices_count} — +{devices}.` |
-| Кучность первых входов | `burst_line` | `burst_minutes`, `risk_parts.address.burst` | `Кучность первых входов: {burst_minutes} мин — +{burst}.` |
+| Число клиентов | `clients_line` | `features.address.clients_count`, `risk_parts.address.clients` | `Клиентов на одном адресе: {clients_count} — +{clients}.` |
+| Число устройств | `devices_line` | `features.address.devices_count`, `risk_parts.address.devices` | `Устройств на одном адресе: {devices_count} — +{devices}.` |
+| Кучность первых входов | `burst_line` | `features.address.burst_minutes`, `risk_parts.address.burst` | `Кучность первых входов: {burst_minutes} мин — +{burst}.` |
 
 Строка скорости (`speed_line`) формируется по [общим правилам](README.md#общие-слагаемые-риска).
 
@@ -52,11 +54,11 @@
 | `features.span_minutes` | `40` |
 | `features.accounts_count` | `5` |
 | `features.total_amount` | `19500000` |
-| `clients_count` | `4` |
-| `devices_count` | `3` |
-| `burst_minutes` | `10` |
+| `features.address.clients_count` | `4` |
+| `features.address.devices_count` | `3` |
+| `features.address.burst_minutes` | `10` |
 
-Проверка чисел: `40 + 10 + 0 + 5 + 10 = 65`, уровень `medium` — диапазон 60–74. `span_minutes` — 40 минут (18:00–18:40), `total_amount` — 19 500 000 копеек (52 000 + 43 000 + 39 000 + 61 000 ₽). `accounts_count` — 5 счетов, `clients_count` — 4 различных `client_id` в `logins`, `devices_count` — 3 различных `device_id` в `logins`, `burst_minutes` — 10 минут (18:00–18:10).
+Проверка чисел: `40 + 10 + 0 + 5 + 10 = 65`, уровень `medium` — диапазон 60–74. `span_minutes` — 40 минут (18:00–18:40), `total_amount` — 19 500 000 копеек (52 000 + 43 000 + 39 000 + 61 000 ₽). `accounts_count` — 5 счетов, `features.address.clients_count` — 4 различных `client_id` в `logins`, `features.address.devices_count` — 3 различных `device_id` в `logins`, `features.address.burst_minutes` — 10 минут (18:00–18:10).
 
 Ожидаемый текст карточки:
 
@@ -93,11 +95,11 @@
 | `features.span_minutes` | `40` |
 | `features.accounts_count` | `5` |
 | `features.total_amount` | `19500000` |
-| `clients_count` | `4` |
-| `devices_count` | `2` |
-| `burst_minutes` | `10` |
+| `features.address.clients_count` | `4` |
+| `features.address.devices_count` | `2` |
+| `features.address.burst_minutes` | `10` |
 
-Проверка чисел: `40 + 10 + 0 + 0 + 10 = 60`, уровень `medium` — диапазон 60–74. `span_minutes` — 40 минут (18:00–18:40), `total_amount` — 19 500 000 копеек (52 000 + 43 000 + 39 000 + 61 000 ₽). `accounts_count` — 5 счетов, `clients_count` — 4 клиента (`cli-anna`, `cli-boris`, `cli-vera`, `cli-vova`), `devices_count` — 2 устройства (`dev-common`, `dev-vova`), `burst_minutes` — 10 минут (18:00–18:10).
+Проверка чисел: `40 + 10 + 0 + 0 + 10 = 60`, уровень `medium` — диапазон 60–74. `span_minutes` — 40 минут (18:00–18:40), `total_amount` — 19 500 000 копеек (52 000 + 43 000 + 39 000 + 61 000 ₽). `accounts_count` — 5 счетов, `features.address.clients_count` — 4 клиента (`cli-anna`, `cli-boris`, `cli-vera`, `cli-vova`), `features.address.devices_count` — 2 устройства (`dev-common`, `dev-vova`), `features.address.burst_minutes` — 10 минут (18:00–18:10).
 
 Ожидаемый текст карточки:
 
@@ -134,11 +136,11 @@
 | `features.span_minutes` | `40` |
 | `features.accounts_count` | `5` |
 | `features.total_amount` | `19500000` |
-| `clients_count` | `4` |
-| `devices_count` | `3` |
-| `burst_minutes` | `10` |
+| `features.address.clients_count` | `4` |
+| `features.address.devices_count` | `3` |
+| `features.address.burst_minutes` | `10` |
 
-Проверка чисел: `40 + 10 + 0 + 5 + 10 = 65`, уровень `medium` — диапазон 60–74. `span_minutes` — 40 минут (18:00–18:40), `total_amount` — 19 500 000 копеек (52 000 + 43 000 + 39 000 + 61 000 ₽). `accounts_count` — 5 счетов, `clients_count` — 4 клиента (`cli-anna`, `cli-boris`, `cli-vera`, `cli-vova`), `devices_count` — 3 устройства (`dev-anna`, `dev-boris`, `dev-vera`), `burst_minutes` — 10 минут (18:00–18:10).
+Проверка чисел: `40 + 10 + 0 + 5 + 10 = 65`, уровень `medium` — диапазон 60–74. `span_minutes` — 40 минут (18:00–18:40), `total_amount` — 19 500 000 копеек (52 000 + 43 000 + 39 000 + 61 000 ₽). `accounts_count` — 5 счетов, `features.address.clients_count` — 4 клиента (`cli-anna`, `cli-boris`, `cli-vera`, `cli-vova`), `features.address.devices_count` — 3 устройства (`dev-anna`, `dev-boris`, `dev-vera`), `features.address.burst_minutes` — 10 минут (18:00–18:10).
 
 Ожидаемый текст карточки:
 

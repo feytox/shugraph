@@ -7,18 +7,19 @@
 | Что | Откуда в ответе API | Пример |
 |---|---|---|
 | Слагаемые риска | `risk_parts.farm` | `{"scheme": 50, "speed": 15, "clients": 0, "collector": 10}` |
-| Число клиентов | `logins` группы, уникальные `client_id` | `3` |
+| Число клиентов | `features.farm.clients_count` | `3` |
 
 `risk_parts.farm` содержит баллы: `clients` — баллы за число клиентов, `collector` — баллы за наличие общего счёта.
 
-- `clients_count` — число различных `client_id` в `logins` группы. Оно не выводится из `accounts_count`: у одного клиента может быть несколько счетов, а сборщик может быть в `members`, но не быть клиентом. Поэтому для текста берём именно количество уникальных клиентов из входов.
+- `features.farm.clients_count` — число различных `client_id` в `logins` группы, по которому посчитан `risk_parts.farm.clients`. Хранится вместе с `risk_parts` и обновляется вместе с риском; фронт берёт готовое число.
+- `clients_count` не выводится из `accounts_count`: у одного клиента может быть несколько счетов, а сборщик может быть в `members`, но не быть клиентом. Поэтому признак считаем именно по уникальным клиентам из входов.
 
 ## Слагаемые риска
 
 | Слагаемое из [risk.md](../schemes/risk.md) | Плейсхолдер | Что подставляем | Формулировка |
 |---|---|---|---|
 | Тип схемы «ферма» | `scheme_line` | `risk_parts.farm.scheme` | `Тип схемы «ферма»: +{scheme}.` |
-| Число клиентов | `clients_line` | `clients_count`, `risk_parts.farm.clients` | `Клиентов на одном устройстве: {clients_count} — +{clients}.` |
+| Число клиентов | `clients_line` | `features.farm.clients_count`, `risk_parts.farm.clients` | `Клиентов на одном устройстве: {clients_count} — +{clients}.` |
 | Общий счёт для вывода | `collector_line` | `risk_parts.farm.collector` | при `collector > 0`: `Есть общий счёт для вывода денег: +{collector}.`; при `collector == 0`: `Общего счёта для вывода денег нет: +0.` |
 
 Строка скорости (`speed_line`) формируется по [общим правилам](README.md#общие-слагаемые-риска).
@@ -47,9 +48,9 @@
 | `features.span_minutes` | `28` |
 | `features.accounts_count` | `4` |
 | `features.total_amount` | `16100000` |
-| `clients_count` | `3` |
+| `features.farm.clients_count` | `3` |
 
-Проверка чисел: `50 + 15 + 0 + 10 = 75`, уровень `high` — диапазон 75–100. `span_minutes` — 28 минут (10:01–10:29), `total_amount` — 16 100 000 копеек (52 000 + 42 000 + 67 000 ₽). `accounts_count` — 4 счёта, `clients_count` — 3 различных `client_id` в `logins`.
+Проверка чисел: `50 + 15 + 0 + 10 = 75`, уровень `high` — диапазон 75–100. `span_minutes` — 28 минут (10:01–10:29), `total_amount` — 16 100 000 копеек (52 000 + 42 000 + 67 000 ₽). `accounts_count` — 4 счёта, `features.farm.clients_count` — 3 различных `client_id` в `logins`.
 
 Ожидаемый текст карточки:
 
@@ -85,9 +86,9 @@
 | `features.span_minutes` | `35` |
 | `features.accounts_count` | `4` |
 | `features.total_amount` | `13400000` |
-| `clients_count` | `3` |
+| `features.farm.clients_count` | `3` |
 
-Проверка чисел: `50 + 10 + 0 + 10 = 70`, уровень `medium` — диапазон 60–74. `span_minutes` — 35 минут (18:00–18:35), `total_amount` — 13 400 000 копеек (52 000 + 43 000 + 39 000 ₽). `accounts_count` — 4 счёта (`acc-anna`, `acc-boris`, `acc-vera`, `acc-collector`), `clients_count` — 3 клиента в `logins`.
+Проверка чисел: `50 + 10 + 0 + 10 = 70`, уровень `medium` — диапазон 60–74. `span_minutes` — 35 минут (18:00–18:35), `total_amount` — 13 400 000 копеек (52 000 + 43 000 + 39 000 ₽). `accounts_count` — 4 счёта (`acc-anna`, `acc-boris`, `acc-vera`, `acc-collector`), `features.farm.clients_count` — 3 клиента в `logins`.
 
 Ожидаемый текст карточки:
 
@@ -123,9 +124,9 @@
 | `features.span_minutes` | `32` |
 | `features.accounts_count` | `4` |
 | `features.total_amount` | `12000000` |
-| `clients_count` | `3` |
+| `features.farm.clients_count` | `3` |
 
-Проверка чисел: `50 + 10 + 0 + 10 = 70`, уровень `medium` — диапазон 60–74. `span_minutes` — 32 минуты (18:00–18:32), `total_amount` — 12 000 000 копеек (30 000 + 40 000 + 50 000 ₽). `accounts_count` — 4 счёта (`acc-anna`, `acc-boris`, `acc-vera`, `acc-collector`), `clients_count` — 3 клиента в `logins`.
+Проверка чисел: `50 + 10 + 0 + 10 = 70`, уровень `medium` — диапазон 60–74. `span_minutes` — 32 минуты (18:00–18:32), `total_amount` — 12 000 000 копеек (30 000 + 40 000 + 50 000 ₽). `accounts_count` — 4 счёта (`acc-anna`, `acc-boris`, `acc-vera`, `acc-collector`), `features.farm.clients_count` — 3 клиента в `logins`.
 
 Ожидаемый текст карточки:
 
