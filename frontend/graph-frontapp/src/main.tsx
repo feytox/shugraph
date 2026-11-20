@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router';
 import '@mantine/core/styles.css';
+import '@fontsource-variable/golos-text';
 import { App } from '@/App';
 
 const queryClient = new QueryClient({

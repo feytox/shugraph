@@ -1,4 +1,4 @@
-import { MantineProvider } from '@mantine/core';
+import { createTheme, DEFAULT_THEME, MantineProvider } from '@mantine/core';
 import { GraphFrame, GraphMessage, GroupGraph } from '@/features/group-graph/GroupGraph';
 import { GroupsPanel, GroupsPanelError } from '@/features/groups-list/GroupsPanel';
 import {
@@ -7,6 +7,9 @@ import {
 } from '@/features/groups-list/useSelectedGroup';
 import { SidePanel } from '@/shared/SidePanel';
 import classes from '@/App.module.css';
+
+const fontFamily = `'Golos Text Variable', ${DEFAULT_THEME.fontFamily}`;
+const theme = createTheme({ fontFamily, headings: { fontFamily } });
 
 function AnalystScreen() {
   useDefaultGroupSelection();
@@ -42,7 +45,7 @@ function AnalystScreen() {
 
 export function App() {
   return (
-    <MantineProvider>
+    <MantineProvider theme={theme}>
       <AnalystScreen />
     </MantineProvider>
   );
