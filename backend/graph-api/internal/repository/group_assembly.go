@@ -55,6 +55,7 @@ func (p *PgGroupAssemblyRepository) Create(ctx context.Context, group domain.Gro
 		Scheme:        string(group.Scheme),
 		RiskScore:     riskScore,
 		RiskParts:     group.RiskParts,
+		RiskLevel:     string(group.RiskLevel),
 		FirstEventAt:  group.FirstEventAt,
 		LastEventAt:   group.LastEventAt,
 		AccountsCount: accountsCount,
@@ -105,6 +106,7 @@ func (p *PgGroupAssemblyRepository) UpdateRisk(ctx context.Context, groupID uuid
 		GroupID:   groupID,
 		RiskScore: score,
 		RiskParts: risk.Parts,
+		RiskLevel: string(risk.Level),
 	})
 	if err != nil {
 		return fmt.Errorf("update group risk: %w", err)

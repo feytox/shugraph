@@ -44,6 +44,7 @@ type Group struct {
 	IsFrozen        bool               `db:"is_frozen"`
 	DecisionComment pgtype.Text        `db:"decision_comment"`
 	DecidedAt       pgtype.Timestamptz `db:"decided_at"`
+	RiskLevel       string             `db:"risk_level"`
 }
 
 type GroupEvent struct {
