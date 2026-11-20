@@ -46,13 +46,9 @@ func (t *pointsByThreshold) UnmarshalText(text []byte) error {
 type pointsFromZero domain.RiskSteps[int]
 
 func (t *pointsFromZero) UnmarshalText(text []byte) error {
-	steps, err := parseSteps(string(text), strconv.Atoi)
+	steps, err := parseStepsFromZero(string(text), strconv.Atoi)
 	if err != nil {
 		return err
-	}
-
-	if steps[0].From != 0 {
-		return errStepsMustStartAtZero
 	}
 
 	*t = pointsFromZero(steps)
@@ -62,16 +58,10 @@ func (t *pointsFromZero) UnmarshalText(text []byte) error {
 
 type levelByScore domain.RiskSteps[domain.RiskLevel]
 
-var errStepsMustStartAtZero = errors.New("risk steps must start at 0")
-
 func (t *levelByScore) UnmarshalText(text []byte) error {
-	steps, err := parseSteps(string(text), parseRiskLevel)
+	steps, err := parseStepsFromZero(string(text), parseRiskLevel)
 	if err != nil {
 		return err
-	}
-
-	if steps[0].From != 0 {
-		return errStepsMustStartAtZero
 	}
 
 	*t = levelByScore(steps)
@@ -88,6 +78,21 @@ func parseRiskLevel(text string) (domain.RiskLevel, error) {
 	}
 
 	return level, nil
+}
+
+var errStepsMustStartAtZero = errors.New("risk steps must start at 0")
+
+func parseStepsFromZero[T any](text string, parseValue func(string) (T, error)) (domain.RiskSteps[T], error) {
+	steps, err := parseSteps(text, parseValue)
+	if err != nil {
+		return nil, err
+	}
+
+	if steps[0].From != 0 {
+		return nil, errStepsMustStartAtZero
+	}
+
+	return steps, nil
 }
 
 func parseSteps[T any](text string, parseValue func(string) (T, error)) (domain.RiskSteps[T], error) {
