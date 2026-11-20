@@ -57,10 +57,10 @@ func (q *Queries) FreezeStaleGroups(ctx context.Context, staleBefore time.Time) 
 }
 
 const insertGroup = `-- name: InsertGroup :exec
-INSERT INTO groups (id, scheme, risk_score, risk_parts, first_event_at, last_event_at, accounts_count, total_amount)
+INSERT INTO groups (id, scheme, risk_score, risk_parts, risk_level, first_event_at, last_event_at, accounts_count, total_amount)
 VALUES (
-    $1, $2, $3, $4,
-    $5, $6, $7, $8
+    $1, $2, $3, $4, $5,
+    $6, $7, $8, $9
 )
 `
 
@@ -69,6 +69,7 @@ type InsertGroupParams struct {
 	Scheme        string    `db:"scheme"`
 	RiskScore     int32     `db:"risk_score"`
 	RiskParts     []byte    `db:"risk_parts"`
+	RiskLevel     string    `db:"risk_level"`
 	FirstEventAt  time.Time `db:"first_event_at"`
 	LastEventAt   time.Time `db:"last_event_at"`
 	AccountsCount int32     `db:"accounts_count"`
@@ -81,6 +82,7 @@ func (q *Queries) InsertGroup(ctx context.Context, arg InsertGroupParams) error 
 		arg.Scheme,
 		arg.RiskScore,
 		arg.RiskParts,
+		arg.RiskLevel,
 		arg.FirstEventAt,
 		arg.LastEventAt,
 		arg.AccountsCount,
@@ -139,17 +141,24 @@ func (q *Queries) RefreshGroupStats(ctx context.Context, groupID uuid.UUID) (Ref
 const updateGroupRisk = `-- name: UpdateGroupRisk :exec
 UPDATE groups
 SET risk_score = $1,
-    risk_parts = $2
-WHERE id = $3
+    risk_parts = $2,
+    risk_level = $3
+WHERE id = $4
 `
 
 type UpdateGroupRiskParams struct {
 	RiskScore int32     `db:"risk_score"`
 	RiskParts []byte    `db:"risk_parts"`
+	RiskLevel string    `db:"risk_level"`
 	GroupID   uuid.UUID `db:"group_id"`
 }
 
 func (q *Queries) UpdateGroupRisk(ctx context.Context, arg UpdateGroupRiskParams) error {
-	_, err := q.db.Exec(ctx, updateGroupRisk, arg.RiskScore, arg.RiskParts, arg.GroupID)
+	_, err := q.db.Exec(ctx, updateGroupRisk,
+		arg.RiskScore,
+		arg.RiskParts,
+		arg.RiskLevel,
+		arg.GroupID,
+	)
 	return err
 }

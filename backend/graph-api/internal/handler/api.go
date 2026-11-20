@@ -23,7 +23,7 @@ type Pinger interface {
 type Deps struct {
 	Notes    NoteService
 	Events   EventService
-	Solution GroupSolutionService
+	Groups   GroupService
 	Database Pinger
 	Log      *slog.Logger
 }
@@ -50,7 +50,7 @@ func registerAPI(router chi.Router, deps Deps) huma.API {
 	registerNotes(api, &noteHandlers{notes: deps.Notes, log: deps.Log})
 
 	registerEvents(api, &eventHandlers{events: deps.Events, log: deps.Log})
-	registerGroups(api, &groupHandlers{solutionService: deps.Solution, log: deps.Log})
+	registerGroups(api, &groupHandlers{groups: deps.Groups, log: deps.Log})
 
 	return api
 }

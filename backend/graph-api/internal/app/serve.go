@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/feytox/shugraph/backend/graph-api/internal/config"
@@ -49,15 +50,15 @@ func newServer(ctx context.Context, cfg config.Serve, log *slog.Logger) (*server
 	}
 
 	notes := service.NewNoteService(repository.NewPgNoteRepository(pool))
-	events := service.NewEventService(inTx(pool, eventRepositories), cfg.Groups.Rules())
-	solution := service.NewGroupSolutionService(inTx(pool, solutionRepositories))
+	events := service.NewEventService(inTx(pool, pgx.TxOptions{}, eventRepositories), cfg.Groups.Rules())
+	groups := service.NewGroupService(repository.NewPgGroupRepository(pool), inTx(pool, snapshotTx, groupRepositories))
 
 	httpServer := &http.Server{
 		Addr: net.JoinHostPort("", strconv.Itoa(cfg.HTTP.Port)),
 		Handler: handler.New(handler.Deps{
 			Notes:    notes,
 			Events:   events,
-			Solution: solution,
+			Groups:   groups,
 			Database: pool,
 			Log:      log,
 		}),
