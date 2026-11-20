@@ -4,14 +4,15 @@ import classes from '@/shared/ErrorNotice.module.css';
 
 type Props = {
   title: string;
+  wrapText?: boolean;
   onRetry?: () => void;
   retrying?: boolean;
 };
 
-export function ErrorNotice({ title, onRetry, retrying = false }: Props) {
+export function ErrorNotice({ title, wrapText = false, onRetry, retrying = false }: Props) {
   return (
     <Group role="alert" gap="xs" wrap="nowrap" className={classes.notice}>
-      <Text size="sm" fw={600} truncate className={classes.title}>
+      <Text size="sm" fw={600} truncate={!wrapText} className={classes.title}>
         {title}
       </Text>
       {onRetry && (

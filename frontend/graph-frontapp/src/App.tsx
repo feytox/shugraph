@@ -1,4 +1,6 @@
 import { MantineProvider } from '@mantine/core';
+import { GroupCard } from '@/features/group-card/GroupCard';
+import { GroupDecision } from '@/features/group-decision/GroupDecision';
 import { GraphFrame, GraphMessage, GroupGraph } from '@/features/group-graph/GroupGraph';
 import { GroupsPanel, GroupsPanelError } from '@/features/groups-list/GroupsPanel';
 import {
@@ -36,6 +38,15 @@ function AnalystScreen() {
           </GraphFrame>
         )}
       </main>
+      {selected && (
+        <SidePanel side="right" title="Карточка расследования" storageKey="investigation-panel">
+          <GroupCard
+            key={selected.id}
+            summary={selected}
+            decision={(canDecide) => <GroupDecision groupId={selected.id} canDecide={canDecide} />}
+          />
+        </SidePanel>
+      )}
     </div>
   );
 }

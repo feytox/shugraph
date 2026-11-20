@@ -8,7 +8,7 @@ import {
   schemeLabels,
   statusColors,
   statusLabels,
-} from '@/features/groups-list/groupLabels';
+} from '@/shared/groupLabels';
 import { searchWithGroup, useSelectedGroupId } from '@/features/groups-list/useSelectedGroup';
 import { formatDateTimeUtc } from '@/shared/dates';
 import { formatRub } from '@/shared/money';

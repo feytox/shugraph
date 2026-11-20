@@ -1,10 +1,42 @@
-import type { GraphNode, GroupGraph, GroupItem } from '@/api/client';
+import type { GraphNode, Group, GroupGraph, GroupItem } from '@/api/client';
 
 type Login = { event: string; at: string; account: string; device: string; address: string };
 type Transfer = { event: string; at: string; from: string; to: string; rub: number };
 type Events = { owners: Record<string, string>; logins: Login[]; transfers: Transfer[] };
 
-export type MockGroup = { item: GroupItem; graph: GroupGraph };
+export type MockGroup = {
+  item: GroupItem;
+  graph: GroupGraph;
+  evidence: Pick<Group, 'members' | 'logins' | 'transfers'>;
+};
+
+function mockGroup({ item, events }: { item: GroupItem; events: Events }): MockGroup {
+  const { owners, logins, transfers } = events;
+  return {
+    item,
+    graph: buildGraph(item.id, events),
+    evidence: {
+      members: Object.entries(owners).map(([id, client_id]) => ({ id, client_id })),
+      logins: logins.map((login) => ({
+        event_id: login.event,
+        occurred_at: login.at,
+        account_id: login.account,
+        client_id: owners[login.account],
+        device_id: login.device,
+        address_id: login.address,
+      })),
+      transfers: transfers.map((transfer) => ({
+        event_id: transfer.event,
+        occurred_at: transfer.at,
+        from_account_id: transfer.from,
+        from_client_id: owners[transfer.from],
+        to_account_id: transfer.to,
+        to_client_id: owners[transfer.to],
+        amount: transfer.rub * 100,
+      })),
+    },
+  };
+}
 
 const node = (type: GraphNode['type'], entityId: string): GraphNode => ({
   id: `${type}:${entityId}`,
@@ -63,7 +95,7 @@ const ownedByOwnClients = (accounts: string[]) =>
 
 const farmAt = (time: string) => `2026-11-12T${time}:00Z`;
 const farmId = '6f1c2a3e-1b7d-4c1a-9e51-0a1b2c3d4e03';
-const farm: MockGroup = {
+const farm = mockGroup({
   item: {
     id: farmId,
     scheme: 'farm',
@@ -76,7 +108,7 @@ const farm: MockGroup = {
     last_event_at: farmAt('10:29'),
     features: { accounts_count: 4, span_minutes: 28, total_amount: 16100000 },
   },
-  graph: buildGraph(farmId, {
+  events: {
     owners: {
       'acc-ravil': 'cli-ravil',
       'acc-sasha': 'cli-sasha',
@@ -129,13 +161,13 @@ const farm: MockGroup = {
         rub: 67000,
       },
     ],
-  }),
-};
+  },
+});
 
 const at = (time: string) => `2026-10-28T${time}:00Z`;
 
 const addressId = '6f1c2a3e-1b7d-4c1a-9e51-0a1b2c3d4e04';
-const address: MockGroup = {
+const address = mockGroup({
   item: {
     id: addressId,
     scheme: 'address',
@@ -148,7 +180,7 @@ const address: MockGroup = {
     last_event_at: at('13:58'),
     features: { accounts_count: 6, span_minutes: 58, total_amount: 21000000 },
   },
-  graph: buildGraph(addressId, {
+  events: {
     owners: ownedByOwnClients(['a-1', 'a-2', 'a-3', 'a-4', 'a-5', 'a-6']),
     logins: [
       {
@@ -194,11 +226,11 @@ const address: MockGroup = {
       { event: 'evt-addr-09', at: at('13:51'), from: 'a-4', to: 'a-6', rub: 42000 },
       { event: 'evt-addr-10', at: at('13:58'), from: 'a-5', to: 'a-6', rub: 42000 },
     ],
-  }),
-};
+  },
+});
 
 const chainId = '6f1c2a3e-1b7d-4c1a-9e51-0a1b2c3d4e02';
-const chain: MockGroup = {
+const chain = mockGroup({
   item: {
     id: chainId,
     scheme: 'chain',
@@ -211,7 +243,7 @@ const chain: MockGroup = {
     last_event_at: at('11:27'),
     features: { accounts_count: 5, span_minutes: 25, total_amount: 197000000 },
   },
-  graph: buildGraph(chainId, {
+  events: {
     owners: ownedByOwnClients(['c-1', 'c-2', 'c-3', 'c-4', 'c-5']),
     logins: [],
     transfers: [
@@ -220,11 +252,11 @@ const chain: MockGroup = {
       { event: 'evt-chain-03', at: at('11:18'), from: 'c-3', to: 'c-4', rub: 490000 },
       { event: 'evt-chain-04', at: at('11:27'), from: 'c-4', to: 'c-5', rub: 485000 },
     ],
-  }),
-};
+  },
+});
 
 const ringId = '6f1c2a3e-1b7d-4c1a-9e51-0a1b2c3d4e01';
-const ring: MockGroup = {
+const ring = mockGroup({
   item: {
     id: ringId,
     scheme: 'ring',
@@ -237,7 +269,7 @@ const ring: MockGroup = {
     last_event_at: at('09:24'),
     features: { accounts_count: 4, span_minutes: 14, total_amount: 237000000 },
   },
-  graph: buildGraph(ringId, {
+  events: {
     owners: ownedByOwnClients(['r-1', 'r-2', 'r-3', 'r-4']),
     logins: [],
     transfers: [
@@ -250,7 +282,7 @@ const ring: MockGroup = {
       { event: 'evt-ring-07', at: at('09:22'), from: 'r-3', to: 'r-4', rub: 295000 },
       { event: 'evt-ring-08', at: at('09:24'), from: 'r-4', to: 'r-1', rub: 290000 },
     ],
-  }),
-};
+  },
+});
 
 export const mockGroups: MockGroup[] = [farm, address, chain, ring];

@@ -19,7 +19,14 @@ export type CreateNoteRequest = CreateNoteInputBody;
 export type ErrorModel = components['schemas']['ErrorModel'];
 export type ProblemDetails = ErrorModel;
 
+export function getProblemDetail(error: ErrorModel | undefined) {
+  return typeof error?.detail === 'string' ? error.detail.trim() || undefined : undefined;
+}
+
 export type GroupItem = components['schemas']['GroupItem'];
+export type Group = components['schemas']['Group'];
 export type GroupListResponse = components['schemas']['GroupListOutputBody'];
+export type GroupSolutionInput = components['schemas']['GroupSolutionInputBody'];
+export type GroupSolutionResponse = components['schemas']['GroupSolutionOutputBody'];
 export type GroupGraph = components['schemas']['GroupGraph'];
 export type GraphNode = components['schemas']['GraphNode'];
