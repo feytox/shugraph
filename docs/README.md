@@ -15,7 +15,11 @@
   - [schemes/ring.md](schemes/ring.md) - схема 4: кольцо
   - [schemes/risk.md](schemes/risk.md) - подсчёт риска
   - [schemes/legal.md](schemes/legal.md) - правовые приложения к схемам
-- [cards/device-farm.md](cards/device-farm.md) - тексты карточки расследования для схемы 1
+- [cards/README.md](cards/README.md) - карточки расследования: общий шаблон и тексты по схемам
+  - [cards/device-farm.md](cards/device-farm.md) - схема 1: одно устройство на толпу
+  - [cards/shared-address.md](cards/shared-address.md) - схема 2: один адрес на толпу
+  - [cards/fast-chain.md](cards/fast-chain.md) - схема 3: быстрая цепочка
+  - [cards/ring.md](cards/ring.md) - схема 4: кольцо
 
 RFC:
 
