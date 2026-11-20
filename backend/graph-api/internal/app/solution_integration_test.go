@@ -14,9 +14,10 @@ import (
 )
 
 const (
-	testGroupID  = "00000000-0000-0000-0000-000000000001"
-	groupPath    = "/api/v1/groups/"
-	solutionPath = "/solution"
+	testGroupID         = "00000000-0000-0000-0000-000000000001"
+	solutionPath        = "/solution"
+	testResolvedStatus  = "approved"
+	testDecisionComment = "preset"
 )
 
 type solutionResponse struct {
@@ -47,8 +48,8 @@ func TestGroupSolution_Success(t *testing.T) {
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			clearGroups(t)
-			insertTestGroup(t, testGroupID)
+			clearEventTables(t)
+			insertTestGroup(t)
 
 			before := time.Now().Add(-time.Second)
 
@@ -92,63 +93,80 @@ func TestGroupSolution_Success(t *testing.T) {
 
 func TestGroupSolution_Error(t *testing.T) {
 	tests := map[string]struct {
-		existedGroupID    string
-		groupStatusBefore string
-		requestGroupID    string
-		body              string
+		resolved       bool
+		requestGroupID string
+		body           string
 
 		expectedStatus int
 	}{
 		"group not found": {
-			testGroupID,
-			"new",
-			"00000000-0000-0000-0000-000000000002",
-			`{"decision_comment": "Q", "status": "approved"}`,
-			http.StatusNotFound,
+			resolved:       false,
+			requestGroupID: "00000000-0000-0000-0000-000000000002",
+			body:           `{"decision_comment": "Q", "status": "approved"}`,
+			expectedStatus: http.StatusNotFound,
 		},
 		"group already resolved": {
-			testGroupID,
-			"approved",
-			testGroupID,
-			`{"decision_comment": "Q", "status": "approved"}`,
-			http.StatusConflict,
+			resolved:       true,
+			requestGroupID: testGroupID,
+			body:           `{"decision_comment": "Q", "status": "approved"}`,
+			expectedStatus: http.StatusConflict,
 		},
 		"empty comment": {
-			testGroupID,
-			"new",
-			testGroupID,
-			`{"decision_comment": "", "status": "approved"}`,
-			http.StatusUnprocessableEntity,
+			resolved:       false,
+			requestGroupID: testGroupID,
+			body:           `{"decision_comment": "", "status": "approved"}`,
+			expectedStatus: http.StatusUnprocessableEntity,
 		},
 		"wrong status": {
-			testGroupID,
-			"new",
-			testGroupID,
-			`{"decision_comment": "Q", "status": "approve"}`,
-			http.StatusUnprocessableEntity,
+			resolved:       false,
+			requestGroupID: testGroupID,
+			body:           `{"decision_comment": "Q", "status": "approve"}`,
+			expectedStatus: http.StatusUnprocessableEntity,
 		},
 		"wrong ID": {
-			testGroupID,
-			"new",
-			"group-1",
-			`{"decision_comment": "Q", "status": "approved"}`,
-			http.StatusUnprocessableEntity,
+			resolved:       false,
+			requestGroupID: "group-1",
+			body:           `{"decision_comment": "Q", "status": "approved"}`,
+			expectedStatus: http.StatusUnprocessableEntity,
 		},
 	}
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			clearGroups(t)
-			insertTestGroup(t, tt.existedGroupID)
+			clearEventTables(t)
+			insertTestGroup(t)
 
-			if tt.groupStatusBefore != "new" {
-				updateGroupStatus(t, tt.existedGroupID, tt.groupStatusBefore)
+			if tt.resolved {
+				resolveGroupStatus(t)
 			}
 
 			resp := patchSolution(t, tt.requestGroupID, tt.body)
 			defer func() { _ = resp.Body.Close() }()
 
 			require.Equal(t, tt.expectedStatus, resp.StatusCode)
+
+			var (
+				dbStatus   string
+				dbIsFrozen bool
+				dbComment  *string
+			)
+
+			err := testPool.QueryRow(t.Context(),
+				`SELECT status, is_frozen, decision_comment FROM groups WHERE id = $1`,
+				testGroupID,
+			).Scan(&dbStatus, &dbIsFrozen, &dbComment)
+			require.NoError(t, err)
+
+			if tt.resolved {
+				require.Equal(t, testResolvedStatus, dbStatus)
+				require.True(t, dbIsFrozen)
+				require.NotNil(t, dbComment)
+				require.Equal(t, testDecisionComment, *dbComment)
+			} else {
+				require.Equal(t, "new", dbStatus)
+				require.False(t, dbIsFrozen)
+				require.Nil(t, dbComment)
+			}
 		})
 	}
 }
@@ -156,7 +174,7 @@ func TestGroupSolution_Error(t *testing.T) {
 func patchSolution(t *testing.T, groupID, body string) *http.Response {
 	t.Helper()
 
-	path := serverURL + groupPath + groupID + solutionPath
+	path := serverURL + groupsPath + "/" + groupID + solutionPath
 
 	req, err := http.NewRequestWithContext(t.Context(), http.MethodPatch, path, strings.NewReader(body))
 	require.NoError(t, err)
@@ -169,14 +187,7 @@ func patchSolution(t *testing.T, groupID, body string) *http.Response {
 	return resp
 }
 
-func clearGroups(t *testing.T) {
-	t.Helper()
-
-	_, err := testPool.Exec(t.Context(), `TRUNCATE groups CASCADE`)
-	require.NoError(t, err)
-}
-
-func insertTestGroup(t *testing.T, groupID string) {
+func insertTestGroup(t *testing.T) {
 	t.Helper()
 
 	query := `
@@ -189,7 +200,8 @@ func insertTestGroup(t *testing.T, groupID string) {
 			first_event_at,
 			last_event_at,
 			accounts_count,
-			total_amount
+			total_amount,
+		    risk_level
 		) VALUES (
 			$1,
 			'farm',
@@ -199,18 +211,19 @@ func insertTestGroup(t *testing.T, groupID string) {
 			'2026-11-19 10:00:00+00',
 			'2026-11-19 10:15:00+00',
 			1,
-			1000
+			1000,
+			'medium'
 		)
 	`
-	_, err := testPool.Exec(t.Context(), query, groupID)
+	_, err := testPool.Exec(t.Context(), query, testGroupID)
 	require.NoError(t, err)
 }
 
-func updateGroupStatus(t *testing.T, groupID string, status string) {
+func resolveGroupStatus(t *testing.T) {
 	t.Helper()
 
-	query := `UPDATE groups SET status = $1, decided_at = NOW(), decision_comment = 'preset' WHERE id = $2`
+	query := `UPDATE groups SET status = $1, is_frozen = TRUE, decided_at = NOW(), decision_comment = $2 WHERE id = $3`
 
-	_, err := testPool.Exec(t.Context(), query, status, groupID)
+	_, err := testPool.Exec(t.Context(), query, testResolvedStatus, testDecisionComment, testGroupID)
 	require.NoError(t, err)
 }
