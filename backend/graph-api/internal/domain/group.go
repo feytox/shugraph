@@ -2,6 +2,7 @@ package domain
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
@@ -37,9 +38,18 @@ type GroupStats struct {
 	TotalAmount   int64
 }
 
+type RiskLevel string
+
+const (
+	RiskLevelLow    RiskLevel = "low"
+	RiskLevelMedium RiskLevel = "medium"
+	RiskLevelHigh   RiskLevel = "high"
+)
+
 type Risk struct {
 	Score int
 	Parts json.RawMessage
+	Level RiskLevel
 }
 
 type GroupStatus string
@@ -56,6 +66,7 @@ type Group struct {
 	Status        GroupStatus
 	RiskScore     int
 	RiskParts     json.RawMessage
+	RiskLevel     RiskLevel
 	DetectedAt    time.Time
 	FirstEventAt  time.Time
 	LastEventAt   time.Time
@@ -70,14 +81,29 @@ type Decision struct {
 	DecidedAt time.Time
 }
 
+type Account struct {
+	ID       string
+	ClientID string
+}
+
+var ErrGroupNotFound = errors.New("group not found")
+
 type GroupCursor struct {
 	DetectedAt time.Time
 	ID         uuid.UUID
+}
+
+func (g Group) SpanMinutes() int {
+	return int(g.LastEventAt.Sub(g.FirstEventAt) / time.Minute)
+}
+
+func (g Group) Cursor() GroupCursor {
+	return GroupCursor{DetectedAt: g.DetectedAt, ID: g.ID}
 }
 
 type GroupFilter struct {
 	Status  *GroupStatus
 	Schemes []GroupScheme
 	After   *GroupCursor
-	Limit   int32
+	Limit   int
 }

@@ -33,18 +33,24 @@ up() {
 
   local ip err
   ip=$(vm | jq -r '.network_interfaces[0].primary_v4_address.one_to_one_nat.address')
-  local ssh=(ssh -i "$SSH_KEY" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 "$SSH_USER@$ip")
+  local ssh=(timeout 30 ssh -i "$SSH_KEY" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10
+    -o ServerAliveInterval=5 -o ServerAliveCountMax=2 "$SSH_USER@$ip")
+  local rc
   for _ in $(seq 30); do
-    if err=$("${ssh[@]}" 'sudo k3s kubectl wait --for=condition=Ready node --all --timeout=10s' 2>&1); then
+    rc=0
+    err=$("${ssh[@]}" 'sudo k3s kubectl wait --for=condition=Ready node --all --timeout=10s' 2>&1) || rc=$?
+    if (( rc == 0 )); then
       "${ssh[@]}" 'sudo k3s kubectl get nodes'
       echo "IP: $ip"
       [[ -n ${GITHUB_STEP_SUMMARY:-} ]] && echo "IP ВМ: \`$ip\`" >> "$GITHUB_STEP_SUMMARY"
       [[ -n ${GITHUB_OUTPUT:-} ]] && echo "ip=$ip" >> "$GITHUB_OUTPUT"
       return 0
     fi
+    (( rc == 124 )) && err="ssh не ответил за 30 секунд"
+    echo "$(date -u +%T) k3s на $ip не готов: ${err##*$'\n'}" >&2
     sleep 10
   done
-  echo "k3s не стал Ready за 10 минут, последняя попытка: $err" >&2
+  echo "k3s не стал Ready за 10 минут" >&2
   return 1
 }
 
