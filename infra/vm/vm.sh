@@ -26,7 +26,7 @@ wait_status() {
 
 SSHD_WAIT=120
 SSHD_CHECKS=5
-MAX_REISSUES=3
+MAX_REISSUES=7
 
 start() {
   for _ in $(seq 12); do
