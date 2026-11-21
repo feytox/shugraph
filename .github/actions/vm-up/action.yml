@@ -1,5 +1,5 @@
 name: VM up
-description: Включает ВМ, ждёт k3s и направляет домен площадок на её IP. Ключ SSH кладёт в $RUNNER_TEMP/ssh-key
+description: Включает ВМ, ждёт k3s, направляет домен площадок на её IP и подключает kubectl к кластеру через SSH-туннель
 
 inputs:
   ssh-private-key:
@@ -41,3 +41,20 @@ runs:
         CLOUDFLARE_ZONE_ID: ${{ inputs.cloudflare-zone-id }}
         DOMAIN: ${{ inputs.domain }}
       run: infra/vm/dns.sh "$IP"
+
+    - name: Connect kubectl to cluster
+      shell: bash
+      env:
+        IP: ${{ steps.up.outputs.ip }}
+      run: |
+        ssh_opts=(-i "$RUNNER_TEMP/ssh-key" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10)
+        mkdir -p ~/.kube
+        install -m 600 /dev/null ~/.kube/config
+        ssh "${ssh_opts[@]}" "shugraph@$IP" 'sudo cat /etc/rancher/k3s/k3s.yaml' > ~/.kube/config
+        ssh "${ssh_opts[@]}" -f -N -L 6443:127.0.0.1:6443 "shugraph@$IP"
+        for _ in $(seq 10); do
+          kubectl get --raw /readyz > /dev/null 2>&1 && exit 0
+          sleep 2
+        done
+        echo "API кластера недоступен через туннель" >&2
+        exit 1

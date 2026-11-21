@@ -63,7 +63,7 @@ jobs:
             echo "::error::У ветки $GITHUB_REF_NAME нет открытого PR: открой его (подойдёт draft) и запусти деплой заново"
             exit 1
           fi
-          live=$(infra/deploy/stage-deployments.sh "$pr")
+          live=$(infra/deploy/stage-deployments.sh "$pr" | awk '$2 == "success"')
           {
             echo "pr=$pr"
             echo "namespace=stage-pr-$pr"
@@ -164,7 +164,9 @@ jobs:
       actions: write
       statuses: write
       deployments: write
-    environment: vm
+    environment:
+      name: vm
+      deployment: false
     concurrency:
       group: vm
       queue: max
@@ -221,22 +223,6 @@ jobs:
           cloudflare-zone-id: ${{ vars.CLOUDFLARE_ZONE_ID }}
           domain: ${{ vars.DOMAIN }}
 
-      - name: Connect to cluster
-        env:
-          IP: ${{ steps.up.outputs.ip }}
-        run: |
-          ssh_opts=(-i "$RUNNER_TEMP/ssh-key" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10)
-          ssh "${ssh_opts[@]}" "shugraph@$IP" 'sudo cat /etc/rancher/k3s/k3s.yaml' > "$RUNNER_TEMP/kubeconfig"
-          chmod 600 "$RUNNER_TEMP/kubeconfig"
-          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
-          ssh "${ssh_opts[@]}" -f -N -L 6443:127.0.0.1:6443 "shugraph@$IP"
-          for _ in $(seq 10); do
-            KUBECONFIG="$RUNNER_TEMP/kubeconfig" kubectl get --raw /readyz > /dev/null 2>&1 && exit 0
-            sleep 2
-          done
-          echo "API кластера недоступен через туннель" >&2
-          exit 1
-
       - name: Apply cluster config
         run: kubectl apply -f infra/k3s/
 
@@ -265,7 +251,7 @@ jobs:
           PR: ${{ needs.plan.outputs.pr }}
         run: |
           if [[ $STATE == success && -n $PR ]]; then
-            for old in $(infra/deploy/stage-deployments.sh "$PR"); do
+            for old in $(infra/deploy/stage-deployments.sh "$PR" | awk '$2 == "success" {print $1}'); do
               gh api "repos/{owner}/{repo}/deployments/$old/statuses" -f state=inactive > /dev/null
             done
           fi
