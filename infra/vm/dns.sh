@@ -5,8 +5,13 @@ IP=${1:?usage: $0 <ip>}
 API=https://api.cloudflare.com/client/v4/zones/$CLOUDFLARE_ZONE_ID/dns_records
 
 cf() {
-  curl -sS --fail-with-body --retry 5 --connect-timeout 5 --max-time 30 \
-    -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$@"
+  local resp
+  resp=$(curl -sS --retry 5 --connect-timeout 5 --max-time 30 -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" "$@")
+  if ! jq -e .success <<< "$resp" > /dev/null 2>&1; then
+    echo "Cloudflare API: $resp" >&2
+    return 1
+  fi
+  echo "$resp"
 }
 
 for name in "$DOMAIN" "*.$DOMAIN"; do
