@@ -79,17 +79,6 @@ ssh -i ~/.ssh/shugraph shugraph@<ip> sudo k3s kubectl -n prod logs job/graph-api
 - Secret `postgres` удалять нельзя. Следующий деплой сгенерирует новые пароли, а в базе останутся старые, и бэкенды не смогут подключиться.
 - Если новый бэкенд появился на площадке, где Postgres уже работает, его пользователя и базу нужно создать вручную теми же командами, что в `create_database`, с паролем из Secret.
 
-## Container Registry
+## Реестр образов
 
-Образы хранятся в Yandex Container Registry `shugraph`. Скачивать их можно без авторизации, поэтому кластеру ключи не нужны, а загружает их CI под сервисным аккаунтом `shugraph-ci`.
-
-Если реестр нужно создать заново (нужен `yc` с правами на каталог):
-
-```bash
-yc container registry create --name shugraph
-yc container registry add-access-binding --name shugraph --role container-registry.images.puller --subject system:allUsers
-yc container registry add-access-binding --name shugraph --role container-registry.images.pusher --service-account-name shugraph-ci
-gh variable set YC_REGISTRY_ID --env vm --body "$(yc container registry get --name shugraph --format json | jq -r .id)"
-```
-
-Последняя команда записывает ID нового реестра в переменную `YC_REGISTRY_ID` окружения `vm` на GitHub: из неё workflow берёт адрес реестра.
+Образы лежат в GitHub Container Registry: `ghcr.io/feytox/shugraph/<сервис>`. CI загружает их с `GITHUB_TOKEN`, а кластер скачивает без авторизации, поэтому пакеты должны быть публичными. Новый пакет GitHub создаёт приватным, поэтому после первой сборки нового сервиса его нужно открыть вручную: на странице пакета Package settings -> Change visibility -> Public. Пока пакет приватный, деплой падает на скачивании образа.
