@@ -81,4 +81,4 @@ ssh -i ~/.ssh/shugraph shugraph@<ip> sudo k3s kubectl -n prod logs job/graph-api
 
 ## Реестр образов
 
-Образы лежат в GitHub Container Registry: `ghcr.io/feytox/shugraph/<сервис>`. CI загружает их с `GITHUB_TOKEN`, а кластер скачивает без авторизации, поэтому пакеты должны быть публичными. Новый пакет GitHub создаёт приватным, поэтому после первой сборки нового сервиса его нужно открыть вручную: на странице пакета Package settings -> Change visibility -> Public. Пока пакет приватный, деплой падает на скачивании образа.
+Образы лежат в GitHub Container Registry: `ghcr.io/feytox/shugraph/<сервис>`. CI загружает их с `GITHUB_TOKEN`, а кластер скачивает без авторизации, поэтому пакеты должны быть публичными. Пакеты сервисов публичные. Если пакет нового сервиса окажется приватным, деплой упадёт на скачивании образа: тогда открыть пакет на его странице, Package settings -> Change visibility -> Public.
