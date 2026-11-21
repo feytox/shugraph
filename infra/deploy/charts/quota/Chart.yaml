@@ -1,0 +1,5 @@
+apiVersion: v2
+name: quota
+description: ResourceQuota for a stage namespace
+type: application
+version: 0.1.0

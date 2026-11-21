@@ -18,6 +18,9 @@ spec:
         {{- include "app.labels" . | nindent 8 }}
         app.kubernetes.io/component: migrate
     spec:
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
       restartPolicy: Never
       containers:
         - name: migrate
