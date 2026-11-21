@@ -69,7 +69,7 @@ wait_k3s() {
       "${ssh[@]}" 'sudo k3s kubectl get nodes'
       return 0
     fi
-    (( rc == 124 )) && err="ssh не ответил за 30 секунд"
+    (( rc == 124 )) && err="команда на ВМ не завершилась за 30 секунд"
     echo "$(date -u +%T) k3s на $ip не готов: ${err##*$'\n'}" >&2
     sleep 10
   done
