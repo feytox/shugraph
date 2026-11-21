@@ -29,6 +29,7 @@ jobs:
       - uses: ./.github/actions/setup-yc # zizmor: ignore[self-repository]
         with:
           sa-key: ${{ secrets.YC_SA_KEY }}
+          folder-id: ${{ vars.YC_FOLDER_ID }}
 
       - uses: ./.github/actions/vm-up # zizmor: ignore[self-repository]
         with:
