@@ -212,13 +212,14 @@ jobs:
       - name: Summary
         env:
           DOMAIN: ${{ vars.DOMAIN }}
+          IP: ${{ steps.up.outputs.ip }}
           ENVIRONMENT: ${{ inputs.environment }}
           SERVICES: ${{ needs.plan.outputs.services }}
         run: |
           {
             echo "Задеплоено на \`$ENVIRONMENT\`: $(jq -r 'map(.name) | join(", ")' <<< "$SERVICES"), коммит \`$GITHUB_SHA\`"
             echo
-            echo "Адрес: http://$DOMAIN/"
+            echo "Адрес: http://$DOMAIN/, IP ВМ: \`$IP\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Schedule autodown
