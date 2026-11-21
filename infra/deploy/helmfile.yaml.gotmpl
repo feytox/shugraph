@@ -1,7 +1,7 @@
 environments:
   prod:
     values:
-      - environments/prod.yaml
+      - environments/prod.yaml.gotmpl
 ---
 helmDefaults:
   wait: true
@@ -26,6 +26,7 @@ releases:
           enabled: true
         route:
           pathPrefix: /api
+          hostnames: [{{ .Values.host }}]
         secretEnv:
           DB_PASSWORD: {secret: postgres, key: GRAPH_API_DB_PASSWORD}
         env:
@@ -48,6 +49,7 @@ releases:
           enabled: true
         route:
           pathPrefix: /admin-api
+          hostnames: [{{ .Values.host }}]
         secretEnv:
           DB_PASSWORD: {secret: postgres, key: GRAPH_ADMIN_API_DB_PASSWORD}
         env:
@@ -76,3 +78,4 @@ releases:
             memory: 64Mi
         route:
           pathPrefix: /
+          hostnames: [{{ .Values.host }}]

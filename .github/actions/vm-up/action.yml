@@ -1,0 +1,41 @@
+name: VM up
+description: Включает ВМ, ждёт k3s и направляет домен площадок на её IP. Ключ SSH кладёт в $RUNNER_TEMP/ssh-key
+
+inputs:
+  ssh-private-key:
+    description: SSH-ключ пользователя shugraph
+    required: true
+  cloudflare-api-token:
+    description: Токен Cloudflare с правом DNS Edit на зону домена
+    required: true
+  cloudflare-zone-id:
+    description: ID зоны домена в Cloudflare
+    required: true
+  domain:
+    description: Домен prod, stage-площадки живут на его поддоменах
+    required: true
+
+outputs:
+  ip:
+    description: Публичный IP ВМ
+    value: ${{ steps.up.outputs.ip }}
+
+runs:
+  using: composite
+  steps:
+    - id: up
+      shell: bash
+      env:
+        SSH_PRIVATE_KEY: ${{ inputs.ssh-private-key }}
+      run: |
+        install -m 600 /dev/null "$RUNNER_TEMP/ssh-key"
+        printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/ssh-key"
+        SSH_KEY="$RUNNER_TEMP/ssh-key" infra/vm/vm.sh up
+
+    - shell: bash
+      env:
+        IP: ${{ steps.up.outputs.ip }}
+        CLOUDFLARE_API_TOKEN: ${{ inputs.cloudflare-api-token }}
+        CLOUDFLARE_ZONE_ID: ${{ inputs.cloudflare-zone-id }}
+        DOMAIN: ${{ inputs.domain }}
+      run: infra/vm/dns.sh "$IP"

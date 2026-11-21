@@ -161,14 +161,13 @@ jobs:
           helm version
           helmfile version
 
-      - name: Up
-        id: up
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          install -m 600 /dev/null "$RUNNER_TEMP/ssh-key"
-          printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/ssh-key"
-          SSH_KEY="$RUNNER_TEMP/ssh-key" infra/vm/vm.sh up
+      - id: up
+        uses: ./.github/actions/vm-up # zizmor: ignore[self-repository]
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          cloudflare-zone-id: ${{ vars.CLOUDFLARE_ZONE_ID }}
+          domain: ${{ vars.DOMAIN }}
 
       - name: Connect to cluster
         env:
@@ -194,6 +193,7 @@ jobs:
         env:
           IMAGE_REGISTRY: ${{ env.REGISTRY }}
           IMAGE_TAG: ${{ github.sha }}
+          DOMAIN: ${{ vars.DOMAIN }}
           ENVIRONMENT: ${{ inputs.environment }}
           SELECTORS: ${{ needs.plan.outputs.selectors }}
         run: |
@@ -211,14 +211,14 @@ jobs:
 
       - name: Summary
         env:
-          IP: ${{ steps.up.outputs.ip }}
+          DOMAIN: ${{ vars.DOMAIN }}
           ENVIRONMENT: ${{ inputs.environment }}
           SERVICES: ${{ needs.plan.outputs.services }}
         run: |
           {
             echo "Задеплоено на \`$ENVIRONMENT\`: $(jq -r 'map(.name) | join(", ")' <<< "$SERVICES"), коммит \`$GITHUB_SHA\`"
             echo
-            echo "Адрес: http://$IP/"
+            echo "Адрес: http://$DOMAIN/"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Schedule autodown

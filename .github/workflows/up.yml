@@ -30,13 +30,12 @@ jobs:
         with:
           sa-key: ${{ secrets.YC_SA_KEY }}
 
-      - name: Up
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          install -m 600 /dev/null "$RUNNER_TEMP/ssh-key"
-          printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/ssh-key"
-          SSH_KEY="$RUNNER_TEMP/ssh-key" infra/vm/vm.sh up
+      - uses: ./.github/actions/vm-up # zizmor: ignore[self-repository]
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          cloudflare-zone-id: ${{ vars.CLOUDFLARE_ZONE_ID }}
+          domain: ${{ vars.DOMAIN }}
 
       - name: Schedule autodown
         if: always()
