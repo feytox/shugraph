@@ -1,0 +1,103 @@
+name: stage-delete
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      pr:
+        description: Номер PR
+        type: number
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  find:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      deployments: read
+    outputs:
+      deployments: ${{ steps.find.outputs.deployments }}
+    env:
+      PR: ${{ inputs.pr || github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: find
+        name: Find stage deployments of PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DEPENDABOT: ${{ github.event_name == 'pull_request' && github.actor == 'dependabot[bot]' }}
+        run: |
+          ids=$(infra/deploy/stage-deployments.sh "$PR" | awk '{print $1}' | xargs)
+          if [[ -z $ids ]]; then
+            echo "У PR #$PR нет stage-площадки"
+            exit 0
+          fi
+          if [[ $DEPENDABOT == true ]]; then
+            echo "::warning::PR #$PR закрыл Dependabot, а его запускам секреты недоступны. Удали площадку вручную: gh workflow run stage-delete.yml -f pr=$PR"
+            exit 0
+          fi
+          echo "deployments=$ids" >> "$GITHUB_OUTPUT"
+
+  delete:
+    needs: find
+    if: needs.find.outputs.deployments
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    permissions:
+      contents: read
+      actions: write
+      deployments: write
+    environment:
+      name: vm
+      deployment: false
+    concurrency:
+      group: vm
+      queue: max
+    env:
+      VM_ID: ${{ vars.VM_ID }}
+      PR: ${{ inputs.pr || github.event.pull_request.number }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: ./.github/actions/setup-yc # zizmor: ignore[self-repository]
+        with:
+          sa-key: ${{ secrets.YC_SA_KEY }}
+          folder-id: ${{ vars.YC_FOLDER_ID }}
+
+      - uses: ./.github/actions/vm-up # zizmor: ignore[self-repository]
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          cloudflare-zone-id: ${{ vars.CLOUDFLARE_ZONE_ID }}
+          domain: ${{ vars.DOMAIN }}
+
+      - name: Delete namespace
+        run: kubectl delete namespace "stage-pr-$PR" --ignore-not-found --timeout=5m
+
+      - name: Mark deployments inactive
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IDS: ${{ needs.find.outputs.deployments }}
+        run: |
+          for id in $IDS; do
+            gh api "repos/$GITHUB_REPOSITORY/deployments/$id/statuses" -f state=inactive > /dev/null
+          done
+          echo "Площадка PR #$PR удалена" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Schedule autodown
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MAIN: ${{ github.event.repository.default_branch }}
+        run: gh workflow run autodown.yml -R "$GITHUB_REPOSITORY" --ref "$MAIN"

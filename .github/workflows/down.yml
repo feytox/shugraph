@@ -47,6 +47,7 @@ jobs:
         if: steps.stale.outputs.skip != 'true'
         with:
           sa-key: ${{ secrets.YC_SA_KEY }}
+          folder-id: ${{ vars.YC_FOLDER_ID }}
 
       - name: Down
         if: steps.stale.outputs.skip != 'true'

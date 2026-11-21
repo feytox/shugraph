@@ -6,7 +6,7 @@ on:
       environment:
         description: Площадка
         type: choice
-        options: [prod]
+        options: [prod, stage]
         default: prod
       graph-api:
         type: boolean
@@ -22,9 +22,10 @@ permissions:
   contents: read
 
 env:
-  REGISTRY: cr.yandex/${{ vars.YC_REGISTRY_ID }}
+  REGISTRY: ghcr.io/${{ github.repository }}
   HELM_VERSION: v4.3.1
   HELMFILE_VERSION: 1.8.3
+  MAX_STAGES: 4
 
 jobs:
   plan:
@@ -33,22 +34,64 @@ jobs:
     permissions:
       contents: read
       checks: read
+      pull-requests: read
+      deployments: read
     outputs:
       services: ${{ steps.plan.outputs.services }}
       selectors: ${{ steps.plan.outputs.selectors }}
       all-services: ${{ steps.plan.outputs.all-services }}
       checked: ${{ steps.checked.outputs.checked }}
+      pr: ${{ steps.target.outputs.pr }}
+      namespace: ${{ steps.target.outputs.namespace }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: target
+        name: Find target namespace
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          if [[ $ENVIRONMENT == prod ]]; then
+            echo "namespace=prod" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          pr=$(gh pr list --head "$GITHUB_REF_NAME" --state open --json number --jq '.[0].number // empty')
+          if [[ -z $pr ]]; then
+            echo "::error::У ветки $GITHUB_REF_NAME нет открытого PR: открой его (подойдёт draft) и запусти деплой заново"
+            exit 1
+          fi
+          live=$(infra/deploy/stage-deployments.sh "$pr" | awk '$2 == "success"')
+          if [[ -z $live ]]; then
+            stages=$(infra/deploy/stage-deployments.sh | awk '$2 == "success" {print $3}' | sort -un)
+            if (( $(wc -w <<< "$stages") >= MAX_STAGES )); then
+              echo "::error::Уже есть $MAX_STAGES stage-площадки, новую не создать. Удали ненужную: gh workflow run stage-delete.yml -f pr=<номер>"
+              for n in $stages; do
+                echo "PR #$n: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/$n" | tee -a "$GITHUB_STEP_SUMMARY"
+              done
+              exit 1
+            fi
+          fi
+          {
+            echo "pr=$pr"
+            echo "namespace=stage-pr-$pr"
+            echo "new=$([[ -z $live ]] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
+
       - id: plan
         env:
           INPUTS: ${{ toJson(inputs) }}
+          NEW: ${{ steps.target.outputs.new == 'true' }}
         run: |
           all=$(jq -nc '[
             {name: "graph-api", context: "backend/graph-api", dockerfile: "backend/graph-api/Dockerfile"},
             {name: "graph-admin-api", context: "backend/graph-admin-api", dockerfile: "backend/graph-admin-api/Dockerfile"},
             {name: "graph-frontapp", context: "frontend", dockerfile: "frontend/graph-frontapp/Dockerfile"}
           ]')
-          services=$(jq -c --argjson in "$INPUTS" 'map(select($in[.name] == true))' <<< "$all")
+          services=$(jq -c --argjson in "$INPUTS" --argjson new "$NEW" 'map(select($new or $in[.name] == true))' <<< "$all")
           if [[ $services == "[]" ]]; then
             echo "Не выбран ни один сервис" >&2
             exit 1
@@ -93,9 +136,9 @@ jobs:
     if: ${{ !failure() && !cancelled() }}
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    environment:
-      name: vm
-      deployment: false
+    permissions:
+      contents: read
+      packages: write
     strategy:
       matrix:
         service: ${{ fromJson(needs.plan.outputs.services) }}
@@ -108,9 +151,9 @@ jobs:
 
       - uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
-          registry: cr.yandex
-          username: json_key
-          password: ${{ secrets.YC_SA_KEY }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
 
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
@@ -118,8 +161,8 @@ jobs:
           file: ${{ matrix.service.dockerfile }}
           build-args: VERSION=${{ github.sha }}
           tags: ${{ env.REGISTRY }}/${{ matrix.service.name }}:${{ github.sha }}
+          labels: org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
           push: true
-          provenance: false
           cache-from: type=gha,scope=${{ matrix.service.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.service.name }}
 
@@ -131,21 +174,48 @@ jobs:
       contents: read
       actions: write
       statuses: write
-    environment: vm
+      deployments: write
+    environment:
+      name: vm
+      deployment: false
     concurrency:
       group: vm
       queue: max
-    timeout-minutes: 15
+    timeout-minutes: 35
     env:
       VM_ID: ${{ vars.VM_ID }}
+      NAMESPACE: ${{ needs.plan.outputs.namespace }}
+      HOST: ${{ inputs.environment == 'stage' && format('pr-{0}.{1}', needs.plan.outputs.pr, vars.DOMAIN) || vars.DOMAIN }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
+      - id: deployment
+        name: Start deployment record
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          PR: ${{ needs.plan.outputs.pr }}
+        run: |
+          id=$(jq -n --arg sha "$GITHUB_SHA" --arg env "$ENVIRONMENT" --arg pr "$PR" '{
+              ref: $sha,
+              environment: $env,
+              auto_merge: false,
+              required_contexts: [],
+              transient_environment: ($env == "stage"),
+              production_environment: ($env == "prod"),
+              payload: (if $pr == "" then {} else {pr: ($pr | tonumber)} end)
+            }' | gh api "repos/{owner}/{repo}/deployments" --input - --jq .id)
+          gh api "repos/{owner}/{repo}/deployments/$id/statuses" -f state=in_progress -f log_url="$RUN_URL" > /dev/null
+          echo "id=$id" >> "$GITHUB_OUTPUT"
+
       - uses: ./.github/actions/setup-yc # zizmor: ignore[self-repository]
         with:
           sa-key: ${{ secrets.YC_SA_KEY }}
+          folder-id: ${{ vars.YC_FOLDER_ID }}
 
       - *check-up-to-date
 
@@ -156,30 +226,13 @@ jobs:
           helm version
           helmfile version
 
-      - name: Up
-        id: up
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        run: |
-          install -m 600 /dev/null "$RUNNER_TEMP/ssh-key"
-          printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/ssh-key"
-          SSH_KEY="$RUNNER_TEMP/ssh-key" infra/vm/vm.sh up
-
-      - name: Connect to cluster
-        env:
-          IP: ${{ steps.up.outputs.ip }}
-        run: |
-          ssh_opts=(-i "$RUNNER_TEMP/ssh-key" -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10)
-          ssh "${ssh_opts[@]}" "shugraph@$IP" 'sudo cat /etc/rancher/k3s/k3s.yaml' > "$RUNNER_TEMP/kubeconfig"
-          chmod 600 "$RUNNER_TEMP/kubeconfig"
-          echo "KUBECONFIG=$RUNNER_TEMP/kubeconfig" >> "$GITHUB_ENV"
-          ssh "${ssh_opts[@]}" -f -N -L 6443:127.0.0.1:6443 "shugraph@$IP"
-          for _ in $(seq 10); do
-            KUBECONFIG="$RUNNER_TEMP/kubeconfig" kubectl get --raw /readyz > /dev/null 2>&1 && exit 0
-            sleep 2
-          done
-          echo "API кластера недоступен через туннель" >&2
-          exit 1
+      - id: up
+        uses: ./.github/actions/vm-up # zizmor: ignore[self-repository]
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          cloudflare-api-token: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          cloudflare-zone-id: ${{ vars.CLOUDFLARE_ZONE_ID }}
+          domain: ${{ vars.DOMAIN }}
 
       - name: Apply cluster config
         run: kubectl apply -f infra/k3s/
@@ -193,16 +246,28 @@ jobs:
           SELECTORS: ${{ needs.plan.outputs.selectors }}
         run: |
           read -ra selectors <<< "$SELECTORS"
-          helmfile -e "$ENVIRONMENT" -l name=postgres "${selectors[@]}" sync
+          helmfile -e "$ENVIRONMENT" -l name=quota -l name=postgres "${selectors[@]}" sync
 
       - name: Mark commit as deployed to prod
         if: inputs.environment == 'prod' && needs.plan.outputs.all-services == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f context=deploy/prod -f state=success \
             -f target_url="$RUN_URL" -f description="Задеплоено на prod" > /dev/null
+
+      - name: Finish deployment record
+        if: always() && steps.deployment.outputs.id
+        env:
+          ID: ${{ steps.deployment.outputs.id }}
+          STATE: ${{ job.status == 'success' && 'success' || 'failure' }}
+          PR: ${{ needs.plan.outputs.pr }}
+        run: |
+          if [[ $STATE == success && -n $PR ]]; then
+            for old in $(infra/deploy/stage-deployments.sh "$PR" | awk '$2 == "success" {print $1}'); do
+              gh api "repos/{owner}/{repo}/deployments/$old/statuses" -f state=inactive > /dev/null
+            done
+          fi
+          gh api "repos/{owner}/{repo}/deployments/$ID/statuses" -f state="$STATE" -f log_url="$RUN_URL" \
+            -f environment_url="http://$HOST/" > /dev/null
 
       - name: Summary
         env:
@@ -213,11 +278,9 @@ jobs:
           {
             echo "Задеплоено на \`$ENVIRONMENT\`: $(jq -r 'map(.name) | join(", ")' <<< "$SERVICES"), коммит \`$GITHUB_SHA\`"
             echo
-            echo "Адрес: http://$IP/"
+            echo "Адрес: http://$HOST/, IP ВМ: \`$IP\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Schedule autodown
         if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: gh workflow run autodown.yml -R "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"
