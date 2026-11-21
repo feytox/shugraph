@@ -6,7 +6,7 @@ on:
       environment:
         description: Площадка
         type: choice
-        options: [prod]
+        options: [prod, stage]
         default: prod
       graph-api:
         type: boolean
@@ -33,22 +33,54 @@ jobs:
     permissions:
       contents: read
       checks: read
+      pull-requests: read
+      deployments: read
     outputs:
       services: ${{ steps.plan.outputs.services }}
       selectors: ${{ steps.plan.outputs.selectors }}
       all-services: ${{ steps.plan.outputs.all-services }}
       checked: ${{ steps.checked.outputs.checked }}
+      pr: ${{ steps.target.outputs.pr }}
+      namespace: ${{ steps.target.outputs.namespace }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - id: target
+        name: Find target namespace
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ENVIRONMENT: ${{ inputs.environment }}
+        run: |
+          if [[ $ENVIRONMENT == prod ]]; then
+            echo "namespace=prod" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          pr=$(gh pr list --head "$GITHUB_REF_NAME" --state open --json number --jq '.[0].number // empty')
+          if [[ -z $pr ]]; then
+            echo "::error::У ветки $GITHUB_REF_NAME нет открытого PR: открой его (подойдёт draft) и запусти деплой заново"
+            exit 1
+          fi
+          live=$(infra/deploy/stage-deployments.sh "$pr")
+          {
+            echo "pr=$pr"
+            echo "namespace=stage-pr-$pr"
+            echo "new=$([[ -z $live ]] && echo true || echo false)"
+          } >> "$GITHUB_OUTPUT"
+
       - id: plan
         env:
           INPUTS: ${{ toJson(inputs) }}
+          NEW: ${{ steps.target.outputs.new == 'true' }}
         run: |
           all=$(jq -nc '[
             {name: "graph-api", context: "backend/graph-api", dockerfile: "backend/graph-api/Dockerfile"},
             {name: "graph-admin-api", context: "backend/graph-admin-api", dockerfile: "backend/graph-admin-api/Dockerfile"},
             {name: "graph-frontapp", context: "frontend", dockerfile: "frontend/graph-frontapp/Dockerfile"}
           ]')
-          services=$(jq -c --argjson in "$INPUTS" 'map(select($in[.name] == true))' <<< "$all")
+          services=$(jq -c --argjson in "$INPUTS" --argjson new "$NEW" 'map(select($new or $in[.name] == true))' <<< "$all")
           if [[ $services == "[]" ]]; then
             echo "Не выбран ни один сервис" >&2
             exit 1
@@ -131,6 +163,7 @@ jobs:
       contents: read
       actions: write
       statuses: write
+      deployments: write
     environment: vm
     concurrency:
       group: vm
@@ -138,10 +171,33 @@ jobs:
     timeout-minutes: 35
     env:
       VM_ID: ${{ vars.VM_ID }}
+      NAMESPACE: ${{ needs.plan.outputs.namespace }}
+      HOST: ${{ inputs.environment == 'stage' && format('pr-{0}.{1}', needs.plan.outputs.pr, vars.DOMAIN) || vars.DOMAIN }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - id: deployment
+        name: Start deployment record
+        env:
+          ENVIRONMENT: ${{ inputs.environment }}
+          PR: ${{ needs.plan.outputs.pr }}
+        run: |
+          id=$(jq -n --arg sha "$GITHUB_SHA" --arg env "$ENVIRONMENT" --arg pr "$PR" '{
+              ref: $sha,
+              environment: $env,
+              auto_merge: false,
+              required_contexts: [],
+              transient_environment: ($env == "stage"),
+              production_environment: ($env == "prod"),
+              payload: (if $pr == "" then {} else {pr: ($pr | tonumber)} end)
+            }' | gh api "repos/{owner}/{repo}/deployments" --input - --jq .id)
+          gh api "repos/{owner}/{repo}/deployments/$id/statuses" -f state=in_progress -f log_url="$RUN_URL" > /dev/null
+          echo "id=$id" >> "$GITHUB_OUTPUT"
 
       - uses: ./.github/actions/setup-yc # zizmor: ignore[self-repository]
         with:
@@ -189,7 +245,6 @@ jobs:
         env:
           IMAGE_REGISTRY: ${{ env.REGISTRY }}
           IMAGE_TAG: ${{ github.sha }}
-          DOMAIN: ${{ vars.DOMAIN }}
           ENVIRONMENT: ${{ inputs.environment }}
           SELECTORS: ${{ needs.plan.outputs.selectors }}
         run: |
@@ -198,16 +253,27 @@ jobs:
 
       - name: Mark commit as deployed to prod
         if: inputs.environment == 'prod' && needs.plan.outputs.all-services == 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           gh api "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f context=deploy/prod -f state=success \
             -f target_url="$RUN_URL" -f description="Задеплоено на prod" > /dev/null
 
+      - name: Finish deployment record
+        if: always() && steps.deployment.outputs.id
+        env:
+          ID: ${{ steps.deployment.outputs.id }}
+          STATE: ${{ job.status == 'success' && 'success' || 'failure' }}
+          PR: ${{ needs.plan.outputs.pr }}
+        run: |
+          if [[ $STATE == success && -n $PR ]]; then
+            for old in $(infra/deploy/stage-deployments.sh "$PR"); do
+              gh api "repos/{owner}/{repo}/deployments/$old/statuses" -f state=inactive > /dev/null
+            done
+          fi
+          gh api "repos/{owner}/{repo}/deployments/$ID/statuses" -f state="$STATE" -f log_url="$RUN_URL" \
+            -f environment_url="http://$HOST/" > /dev/null
+
       - name: Summary
         env:
-          DOMAIN: ${{ vars.DOMAIN }}
           IP: ${{ steps.up.outputs.ip }}
           ENVIRONMENT: ${{ inputs.environment }}
           SERVICES: ${{ needs.plan.outputs.services }}
@@ -215,11 +281,9 @@ jobs:
           {
             echo "Задеплоено на \`$ENVIRONMENT\`: $(jq -r 'map(.name) | join(", ")' <<< "$SERVICES"), коммит \`$GITHUB_SHA\`"
             echo
-            echo "Адрес: http://$DOMAIN/, IP ВМ: \`$IP\`"
+            echo "Адрес: http://$HOST/, IP ВМ: \`$IP\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Schedule autodown
         if: always()
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: gh workflow run autodown.yml -R "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"

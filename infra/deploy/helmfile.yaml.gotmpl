@@ -1,7 +1,9 @@
 environments:
-  prod:
+  prod: &environment
     values:
-      - environments/prod.yaml.gotmpl
+      - namespace: {{ requiredEnv "NAMESPACE" }}
+        host: {{ requiredEnv "HOST" }}
+  stage: *environment
 ---
 helmDefaults:
   wait: true
