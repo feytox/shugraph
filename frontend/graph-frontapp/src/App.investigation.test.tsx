@@ -333,7 +333,7 @@ it('сбрасывает черновик при переходе и восст�
   expect(approve()).toBeEnabled();
 });
 
-it('после опроса обновляет оборот и статус карточки при прежнем времени последнего события', async () => {
+it('после опроса обновляет риск, оборот и статус при прежнем времени последнего события', async () => {
   startDemoClock();
   const demo = createGroupsDemo();
   const group = demo.getGroup(farm.item.id);
@@ -354,6 +354,11 @@ it('после опроса обновляет оборот и статус ка
   renderScreen(`/?group=${farm.item.id}`);
   await waitForScreen(() => expect(approve()).toBeDisabled());
   fireEvent.change(comment(), { target: { value: decisionComment } });
+
+  item = { ...item, risk_score: 76 };
+  await advance(3000);
+  await waitForScreen(() => expect(card().getByText('Риск: высокий (76/100)')).toBeVisible());
+
   item = { ...item, features: { ...item.features, total_amount: 17000000 } };
   await advance(3000);
   await waitForScreen(() => expect(card().getByText(/оборот: 170 000/)).toBeVisible());

@@ -12,7 +12,15 @@ export function useGroupDetails(summary: GroupItem) {
   const detailKey = groupDetailKey(groupId);
 
   return useQuery({
-    queryKey: [...detailKey, summary],
+    queryKey: [
+      ...detailKey,
+      summary.last_event_at,
+      summary.status,
+      summary.risk_score,
+      summary.risk_level,
+      summary.features,
+      summary.risk_parts,
+    ],
     initialData: () =>
       queryClient
         .getQueriesData<Group>({ queryKey: detailKey })

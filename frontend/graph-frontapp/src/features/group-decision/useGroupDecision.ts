@@ -3,6 +3,7 @@ import {
   useMutationState,
   useQueryClient,
   type InfiniteData,
+  type MutationState,
 } from '@tanstack/react-query';
 import {
   apiClient,
@@ -23,25 +24,13 @@ export function useGroupDecision(groupId: string) {
   const groupDecision = { mutationKey, exact: true };
   const detail = { queryKey: groupDetailKey(groupId) };
   const list = { queryKey: groupsListKey, exact: true };
-  const latest = useMutationState({ filters: groupDecision, select: ({ state }) => state }).at(-1);
+  const latest = useMutationState<MutationState<unknown, Error, GroupSolutionInput>>({
+    filters: groupDecision,
+    select: ({ state }) => state,
+  }).at(-1);
   const pending = latest?.status === 'pending';
 
-  const pendingNextPage = () => {
-    const query = queryClient.getQueryCache().find(list);
-    if (
-      query &&
-      query.state.fetchStatus !== 'idle' &&
-      query.state.fetchMeta?.fetchMore?.direction === 'forward'
-    ) {
-      return query.promise;
-    }
-  };
-
-  const refreshList = (canRefetch = true) =>
-    queryClient.invalidateQueries(
-      { ...list, refetchType: canRefetch ? 'active' : 'none' },
-      { cancelRefetch: false }
-    );
+  const refreshList = () => queryClient.invalidateQueries(list, { cancelRefetch: false });
 
   const mutation = useMutation({
     mutationKey,
@@ -62,56 +51,38 @@ export function useGroupDecision(groupId: string) {
       return data;
     },
     onSuccess: async (solution) => {
-      const nextPage = pendingNextPage();
-      await Promise.all([
-        queryClient.cancelQueries(detail),
-        nextPage ? undefined : queryClient.cancelQueries(list),
-      ]);
+      await queryClient.cancelQueries(detail);
       queryClient.setQueriesData<Group>(detail, (group) =>
         group ? { ...group, ...solution, is_frozen: true } : group
       );
-      const updateListStatus = () =>
-        queryClient.setQueryData<InfiniteData<GroupListResponse>>(
-          list.queryKey,
-          (groups) =>
-            groups && {
-              ...groups,
-              pages: groups.pages.map((page) => ({
-                ...page,
-                items: page.items.map((item) =>
-                  item.id === groupId ? { ...item, status: solution.status } : item
-                ),
-              })),
-            }
-        );
-      updateListStatus();
-
-      const refreshDetails = queryClient.invalidateQueries(detail);
-      const pageLoaded = await nextPage?.then(
-        () => true,
-        () => false
+      queryClient.setQueryData<InfiniteData<GroupListResponse>>(
+        list.queryKey,
+        (groups) =>
+          groups && {
+            ...groups,
+            pages: groups.pages.map((page) => ({
+              ...page,
+              items: page.items.map((item) =>
+                item.id === groupId ? { ...item, status: solution.status } : item
+              ),
+            })),
+          }
       );
-      // The next page response can include the earlier snapshot of already loaded pages.
-      if (pageLoaded) updateListStatus();
-      await Promise.all([refreshDetails, refreshList(pageLoaded !== false)]);
+      await Promise.all([queryClient.invalidateQueries(detail), refreshList()]);
     },
     onError: async (error) => {
       if (!(error instanceof DecisionConflict)) return;
-      const refreshDetails = queryClient.invalidateQueries(detail);
-      await pendingNextPage()?.catch(() => undefined);
-      await Promise.all([refreshDetails, refreshList()]);
+      const listWasFetching = queryClient.isFetching(list) > 0;
+      const refreshListAfterConflict = async () => {
+        await refreshList();
+        if (listWasFetching) await refreshList();
+      };
+      await Promise.all([queryClient.invalidateQueries(detail), refreshListAfterConflict()]);
     },
   });
 
-  const submitted = latest?.variables;
   const submittedComment =
-    (pending || latest?.status === 'error') &&
-    submitted &&
-    typeof submitted === 'object' &&
-    'decision_comment' in submitted &&
-    typeof submitted.decision_comment === 'string'
-      ? submitted.decision_comment
-      : undefined;
+    pending || latest?.status === 'error' ? latest?.variables?.decision_comment : undefined;
 
   return {
     save(input: GroupSolutionInput) {

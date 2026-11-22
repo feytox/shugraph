@@ -1,7 +1,8 @@
 .screen {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(min(320px, 100vw), 1fr) auto;
   height: 100dvh;
+  overflow-x: auto;
 }
 
 .graph {
