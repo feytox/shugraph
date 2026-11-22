@@ -1,0 +1,164 @@
+{
+  "name": "shared_address",
+  "description": "Один адрес на толпу: четыре клиента с разных устройств заходят с одного сетевого адреса и выводят деньги на общий счёт; вокруг идёт обычный поток событий. Первые входы уложились в 10 минут (кучность +10), устройств три — Вова заходит с телефона Веры. Span считается от первого входа в 18:00 до последнего перевода сборщику в 18:40.",
+  "events": [
+    {
+      "event_id": "evt-sa-with-noise-0001",
+      "type": "login",
+      "occurred_at": "2026-11-19T17:30:00Z",
+      "account_id": "acc-igor",
+      "client_id": "cli-igor",
+      "device_id": "dev-igor",
+      "address_id": "203.0.113.61"
+    },
+    {
+      "event_id": "evt-sa-with-noise-0002",
+      "type": "transfer",
+      "occurred_at": "2026-11-19T17:45:00Z",
+      "from_account_id": "acc-igor",
+      "from_client_id": "cli-igor",
+      "to_account_id": "acc-noise-sa-1",
+      "to_client_id": "cli-noise-sa-1",
+      "amount": 250000
+    },
+    {
+      "event_id": "evt-sa-with-0001",
+      "type": "login",
+      "occurred_at": "2026-11-19T18:00:00Z",
+      "account_id": "acc-anna",
+      "client_id": "cli-anna",
+      "device_id": "dev-anna",
+      "address_id": "198.51.100.61"
+    },
+    {
+      "event_id": "evt-sa-with-0002",
+      "type": "login",
+      "occurred_at": "2026-11-19T18:04:00Z",
+      "account_id": "acc-boris",
+      "client_id": "cli-boris",
+      "device_id": "dev-boris",
+      "address_id": "198.51.100.61"
+    },
+    {
+      "event_id": "evt-sa-with-0003",
+      "type": "login",
+      "occurred_at": "2026-11-19T18:07:00Z",
+      "account_id": "acc-vera",
+      "client_id": "cli-vera",
+      "device_id": "dev-vera",
+      "address_id": "198.51.100.61"
+    },
+    {
+      "event_id": "evt-sa-with-0004",
+      "type": "login",
+      "occurred_at": "2026-11-19T18:10:00Z",
+      "account_id": "acc-vova",
+      "client_id": "cli-vova",
+      "device_id": "dev-vera",
+      "address_id": "198.51.100.61"
+    },
+    {
+      "event_id": "evt-sa-with-noise-0003",
+      "type": "login",
+      "occurred_at": "2026-11-19T18:18:00Z",
+      "account_id": "acc-olga",
+      "client_id": "cli-olga",
+      "device_id": "dev-olga",
+      "address_id": "203.0.113.62"
+    },
+    {
+      "event_id": "evt-sa-with-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-19T18:25:00Z",
+      "from_account_id": "acc-anna",
+      "from_client_id": "cli-anna",
+      "to_account_id": "acc-collector",
+      "to_client_id": "cli-organizer",
+      "amount": 5200000
+    },
+    {
+      "event_id": "evt-sa-with-0006",
+      "type": "transfer",
+      "occurred_at": "2026-11-19T18:30:00Z",
+      "from_account_id": "acc-boris",
+      "from_client_id": "cli-boris",
+      "to_account_id": "acc-collector",
+      "to_client_id": "cli-organizer",
+      "amount": 4300000
+    },
+    {
+      "event_id": "evt-sa-with-0007",
+      "type": "transfer",
+      "occurred_at": "2026-11-19T18:35:00Z",
+      "from_account_id": "acc-vera",
+      "from_client_id": "cli-vera",
+      "to_account_id": "acc-collector",
+      "to_client_id": "cli-organizer",
+      "amount": 3900000
+    },
+    {
+      "event_id": "evt-sa-with-0008",
+      "type": "transfer",
+      "occurred_at": "2026-11-19T18:40:00Z",
+      "from_account_id": "acc-vova",
+      "from_client_id": "cli-vova",
+      "to_account_id": "acc-collector",
+      "to_client_id": "cli-organizer",
+      "amount": 6100000
+    },
+    {
+      "event_id": "evt-sa-with-noise-0004",
+      "type": "transfer",
+      "occurred_at": "2026-11-19T18:55:00Z",
+      "from_account_id": "acc-olga",
+      "from_client_id": "cli-olga",
+      "to_account_id": "acc-noise-sa-2",
+      "to_client_id": "cli-noise-sa-2",
+      "amount": 180000
+    },
+    {
+      "event_id": "evt-sa-with-noise-0005",
+      "type": "login",
+      "occurred_at": "2026-11-19T19:10:00Z",
+      "account_id": "acc-igor",
+      "client_id": "cli-igor",
+      "device_id": "dev-igor",
+      "address_id": "203.0.113.61"
+    }
+  ],
+  "expected": {
+    "groups": [
+      {
+        "scheme": "address",
+        "member_account_ids": [
+          "acc-anna",
+          "acc-boris",
+          "acc-vera",
+          "acc-vova",
+          "acc-collector"
+        ],
+        "event_ids": [
+          "evt-sa-with-0001",
+          "evt-sa-with-0002",
+          "evt-sa-with-0003",
+          "evt-sa-with-0004",
+          "evt-sa-with-0005",
+          "evt-sa-with-0006",
+          "evt-sa-with-0007",
+          "evt-sa-with-0008"
+        ],
+        "risk_score": 65,
+        "risk_level": "medium",
+        "risk_parts": {
+          "address": {
+            "scheme": 40,
+            "speed": 10,
+            "clients": 0,
+            "devices": 5,
+            "burst": 10
+          }
+        }
+      }
+    ]
+  }
+}

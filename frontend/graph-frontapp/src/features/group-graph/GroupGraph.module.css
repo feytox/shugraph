@@ -1,0 +1,64 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.canvasArea {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.noticeRow {
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--mantine-spacing-md) var(--mantine-spacing-xs);
+}
+
+.legend {
+  border-top: 1px solid var(--mantine-color-gray-3);
+  background: var(--mantine-color-body);
+}
+
+.circle,
+.diamond,
+.hexagon {
+  display: block;
+  width: var(--mantine-spacing-sm);
+  height: var(--mantine-spacing-sm);
+}
+
+.circle {
+  border-radius: 50%;
+}
+
+.diamond {
+  clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.hexagon {
+  aspect-ratio: 2 / 1.732;
+  width: auto;
+  clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
+}
+
+.transferLine,
+.loginLine {
+  display: block;
+  width: var(--mantine-spacing-lg);
+  height: 0;
+  border-top: 2px solid var(--mantine-color-gray-6);
+}
+
+.loginLine {
+  border-top-style: dashed;
+  border-top-color: var(--mantine-color-gray-4);
+}

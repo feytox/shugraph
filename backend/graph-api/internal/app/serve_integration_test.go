@@ -17,6 +17,7 @@ import (
 	pgdb "github.com/feytox/shugraph/backend/graph-api/internal/postgres"
 	"github.com/feytox/shugraph/backend/graph-api/internal/repository"
 	"github.com/feytox/shugraph/backend/graph-api/internal/service"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -74,9 +75,16 @@ func run(m *testing.M) int {
 	}
 	defer testPool.Close()
 
+	groupsCfg, err := config.Load[config.Groups]()
+	if err != nil {
+		slog.Error("could not parse groups config", "err", err)
+		return 1
+	}
+
 	repo := repository.NewPgNoteRepository(testPool)
 	noteService := service.NewNoteService(repo)
-	eventService := service.NewEventService(repository.NewPgEventRepository(testPool))
+	eventService := service.NewEventService(inTx(testPool, pgx.TxOptions{}, eventRepositories), groupsCfg.Rules())
+	groupService := service.NewGroupService(repository.NewPgGroupRepository(testPool), inTx(testPool, snapshotTx, groupRepositories))
 
 	errMigrate := pgdb.Migrate(ctx, testPool, slog.Default())
 	if errMigrate != nil {
@@ -87,6 +95,7 @@ func run(m *testing.M) int {
 	server := httptest.NewServer(handler.New(handler.Deps{
 		Notes:    noteService,
 		Events:   eventService,
+		Groups:   groupService,
 		Database: testPool,
 		Log:      slog.Default(),
 	}))

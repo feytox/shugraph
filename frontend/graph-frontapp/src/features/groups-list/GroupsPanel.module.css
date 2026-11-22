@@ -1,0 +1,13 @@
+.nextPageSlot {
+  --next-page-button-height: calc(2.25rem * var(--mantine-scale));
+
+  display: flex;
+  height: var(--next-page-button-height);
+  margin: 0 var(--mantine-spacing-md);
+}
+
+.nextPageSlot > * {
+  flex: 1;
+  height: 100%;
+  justify-content: center;
+}

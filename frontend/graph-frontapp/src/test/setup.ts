@@ -1,7 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 import { beforeAll, afterEach, afterAll } from 'vitest';
 import { server } from '@/mocks/server';
-import { resetMockNotes } from '@/mocks/handlers';
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -28,6 +27,5 @@ beforeAll(() => {
 });
 afterEach(() => {
   server.resetHandlers();
-  resetMockNotes();
 });
 afterAll(() => server.close());

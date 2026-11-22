@@ -13,7 +13,12 @@ jobs:
   up:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
-    environment: vm
+    permissions:
+      contents: read
+      actions: write
+    environment:
+      name: vm
+      deployment: false
     env:
       VM_ID: ${{ vars.VM_ID }}
     steps:
@@ -21,19 +26,9 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Install yc
-        timeout-minutes: 10
-        run: |
-          curl -sSL https://storage.yandexcloud.net/yandexcloud-yc/install.sh | bash -s -- -i /opt/yc -n
-          echo /opt/yc/bin >> "$GITHUB_PATH"
-
-      - name: Auth yc
-        env:
-          YC_SA_KEY: ${{ secrets.YC_SA_KEY }}
-        run: |
-          printf '%s' "$YC_SA_KEY" > "$RUNNER_TEMP/yc-key.json"
-          yc config set service-account-key "$RUNNER_TEMP/yc-key.json"
-          yc iam create-token > /dev/null
+      - uses: ./.github/actions/setup-yc # zizmor: ignore[self-repository]
+        with:
+          sa-key: ${{ secrets.YC_SA_KEY }}
 
       - name: Up
         env:
@@ -42,3 +37,9 @@ jobs:
           install -m 600 /dev/null "$RUNNER_TEMP/ssh-key"
           printf '%s\n' "$SSH_PRIVATE_KEY" > "$RUNNER_TEMP/ssh-key"
           SSH_KEY="$RUNNER_TEMP/ssh-key" infra/vm/vm.sh up
+
+      - name: Schedule autodown
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run autodown.yml -R "$GITHUB_REPOSITORY" --ref "$GITHUB_REF_NAME"

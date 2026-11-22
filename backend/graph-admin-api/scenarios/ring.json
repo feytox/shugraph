@@ -1,0 +1,144 @@
+{
+  "name": "ring",
+  "description": "Кольцо: деньги ходят по кругу Артём → Богдан → Влад → Артём и возвращаются на стартовый счёт, за окно круг повторяется тем же составом. Возврат 97% суммы первых переводов, два полных круга уложились в 57 минут; вокруг идёт обычный поток событий.",
+  "events": [
+    {
+      "event_id": "evt-ring-with-noise-0001",
+      "type": "login",
+      "occurred_at": "2026-11-17T19:40:00Z",
+      "account_id": "acc-pavel",
+      "client_id": "cli-pavel",
+      "device_id": "dev-pavel",
+      "address_id": "203.0.113.101"
+    },
+    {
+      "event_id": "evt-ring-with-noise-0002",
+      "type": "transfer",
+      "occurred_at": "2026-11-17T19:55:00Z",
+      "from_account_id": "acc-pavel",
+      "from_client_id": "cli-pavel",
+      "to_account_id": "acc-noise-ring-1",
+      "to_client_id": "cli-noise-ring-1",
+      "amount": 240000
+    },
+    {
+      "event_id": "evt-ring-with-0001",
+      "type": "transfer",
+      "occurred_at": "2026-11-17T20:00:00Z",
+      "from_account_id": "acc-artem",
+      "from_client_id": "cli-artem",
+      "to_account_id": "acc-bogdan",
+      "to_client_id": "cli-bogdan",
+      "amount": 10000000
+    },
+    {
+      "event_id": "evt-ring-with-0002",
+      "type": "transfer",
+      "occurred_at": "2026-11-17T20:09:00Z",
+      "from_account_id": "acc-bogdan",
+      "from_client_id": "cli-bogdan",
+      "to_account_id": "acc-vlad",
+      "to_client_id": "cli-vlad",
+      "amount": 9800000
+    },
+    {
+      "event_id": "evt-ring-with-0003",
+      "type": "transfer",
+      "occurred_at": "2026-11-17T20:17:00Z",
+      "from_account_id": "acc-vlad",
+      "from_client_id": "cli-vlad",
+      "to_account_id": "acc-artem",
+      "to_client_id": "cli-artem",
+      "amount": 9700000
+    },
+    {
+      "event_id": "evt-ring-with-noise-0003",
+      "type": "login",
+      "occurred_at": "2026-11-17T20:30:00Z",
+      "account_id": "acc-pavel",
+      "client_id": "cli-pavel",
+      "device_id": "dev-pavel",
+      "address_id": "203.0.113.101"
+    },
+    {
+      "event_id": "evt-ring-with-0004",
+      "type": "transfer",
+      "occurred_at": "2026-11-17T20:40:00Z",
+      "from_account_id": "acc-artem",
+      "from_client_id": "cli-artem",
+      "to_account_id": "acc-bogdan",
+      "to_client_id": "cli-bogdan",
+      "amount": 10000000
+    },
+    {
+      "event_id": "evt-ring-with-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-17T20:49:00Z",
+      "from_account_id": "acc-bogdan",
+      "from_client_id": "cli-bogdan",
+      "to_account_id": "acc-vlad",
+      "to_client_id": "cli-vlad",
+      "amount": 9800000
+    },
+    {
+      "event_id": "evt-ring-with-0006",
+      "type": "transfer",
+      "occurred_at": "2026-11-17T20:57:00Z",
+      "from_account_id": "acc-vlad",
+      "from_client_id": "cli-vlad",
+      "to_account_id": "acc-artem",
+      "to_client_id": "cli-artem",
+      "amount": 9700000
+    },
+    {
+      "event_id": "evt-ring-with-noise-0004",
+      "type": "login",
+      "occurred_at": "2026-11-17T21:10:00Z",
+      "account_id": "acc-pavel",
+      "client_id": "cli-pavel",
+      "device_id": "dev-pavel",
+      "address_id": "203.0.113.101"
+    },
+    {
+      "event_id": "evt-ring-with-noise-0005",
+      "type": "transfer",
+      "occurred_at": "2026-11-17T21:20:00Z",
+      "from_account_id": "acc-pavel",
+      "from_client_id": "cli-pavel",
+      "to_account_id": "acc-noise-ring-2",
+      "to_client_id": "cli-noise-ring-2",
+      "amount": 110000
+    }
+  ],
+  "expected": {
+    "groups": [
+      {
+        "scheme": "ring",
+        "member_account_ids": [
+          "acc-artem",
+          "acc-bogdan",
+          "acc-vlad"
+        ],
+        "event_ids": [
+          "evt-ring-with-0001",
+          "evt-ring-with-0002",
+          "evt-ring-with-0003",
+          "evt-ring-with-0004",
+          "evt-ring-with-0005",
+          "evt-ring-with-0006"
+        ],
+        "risk_score": 85,
+        "risk_level": "high",
+        "risk_parts": {
+          "ring": {
+            "scheme": 65,
+            "speed": 10,
+            "rounds": 0,
+            "accounts": 0,
+            "preserved": 10
+          }
+        }
+      }
+    ]
+  }
+}
