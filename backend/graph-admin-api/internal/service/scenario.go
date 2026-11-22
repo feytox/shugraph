@@ -104,7 +104,7 @@ func (s *ScenarioService) prepareEvents(scenario *domain.Scenario) ([]preparedEv
 
 		err := json.Unmarshal(raw, &event)
 		if err != nil {
-			return nil, fmt.Errorf("decode event %q: %w", i, err)
+			return nil, fmt.Errorf("decode event %d: %w", i, err)
 		}
 
 		switch event.Type {
