@@ -21,6 +21,7 @@ const groupsTag = "Groups"
 type GroupService interface {
 	List(ctx context.Context, filter domain.GroupFilter) (service.GroupPage, error)
 	Get(ctx context.Context, id uuid.UUID) (service.GroupDetails, error)
+	Resolve(ctx context.Context, id uuid.UUID, status domain.GroupStatus, comment string) (domain.Group, error)
 }
 
 type groupHandlers struct {
@@ -67,7 +68,6 @@ func registerGroups(api huma.API, h *groupHandlers) {
 			http.StatusNotFound,
 			http.StatusConflict,
 			http.StatusUnprocessableEntity,
-			http.StatusNotImplemented,
 		},
 	}, h.applySolution)
 }
@@ -201,7 +201,7 @@ type GetByIDOutput struct {
 type GetGraphOutput struct{ Body GroupGraph }
 
 type GroupSolutionInput struct {
-	GroupID string `path:"group_id" format:"uuid"`
+	GroupID uuid.UUID `path:"group_id" format:"uuid"`
 	Body    struct {
 		Status          GroupStatusType `json:"status" enum:"approved,declined"`
 		DecisionComment string          `json:"decision_comment" minLength:"1" pattern:"\\S"`
@@ -264,13 +264,30 @@ func (h *groupHandlers) getGraph(ctx context.Context, in *GroupIDInput) (*GetGra
 	return &GetGraphOutput{Body: groupGraph(details)}, nil
 }
 
-func (h *groupHandlers) applySolution(context.Context, *GroupSolutionInput) (*GroupSolutionOutput, error) {
-	return nil, huma.Error501NotImplemented("Group decisions are not implemented yet.")
+func (h *groupHandlers) applySolution(ctx context.Context, i *GroupSolutionInput) (*GroupSolutionOutput, error) {
+	resolvedGroup, err := h.groups.Resolve(ctx, i.GroupID, domain.GroupStatus(i.Body.Status), i.Body.DecisionComment)
+	if err != nil {
+		return nil, h.groupProblem(ctx, err)
+	}
+
+	out := &GroupSolutionOutput{}
+
+	out.Body.Status = GroupStatusType(resolvedGroup.Status)
+	out.Body.Decision = Decision{
+		Comment:   resolvedGroup.Decision.Comment,
+		DecidedAt: resolvedGroup.Decision.DecidedAt,
+	}
+
+	return out, nil
 }
 
 func (h *groupHandlers) groupProblem(ctx context.Context, err error) error {
 	if errors.Is(err, domain.ErrGroupNotFound) {
 		return huma.Error404NotFound(domain.ErrGroupNotFound.Error())
+	}
+
+	if errors.Is(err, domain.ErrGroupResolved) {
+		return huma.Error409Conflict(domain.ErrGroupResolved.Error())
 	}
 
 	return problem(ctx, h.log, err)
