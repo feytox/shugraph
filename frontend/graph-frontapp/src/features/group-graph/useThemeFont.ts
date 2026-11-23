@@ -10,5 +10,6 @@ export function useThemeFont() {
     queryFn: () => document.fonts.load(`1em ${fontFamily}`, latinCyrillicAndRubleSign),
     staleTime: Infinity,
     retry: false,
+    networkMode: 'always',
   });
 }

@@ -65,14 +65,20 @@ export function GroupGraph({ groupId, scheme, lastEventAt }: Props) {
       {drawn && !fontLoading ? (
         <GraphCanvas scheme={scheme} elements={drawn} />
       ) : (
-        <GraphStatus graph={graph} fontLoading={fontLoading} />
+        <GraphStatus graph={graph} waitingForFont={Boolean(drawn) && fontLoading} />
       )}
     </GraphFrame>
   );
 }
 
-function GraphStatus({ graph, fontLoading }: { graph: GroupGraphQuery; fontLoading: boolean }) {
-  if (graph.isPending || fontLoading) {
+function GraphStatus({
+  graph,
+  waitingForFont,
+}: {
+  graph: GroupGraphQuery;
+  waitingForFont: boolean;
+}) {
+  if (graph.isPending || waitingForFont) {
     return (
       <Center h="100%">
         <Group role="status">
