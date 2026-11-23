@@ -10,7 +10,7 @@ export type MockGroup = {
   evidence: Pick<Group, 'members' | 'logins' | 'transfers'>;
 };
 
-function mockGroup({ item, events }: { item: GroupItem; events: Events }): MockGroup {
+export function mockGroup({ item, events }: { item: GroupItem; events: Events }): MockGroup {
   const { owners, logins, transfers } = events;
   return {
     item,
@@ -32,7 +32,7 @@ function mockGroup({ item, events }: { item: GroupItem; events: Events }): MockG
         from_client_id: owners[transfer.from],
         to_account_id: transfer.to,
         to_client_id: owners[transfer.to],
-        amount: transfer.rub * 100,
+        amount: Math.round(transfer.rub * 100),
       })),
     },
   };
@@ -85,7 +85,7 @@ function buildGraph(groupId: string, { owners, logins, transfers }: Events): Gro
       occurred_at: transfer.at,
       source: `account:${transfer.from}`,
       target: `account:${transfer.to}`,
-      amount: transfer.rub * 100,
+      amount: Math.round(transfer.rub * 100),
     })),
   };
 }

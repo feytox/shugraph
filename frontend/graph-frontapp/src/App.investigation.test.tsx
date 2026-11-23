@@ -10,7 +10,7 @@ import { advance, renderScreen, waitForScreen } from '@/test/renderScreen';
 
 const card = () => within(screen.getByRole('complementary', { name: 'Карточка расследования' }));
 const openAddress = () =>
-  fireEvent.click(screen.getByRole('link', { name: /^Адрес.*Риск средний/ }));
+  fireEvent.click(screen.getByRole('link', { name: /^Адрес.*Риск средний: 70.*6 счетов/ }));
 const farm = mockGroups.find(({ item }) => item.scheme === 'farm');
 if (!farm) throw new Error('Нет моковой фермы');
 const farmDetailPath = `/api/v1/groups/${farm.item.id}`;
@@ -32,7 +32,7 @@ async function openFarm() {
   return currentGroup();
 }
 
-function delaySaveError(detail?: string) {
+function delaySaveError() {
   let finish = () => {};
   const ready = new Promise<void>((resolve) => {
     finish = resolve;
@@ -42,7 +42,7 @@ function delaySaveError(detail?: string) {
       farmSolutionPath,
       async () => {
         await ready;
-        return detail ? problem(500, detail) : new HttpResponse(null, { status: 500 });
+        return problem(500, 'internal error');
       },
       { once: true }
     )
@@ -118,7 +118,7 @@ it('объясняет риск фермы без общего счёта и с�
     http.get(farmPath, () =>
       HttpResponse.json({
         ...group,
-        features: { ...group.features, total_amount: 16100001 },
+        features: { ...group.features, total_amount: 16100051 },
         risk_score: 65,
         risk_level: 'medium',
         logins: [...group.logins, { ...group.logins[0], event_id: 'repeated-login' }],
@@ -129,7 +129,7 @@ it('объясняет риск фермы без общего счёта и с�
   renderScreen();
   await screen.findByRole('complementary', { name: 'Карточка расследования' });
   expect(await card().findByText('Риск: средний (65/100)')).toBeVisible();
-  expect(card().getByText('Счетов в группе: 4, оборот: 161 000 ₽.')).toBeVisible();
+  expect(card().getByText('Счетов в группе: 4, оборот: 161 001 ₽.')).toBeVisible();
   expect(
     card().getByText(
       'С одного устройства заходили в личный кабинет разные клиенты (всего 3). Общего счёта для вывода не видно, но несколько клиентов на одном устройстве — уже признак фермы: возможно, счетами управляет один человек.'
@@ -151,35 +151,35 @@ it('сообщает об ошибке карточки в её панели и 
   expect(await card().findByText('Риск: средний (70/100)')).toBeVisible();
 });
 
-it('показывает причину ошибки API и позволяет повторно загрузить карточку', async () => {
-  const detail = 'Хранилище временно недоступно. Повторите запрос через несколько секунд.';
-  server.use(http.get(farmPath, () => problem(503, detail), { once: true }));
+it('показывает русское сообщение и позволяет повторно загрузить карточку', async () => {
+  server.use(http.get(farmPath, () => problem(503, 'storage unavailable'), { once: true }));
   renderScreen();
   await screen.findByRole('complementary', { name: 'Карточка расследования' });
-  expect(await card().findByRole('alert')).toHaveTextContent(detail);
+  expect(await card().findByRole('alert')).toHaveTextContent(
+    'Не удалось загрузить карточку группы'
+  );
   fireEvent.click(card().getByRole('button', { name: /^Повторить/ }));
   expect(await card().findByText('Риск: высокий (75/100)')).toBeVisible();
 });
 
-it('показывает причину отсутствия карточки без кнопки повтора', async () => {
-  const detail = 'Группа удалена';
-  server.use(http.get(farmPath, () => problem(404, detail)));
+it('показывает отсутствие карточки без кнопки повтора', async () => {
+  server.use(http.get(farmPath, () => problem(404, 'group not found')));
   renderScreen();
   await screen.findByRole('complementary', { name: 'Карточка расследования' });
-  expect(await card().findByText(detail)).toBeVisible();
+  expect(await card().findByText('Карточка группы не найдена')).toBeVisible();
   expect(card().queryByRole('button', { name: /^Повторить/ })).not.toBeInTheDocument();
 });
 
 it('после опроса списка обновляет открытую карточку и сохраняет введённый комментарий', async () => {
   startDemoClock();
   renderScreen(evolvingGroupUrl);
-  await waitForScreen(() => expect(card().getByText('Риск: высокий (87/100)')).toBeVisible());
+  await waitForScreen(() => expect(card().getByText('Риск: высокий (80/100)')).toBeVisible());
   fireEvent.change(comment(), { target: { value: decisionComment } });
 
   await nextDemoStep();
-  expect(within(currentGroup()).getByLabelText('Риск высокий: 88')).toBeVisible();
-  await waitForScreen(() => expect(card().getByText('Риск: высокий (88/100)')).toBeVisible());
-  expect(card().getByText('Счетов в группе: 25, оборот: 223,45 ₽.')).toBeVisible();
+  expect(within(currentGroup()).getByLabelText('Риск высокий: 90')).toBeVisible();
+  await waitForScreen(() => expect(card().getByText('Риск: высокий (90/100)')).toBeVisible());
+  expect(card().getByText('Счетов в группе: 25, оборот: 223 ₽.')).toBeVisible();
   expect(comment()).toHaveValue(decisionComment);
 });
 
@@ -188,18 +188,19 @@ it('сохраняет риск, оборот и время события ре�
   const view = renderScreen(evolvingGroupUrl);
   await waitForScreen(() => expect(approve()).toBeDisabled());
   fireEvent.change(comment(), { target: { value: decisionComment } });
+  await waitForScreen(() => expect(approve()).toBeEnabled());
   fireEvent.click(approve());
   await waitForScreen(() => expect(card().getByText('Подтверждена')).toBeVisible());
 
   await nextDemoStep();
   const row = within(currentGroup());
-  expect(row.getByLabelText('Риск высокий: 87')).toBeVisible();
+  expect(row.getByLabelText('Риск высокий: 80')).toBeVisible();
   expect(row.getByText(/123,45/)).toBeVisible();
 
   view.unmount();
   renderScreen(evolvingGroupUrl);
-  await waitForScreen(() => expect(card().getByText('Риск: высокий (87/100)')).toBeVisible());
-  expect(card().getByText('Счетов в группе: 25, оборот: 123,45 ₽.')).toBeVisible();
+  await waitForScreen(() => expect(card().getByText('Риск: высокий (80/100)')).toBeVisible());
+  expect(card().getByText('Счетов в группе: 25, оборот: 123 ₽.')).toBeVisible();
   expect(card().getByText('Подтверждена')).toBeVisible();
   const { data } = await apiClient.GET('/api/v1/groups/{group_id}', {
     params: { path: { group_id: evolvingGroupId } },
@@ -276,8 +277,7 @@ it.each([
 );
 
 it('блокирует оба решения во время отправки и сохраняет комментарий для повтора после ошибки', async () => {
-  const detail = 'Сохранение решений временно приостановлено';
-  const finish = delaySaveError(detail);
+  const finish = delaySaveError();
   const requests: unknown[] = [];
   server.events.on('request:start', async ({ request }) => {
     if (request.method === 'PATCH') requests.push(await request.clone().json());
@@ -293,7 +293,7 @@ it('блокирует оба решения во время отправки и
   await waitFor(() => expect(requests).toHaveLength(1));
 
   finish();
-  expect(await card().findByRole('alert')).toHaveTextContent(detail);
+  expect(await card().findByRole('alert')).toHaveTextContent('Не удалось сохранить решение');
   expect(comment()).toHaveValue(decisionComment);
   expect(approve()).toBeEnabled();
   fireEvent.click(approve());
@@ -317,6 +317,7 @@ it('сбрасывает черновик при переходе и восст�
   expect(await card().findByText('Риск: высокий (75/100)')).toBeVisible();
   expect(comment()).toHaveValue('');
   fireEvent.change(comment(), { target: { value: decisionComment } });
+  await waitFor(() => expect(approve()).toBeEnabled());
   fireEvent.click(approve());
   expect(await card().findByRole('status')).toHaveTextContent('Сохранение решения…');
 
@@ -339,8 +340,20 @@ it('после опроса обновляет риск, оборот и ста�
   const group = demo.getGroup(farm.item.id);
   if (!group) throw new Error('Нет деталей моковой фермы');
   let item: GroupItem = farm.item;
+  let failUpdate = false;
+  let finishUpdate = () => {};
+  const updateGate = new Promise<void>((resolve) => {
+    finishUpdate = resolve;
+  });
   server.use(
-    http.get(farmPath, () => HttpResponse.json<Group>({ ...group, ...item })),
+    http.get<never, never, Group | ErrorModel>(farmPath, async () => {
+      if (failUpdate) {
+        await updateGate;
+        failUpdate = false;
+        return problem(503, 'storage unavailable');
+      }
+      return HttpResponse.json<Group>({ ...group, ...item });
+    }),
     http.get('*/api/v1/groups', ({ request }) =>
       HttpResponse.json(
         groupsPage(
@@ -359,19 +372,40 @@ it('после опроса обновляет риск, оборот и ста�
   await advance(3000);
   await waitForScreen(() => expect(card().getByText('Риск: высокий (76/100)')).toBeVisible());
 
+  failUpdate = true;
   item = { ...item, features: { ...item.features, total_amount: 17000000 } };
   await advance(3000);
-  await waitForScreen(() => expect(card().getByText(/оборот: 170 000/)).toBeVisible());
+  try {
+    await waitForScreen(() => expect(approve()).toBeDisabled());
+    expect(decline()).toBeDisabled();
+    expect(card().getByText(/оборот: 161 000/)).toBeVisible();
+    expect(comment()).toHaveValue(decisionComment);
+  } finally {
+    finishUpdate();
+  }
+  await waitForScreen(() =>
+    expect(card().getByRole('alert')).toHaveTextContent('Не удалось загрузить карточку группы')
+  );
+  expect(approve()).toBeDisabled();
+  expect(decline()).toBeDisabled();
+  expect(comment()).toHaveValue(decisionComment);
+  fireEvent.click(card().getByRole('button', { name: /^Повторить/ }));
+  await waitForScreen(() => expect(approve()).toBeEnabled());
+  expect(card().getByText(/оборот: 170 000/)).toBeVisible();
   expect(comment()).toHaveValue(decisionComment);
 
+  failUpdate = true;
   item = { ...item, status: 'declined' };
   await advance(3000);
+  await waitForScreen(() =>
+    expect(card().getByRole('alert')).toHaveTextContent('Не удалось загрузить карточку группы')
+  );
   await waitForScreen(() => expect(card().getByText('Отклонена')).toBeVisible());
   expect(within(currentGroup()).getByText('Отклонена')).toBeVisible();
   expect(card().queryByRole('button', { name: 'Подтвердить' })).not.toBeInTheDocument();
 });
 
-it('завершает начатую загрузку следующей страницы после сохранения решения', async () => {
+it('после сохранения решения можно повторить отменённую загрузку следующей страницы', async () => {
   let finish = () => {};
   const gate = new Promise<void>((resolve) => {
     finish = resolve;
@@ -379,7 +413,7 @@ it('завершает начатую загрузку следующей стр
   let started = false;
   server.use(
     http.get('*/api/v1/groups', async ({ request }) => {
-      if (new URL(request.url).searchParams.has('cursor')) {
+      if (!started && new URL(request.url).searchParams.has('cursor')) {
         started = true;
         await gate;
       }
@@ -394,22 +428,25 @@ it('завершает начатую загрузку следующей стр
   try {
     expect(await card().findByText('Подтверждена')).toBeVisible();
     expect(within(farmLink).getByText('Подтверждена')).toBeVisible();
+    const next = screen.getByRole('button', { name: 'Показать ещё' });
+    expect(next).toBeEnabled();
+    expect(loadedGroups().getAllByRole('listitem')).toHaveLength(20);
+    fireEvent.click(next);
+    await waitFor(() => expect(loadedGroups().getAllByRole('listitem')).toHaveLength(29));
   } finally {
     finish();
   }
-  await waitFor(() => expect(loadedGroups().getAllByRole('listitem')).toHaveLength(29));
   expect(within(farmLink).getByText('Подтверждена')).toBeVisible();
 });
 
 it('при конфликте перечитывает статус карточки и списка с сервера', async () => {
   const demo = createGroupsDemo();
   const groupId = farm.item.id;
-  const detail = 'По группе уже вынесено решение';
   let status: GroupItem['status'] = 'new';
   server.use(
     http.patch(farmSolutionPath, () => {
       status = 'declined';
-      return problem(409, detail);
+      return problem(409, 'group already has a decision');
     }),
     http.get(farmPath, () => {
       const group = demo.getGroup(groupId);
@@ -430,6 +467,6 @@ it('при конфликте перечитывает статус карточ
   fireEvent.click(approve());
   expect(await card().findByText('Отклонена')).toBeVisible();
   expect(await within(farmLink).findByText('Отклонена')).toBeVisible();
-  expect(await card().findByRole('alert')).toHaveTextContent(detail);
+  expect(await card().findByRole('alert')).toHaveTextContent('По группе уже вынесено решение');
   expect(card().queryByRole('textbox', { name: 'Комментарий' })).not.toBeInTheDocument();
 });

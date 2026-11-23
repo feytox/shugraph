@@ -7,7 +7,6 @@ import type {
   GroupSolutionInput,
   GroupSolutionResponse,
 } from '@/api/client';
-import { mockGroups } from '@/mocks/groupGraphs';
 import { createGroupsDemo } from '@/mocks/groupsDemo';
 import { groupsPage } from '@/mocks/groupsPage';
 
@@ -43,9 +42,9 @@ export function createHandlers() {
     http.get<{ groupId: string }, never, GroupGraph | ErrorModel>(
       '*/api/v1/groups/:groupId/graph',
       ({ params }) => {
-        const group = mockGroups.find((mock) => mock.item.id === params.groupId);
-        if (!group) return groupNotFound();
-        return HttpResponse.json<GroupGraph>(group.graph);
+        const graph = demo.getGraph(params.groupId);
+        if (!graph) return groupNotFound();
+        return HttpResponse.json<GroupGraph>(graph);
       }
     ),
   ];

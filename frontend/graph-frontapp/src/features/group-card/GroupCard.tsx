@@ -2,19 +2,21 @@ import { Badge, Box, Group, Loader, Stack, Text } from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { GroupItem } from '@/api/client';
 import { FarmExplanation } from '@/features/group-card/FarmExplanation';
-import { GroupNotFound, useGroupDetails } from '@/features/group-card/useGroupDetails';
+import { GroupNotFound, type useGroupDetails } from '@/features/group-card/useGroupDetails';
 import { ErrorNotice } from '@/shared/ErrorNotice';
 import { riskColors, riskLabels, statusColors, statusLabels } from '@/shared/groupLabels';
-import { formatRub, formatWholeRub } from '@/shared/money';
+import { formatWholeRub } from '@/shared/money';
 
 export function GroupCard({
-  summary,
+  details,
+  listedStatus,
   decision,
 }: {
-  summary: GroupItem;
-  decision: (canDecide: boolean) => ReactNode;
+  details: ReturnType<typeof useGroupDetails>;
+  listedStatus: GroupItem['status'] | undefined;
+  decision: (state: { isOpen: boolean; evidenceReady: boolean }) => ReactNode;
 }) {
-  const { data: group, isFetching, error, refetch } = useGroupDetails(summary);
+  const { data: group, dataUpdatedAt, isFetching, fetchStatus, error, refetch } = details;
 
   if (error instanceof GroupNotFound) {
     return (
@@ -45,8 +47,8 @@ export function GroupCard({
   }
 
   const { accounts_count, total_amount } = group.features;
+  const status = group.status === 'new' ? (listedStatus ?? group.status) : group.status;
   const farmRisk = group.scheme === 'farm' && group.logins.length > 0 && group.risk_parts.farm;
-  const turnover = farmRisk ? formatWholeRub(total_amount) : formatRub(total_amount);
 
   return (
     <Stack px="md" pb="md" gap="md">
@@ -57,21 +59,24 @@ export function GroupCard({
             Риск: {riskLabels[group.risk_level].toLowerCase()} ({group.risk_score}/100)
           </Text>
           <Badge
-            color={statusColors[group.status]}
+            color={statusColors[status]}
             variant="light"
             size="sm"
             tt="none"
             aria-live="polite"
           >
-            {statusLabels[group.status]}
+            {statusLabels[status]}
           </Badge>
         </Group>
         <Text size="sm">
-          Счетов в группе: {accounts_count}, оборот: {turnover}.
+          Счетов в группе: {accounts_count}, оборот: {formatWholeRub(total_amount)}.
         </Text>
       </Stack>
       {farmRisk && <FarmExplanation group={group} risk={farmRisk} />}
-      {decision(group.status === 'new' && summary.status === 'new')}
+      {decision({
+        isOpen: status === 'new',
+        evidenceReady: dataUpdatedAt > 0 && fetchStatus === 'idle' && !error,
+      })}
     </Stack>
   );
 }

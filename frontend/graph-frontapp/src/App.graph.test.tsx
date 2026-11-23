@@ -3,6 +3,8 @@ import { http, HttpResponse } from 'msw';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { GroupItem, GroupListResponse } from '@/api/client';
 import { mockGroups } from '@/mocks/groupGraphs';
+import { createGroupsDemo } from '@/mocks/groupsDemo';
+import { groupsPage } from '@/mocks/groupsPage';
 import { server } from '@/mocks/server';
 import { advance, renderScreen, waitForScreen } from '@/test/renderScreen';
 
@@ -69,6 +71,29 @@ it('открывает группу из адреса', async () => {
   expect(currentLink()).toHaveTextContent('Цепочка');
 });
 
+it('открывает граф и карточку группы со второй страницы после перезагрузки', async () => {
+  const demo = createGroupsDemo();
+  const id = '00000000-0000-4000-8000-000000000005';
+  server.use(
+    http.get('*/api/v1/groups', ({ request }) =>
+      HttpResponse.json(groupsPage(demo.getItems(), request))
+    )
+  );
+  const linkName = /Ферма.*\b5 счетов/;
+  const view = renderScreen();
+  fireEvent.click(await screen.findByRole('button', { name: 'Показать ещё' }));
+  const link = await screen.findByRole('link', { name: linkName });
+  fireEvent.click(link);
+  await waitFor(() => expect(lastRequestedGraph()).toBe(id));
+
+  view.unmount();
+  renderScreen(`/?group=${id}`);
+
+  expect(await screen.findByRole('img', { name: 'Граф группы' })).toBeVisible();
+  expect(await screen.findByText('Клиентов на одном устройстве: 5 — +10.')).toBeVisible();
+  expect(screen.queryByRole('link', { name: linkName })).not.toBeInTheDocument();
+});
+
 it('не сбрасывает выбор, когда сверху приходит новая группа', async () => {
   vi.useFakeTimers({ shouldAdvanceTime: true });
   renderScreen(`/?group=${address.id}`);
@@ -83,16 +108,17 @@ it('не сбрасывает выбор, когда сверху приходи
 });
 
 it('для группы без графа пишет, что граф не найден', async () => {
-  const unknown = { ...farm, id: '00000000-0000-4000-8000-000000000042' };
-  respond([unknown]);
+  server.use(
+    http.get(`*/api/v1/groups/${farm.id}/graph`, () => new HttpResponse(null, { status: 404 }))
+  );
   renderScreen();
   expect(await screen.findByText('Граф группы не найден')).toBeVisible();
   expect(screen.queryByRole('button', { name: /Повторить/ })).not.toBeInTheDocument();
 });
 
-it('сообщает, если группы из адреса нет в загруженном списке', async () => {
+it('сообщает, если группа из адреса отсутствует на сервере', async () => {
   renderScreen('/?group=00000000-0000-4000-8000-000000000404');
-  expect(await screen.findByText('Группа не найдена в загруженном списке')).toBeVisible();
+  expect(await screen.findByText('Карточка группы не найдена')).toBeVisible();
   expect(screen.getByText('время в UTC')).toBeVisible();
   expect(requestedGraphs).toEqual([]);
 });

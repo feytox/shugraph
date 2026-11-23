@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router';
-import type { GroupItem } from '@/api/client';
 import { useGroups } from '@/features/groups-list/useGroups';
 
 const selectedGroupParam = 'group';
@@ -30,9 +29,7 @@ export function useDefaultGroupSelection() {
   }, [selectedId, firstId, setParams]);
 }
 
-export function useSelectedGroup(): { group?: GroupItem; notInList: boolean } {
-  const selectedId = useSelectedGroupId();
+export function useGroupSummary(groupId: string) {
   const { data } = useGroups();
-  const group = data?.items.find((item) => item.id === selectedId);
-  return { group, notInList: Boolean(selectedId && data && !group) };
+  return data?.items.find((item) => item.id === groupId);
 }

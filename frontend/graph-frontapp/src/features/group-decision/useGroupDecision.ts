@@ -7,7 +7,6 @@ import {
 } from '@tanstack/react-query';
 import {
   apiClient,
-  getProblemDetail,
   type Group,
   type GroupListResponse,
   type GroupSolutionInput,
@@ -16,7 +15,7 @@ import { groupDetailKey, groupsListKey } from '@/shared/groupQueries';
 
 const saveError = 'Не удалось сохранить решение';
 
-class DecisionConflict extends Error {}
+class GroupChanged extends Error {}
 
 export function useGroupDecision(groupId: string) {
   const queryClient = useQueryClient();
@@ -30,12 +29,13 @@ export function useGroupDecision(groupId: string) {
   }).at(-1);
   const pending = latest?.status === 'pending';
 
-  const refreshList = () => queryClient.invalidateQueries(list, { cancelRefetch: false });
+  const refreshGroup = () =>
+    Promise.all([queryClient.invalidateQueries(detail), queryClient.invalidateQueries(list)]);
 
   const mutation = useMutation({
     mutationKey,
     mutationFn: async (input: GroupSolutionInput) => {
-      const { data, error, response } = await apiClient
+      const { data, response } = await apiClient
         .PATCH('/api/v1/groups/{group_id}/solution', {
           params: { path: { group_id: groupId } },
           body: input,
@@ -43,15 +43,15 @@ export function useGroupDecision(groupId: string) {
         .catch(() => {
           throw new Error(saveError);
         });
-      const reason = getProblemDetail(error);
       if (response.status === 409) {
-        throw new DecisionConflict(reason ?? 'Не удалось обновить статус группы');
+        throw new GroupChanged('По группе уже вынесено решение');
       }
-      if (!response.ok || !data) throw new Error(reason ?? saveError);
+      if (response.status === 404) throw new GroupChanged('Группа не найдена');
+      if (!response.ok || !data) throw new Error(saveError);
       return data;
     },
     onSuccess: async (solution) => {
-      await queryClient.cancelQueries(detail);
+      await Promise.all([queryClient.cancelQueries(detail), queryClient.cancelQueries(list)]);
       queryClient.setQueriesData<Group>(detail, (group) =>
         group ? { ...group, ...solution, is_frozen: true } : group
       );
@@ -68,16 +68,11 @@ export function useGroupDecision(groupId: string) {
             })),
           }
       );
-      await Promise.all([queryClient.invalidateQueries(detail), refreshList()]);
+      await refreshGroup();
     },
     onError: async (error) => {
-      if (!(error instanceof DecisionConflict)) return;
-      const listWasFetching = queryClient.isFetching(list) > 0;
-      const refreshListAfterConflict = async () => {
-        await refreshList();
-        if (listWasFetching) await refreshList();
-      };
-      await Promise.all([queryClient.invalidateQueries(detail), refreshListAfterConflict()]);
+      if (!(error instanceof GroupChanged)) return;
+      await refreshGroup();
     },
   });
 
