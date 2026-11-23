@@ -4,7 +4,7 @@
 
 - `charts/app` - общий chart для всех сервисов. Он создаёт Deployment, Service и HTTPRoute (маршрут в Traefik по префиксу пути), а для бэкендов с базой ещё Job, который применяет миграции.
 - `charts/postgres` - один Postgres на площадку, в нём у каждого бэкенда своя база и свой пользователь.
-- `helmfile.yaml.gotmpl` - список release'ов: какой chart ставить для каждого сервиса и с какими настройками (образ, порт, переменные окружения, путь). Настройки площадок лежат в `environments/`, пока там только `prod`.
+- `helmfile.yaml.gotmpl` - список release'ов: какой chart ставить для каждого сервиса и с какими настройками (образ, порт, переменные окружения, путь). Namespace и хост площадки он берёт из переменных `NAMESPACE` и `HOST`, их задаёт workflow `deploy`.
 
 Что получается в namespace `prod`:
 
@@ -37,13 +37,27 @@ flowchart LR
 1. На GitHub: Actions -> `deploy` -> Run workflow.
 2. В "Use workflow from" выбрать ветку, из которой собирать образы.
 3. Выбрать площадку и отметить сервисы, которые нужно обновить. По умолчанию отмечены все.
-4. Дождаться конца запуска. Workflow сам включит ВМ, соберёт образы с тегом по хешу коммита и обновит сервисы. Проверки он прогонит, только если у коммита ещё нет успешных. Адрес площадки будет в summary запуска.
+4. Дождаться конца запуска. Workflow сам включит ВМ, соберёт образы с тегом по хешу коммита и обновит сервисы. Проверки он прогонит, только если у коммита ещё нет успешных. Адрес площадки будет в summary запуска и в блоке Deployments у PR.
 5. Если ВМ больше не нужна, выключить её workflow `down`.
 
 То же из терминала, эта команда выкатит всё, кроме `graph-frontapp`:
 
 ```bash
 gh workflow run deploy.yml --ref GSD-42 -f environment=prod -f graph-frontapp=false
+```
+
+### Stage-площадка
+
+У каждого PR может быть своя площадка: namespace `stage-pr-<номер>` с отдельной базой и адресом `http://pr-<номер>.shugraph.feytox.ru/`. Её выкатывают тем же workflow с площадкой `stage`.
+
+- Нужен открытый PR ветки, подойдёт draft. Без него деплой падает с подсказкой.
+- Первый деплой поднимает все сервисы и пустую базу, даже если отмечены не все. Следующие обновляют только отмеченные сервисы, данные сохраняются.
+- Площадок не больше `MAX_STAGES` из `deploy.yml`. Новая сверх лимита не создаётся: деплой падает и показывает список площадок со ссылками на их PR.
+- Площадка удаляется вместе с базой, когда PR закрывают или мержат. Вручную: `gh workflow run stage-delete.yml -f pr=<номер>`. Если PR закрыл сам Dependabot, автоматически удалить её не выйдет, в логе `stage-delete` будет подсказка.
+- Удалять площадку только через `stage-delete`, не `kubectl delete namespace`: workflow узнаёт о живых площадках по записям деплоев на GitHub, а не по кластеру.
+
+```bash
+gh workflow run deploy.yml --ref GSD-42 -f environment=stage
 ```
 
 ### Деплой перед мержем
@@ -79,17 +93,6 @@ ssh -i ~/.ssh/shugraph shugraph@<ip> sudo k3s kubectl -n prod logs job/graph-api
 - Secret `postgres` удалять нельзя. Следующий деплой сгенерирует новые пароли, а в базе останутся старые, и бэкенды не смогут подключиться.
 - Если новый бэкенд появился на площадке, где Postgres уже работает, его пользователя и базу нужно создать вручную теми же командами, что в `create_database`, с паролем из Secret.
 
-## Container Registry
+## Реестр образов
 
-Образы хранятся в Yandex Container Registry `shugraph`. Скачивать их можно без авторизации, поэтому кластеру ключи не нужны, а загружает их CI под сервисным аккаунтом `shugraph-ci`.
-
-Если реестр нужно создать заново (нужен `yc` с правами на каталог):
-
-```bash
-yc container registry create --name shugraph
-yc container registry add-access-binding --name shugraph --role container-registry.images.puller --subject system:allUsers
-yc container registry add-access-binding --name shugraph --role container-registry.images.pusher --service-account-name shugraph-ci
-gh variable set YC_REGISTRY_ID --env vm --body "$(yc container registry get --name shugraph --format json | jq -r .id)"
-```
-
-Последняя команда записывает ID нового реестра в переменную `YC_REGISTRY_ID` окружения `vm` на GitHub: из неё workflow берёт адрес реестра.
+Образы лежат в GitHub Container Registry: `ghcr.io/feytox/shugraph/<сервис>`. CI загружает их с `GITHUB_TOKEN`, а кластер скачивает без авторизации, поэтому пакеты должны быть публичными. Пакеты сервисов публичные. Если пакет нового сервиса окажется приватным, деплой упадёт на скачивании образа: тогда открыть пакет на его странице, Package settings -> Change visibility -> Public.

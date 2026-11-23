@@ -1,0 +1,4 @@
+hard:
+  requests.memory: 512Mi
+  limits.memory: 1280Mi
+  pods: "12"
