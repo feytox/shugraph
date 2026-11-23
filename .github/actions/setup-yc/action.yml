@@ -5,6 +5,9 @@ inputs:
   sa-key:
     description: JSON-ключ сервисного аккаунта
     required: true
+  folder-id:
+    description: ID каталога по умолчанию, без него yc ищет каталог в метаданных ВМ и пишет предупреждения
+    required: true
   version:
     description: Версия yc
     default: 1.45.0
@@ -41,9 +44,11 @@ runs:
       env:
         DIR: ${{ steps.dir.outputs.path }}
         YC_SA_KEY: ${{ inputs.sa-key }}
+        FOLDER_ID: ${{ inputs.folder-id }}
       run: |
         sudo ln -sf "$DIR/yc" /usr/local/bin/yc
         install -m 600 /dev/null "$RUNNER_TEMP/yc-key.json"
         printf '%s' "$YC_SA_KEY" > "$RUNNER_TEMP/yc-key.json"
         yc config set service-account-key "$RUNNER_TEMP/yc-key.json"
+        yc config set folder-id "$FOLDER_ID"
         yc iam create-token > /dev/null

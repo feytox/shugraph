@@ -4,6 +4,7 @@ image:
   pullPolicy: IfNotPresent
 
 replicas: 1
+priorityClassName: ""
 args: []
 port: 8080
 terminationGracePeriodSeconds: 30
