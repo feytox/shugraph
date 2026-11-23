@@ -1,47 +1,12 @@
-import { Badge, Group, Text } from '@mantine/core';
+import { Group, Text } from '@mantine/core';
 import { Link, useSearchParams } from 'react-router';
 import type { GroupItem } from '@/api/client';
-import {
-  accountsLabel,
-  riskColors,
-  riskLabels,
-  schemeLabels,
-  statusColors,
-  statusLabels,
-} from '@/shared/groupLabels';
+import { RiskBadge, StatusBadge } from '@/shared/GroupBadges';
+import { accountsLabel, schemeLabels } from '@/shared/groupLabels';
 import { searchWithGroup, useSelectedGroupId } from '@/features/groups-list/useSelectedGroup';
 import { formatDateTimeUtc } from '@/shared/dates';
 import { formatRub } from '@/shared/money';
 import classes from '@/features/groups-list/GroupsList.module.css';
-
-function RiskBadge({ level, score }: { level: GroupItem['risk_level']; score: number }) {
-  return (
-    <Badge
-      color={riskColors[level]}
-      variant="filled"
-      size="lg"
-      fw={800}
-      className={classes.keepWidth}
-      aria-label={`Риск ${riskLabels[level].toLowerCase()}: ${score}`}
-    >
-      {score}
-    </Badge>
-  );
-}
-
-function StatusBadge({ status }: { status: GroupItem['status'] }) {
-  return (
-    <Badge
-      color={statusColors[status]}
-      variant="light"
-      size="sm"
-      tt="none"
-      className={classes.keepWidth}
-    >
-      {statusLabels[status]}
-    </Badge>
-  );
-}
 
 export function GroupsList({ items }: { items: GroupItem[] }) {
   const [params] = useSearchParams();

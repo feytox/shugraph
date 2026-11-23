@@ -1,4 +1,4 @@
-import { Button, Divider, Group, Stack, Text, Textarea } from '@mantine/core';
+import { Button, Group, Stack, Text, Textarea } from '@mantine/core';
 import { useState } from 'react';
 import type { GroupSolutionInput } from '@/api/client';
 import { useGroupDecision } from '@/features/group-decision/useGroupDecision';
@@ -29,31 +29,19 @@ export function GroupDecision({
 
   return (
     <Stack gap="xs">
-      <Divider />
       <Textarea
-        label="Комментарий"
+        aria-label="Комментарий"
         required
-        withAsterisk={false}
-        minRows={3}
+        minRows={2}
         disabled={pending}
         value={comment}
         onChange={(event) => setDraft(event.currentTarget.value)}
       />
       <Group grow gap="xs">
-        <Button
-          size="compact-sm"
-          color="dark"
-          disabled={!canSubmit}
-          onClick={() => submit('approved')}
-        >
+        <Button h={32} variant="default" disabled={!canSubmit} onClick={() => submit('approved')}>
           Подтвердить
         </Button>
-        <Button
-          size="compact-sm"
-          variant="default"
-          disabled={!canSubmit}
-          onClick={() => submit('declined')}
-        >
+        <Button h={32} variant="default" disabled={!canSubmit} onClick={() => submit('declined')}>
           Отклонить
         </Button>
       </Group>

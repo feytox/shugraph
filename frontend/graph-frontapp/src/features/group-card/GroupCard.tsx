@@ -1,12 +1,24 @@
-import { Badge, Box, Group, Loader, Paper, Stack, Text } from '@mantine/core';
-import type { ReactNode } from 'react';
+import { Box, Group, Loader, Stack, Text } from '@mantine/core';
+import { useId, type ReactNode } from 'react';
 import type { GroupItem } from '@/api/client';
-import { FarmExplanation } from '@/features/group-card/FarmExplanation';
+import { FarmRiskParts, FarmSummary } from '@/features/group-card/FarmExplanation';
+import { farmClientCount } from '@/features/group-card/farmClients';
 import { GroupNotFound, type useGroupDetails } from '@/features/group-card/useGroupDetails';
 import { ErrorNotice } from '@/shared/ErrorNotice';
-import { riskColors, riskLabels, statusColors, statusLabels } from '@/shared/groupLabels';
+import { RiskBadge, StatusBadge } from '@/shared/GroupBadges';
+import { formatDecidedAtUtc, formatEventRangeUtc } from '@/shared/dates';
+import { schemeLabels } from '@/shared/groupLabels';
 import { formatWholeRub } from '@/shared/money';
 import classes from './GroupCard.module.css';
+
+function Fact({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className={classes.fact}>
+      <small>{label}</small>
+      <span>{value}</span>
+    </div>
+  );
+}
 
 export function GroupCard({
   details,
@@ -17,6 +29,8 @@ export function GroupCard({
   status: GroupItem['status'];
   children: ReactNode;
 }) {
+  const riskTitleId = useId();
+  const decisionTitleId = useId();
   const { data: group, isFetching, error, refetch } = details;
 
   if (error instanceof GroupNotFound) {
@@ -47,59 +61,54 @@ export function GroupCard({
     );
   }
 
-  const { accounts_count, total_amount } = group.features;
+  const { accounts_count, span_minutes, total_amount } = group.features;
   const farmRisk = group.scheme === 'farm' && group.logins.length > 0 && group.risk_parts.farm;
+  const decision = status !== 'new' && group.decision;
 
   return (
-    <Stack px="md" pb="md" gap="md">
-      {errorNotice}
-      <Box>
-        <Box aria-live="polite">
-          {status !== 'new' && (
-            <Badge color={statusColors[status]} variant="light" size="sm" tt="none" mb="xs">
-              {statusLabels[status]}
-            </Badge>
-          )}
-        </Box>
-        <div className={classes.metrics}>
-          <Paper
-            component="section"
-            aria-label={`Риск ${riskLabels[group.risk_level].toLowerCase()}: ${group.risk_score}`}
-            className={classes.metric}
-            bg={`${riskColors[group.risk_level]}.0`}
-            radius="sm"
-            p={8}
-          >
-            <Text size="xs" c="dimmed">
-              Риск
-            </Text>
-            <Text size="md" fw={700} c={`${riskColors[group.risk_level]}.9`}>
-              {group.risk_score}
-            </Text>
-            <Text size="xs" c={`${riskColors[group.risk_level]}.9`}>
-              {riskLabels[group.risk_level]}
-            </Text>
-          </Paper>
-          <Paper className={classes.metric} bg="gray.0" radius="sm" p={8}>
-            <Text size="xs" c="dimmed">
-              Счета
-            </Text>
-            <Text size="md" fw={700}>
-              {accounts_count}
-            </Text>
-          </Paper>
-          <Paper className={classes.metric} bg="gray.0" radius="sm" p={8}>
-            <Text size="xs" c="dimmed">
-              Оборот
-            </Text>
-            <Text size="md" fw={700}>
-              {formatWholeRub(total_amount)}
-            </Text>
-          </Paper>
+    <>
+      <Stack px="md" pb="sm" gap="md">
+        {errorNotice}
+        <Group justify="space-between" gap="sm" wrap="nowrap">
+          <Text fz={20} fw={700}>
+            {schemeLabels[group.scheme]}
+          </Text>
+          <RiskBadge level={group.risk_level} score={group.risk_score} />
+        </Group>
+        {farmRisk && <FarmSummary group={group} risk={farmRisk} />}
+        <div className={classes.facts}>
+          <Fact label="счетов" value={accounts_count} />
+          {farmRisk && <Fact label="клиентов" value={farmClientCount(group)} />}
+          <Fact label="за" value={`${span_minutes} мин`} />
+          <Fact label="оборот" value={formatWholeRub(total_amount)} />
         </div>
-      </Box>
-      {farmRisk && <FarmExplanation group={group} risk={farmRisk} />}
-      {children}
-    </Stack>
+        {farmRisk && (
+          <div>
+            <p id={riskTitleId} className={classes.sectionTitle}>
+              Из чего риск
+            </p>
+            <FarmRiskParts risk={farmRisk} titleId={riskTitleId} />
+          </div>
+        )}
+        <section aria-labelledby={decisionTitleId} className={classes.decision}>
+          <div className={classes.decisionHead}>
+            <p id={decisionTitleId} className={classes.sectionTitle}>
+              Решение
+            </p>
+            <Box aria-live="polite">{status !== 'new' && <StatusBadge status={status} />}</Box>
+          </div>
+          {decision && (
+            <>
+              <p className={classes.comment}>{decision.comment}</p>
+              <span className={classes.decided}>{formatDecidedAtUtc(decision.decided_at)}</span>
+            </>
+          )}
+          {children}
+        </section>
+      </Stack>
+      <p className={classes.dates}>
+        события {formatEventRangeUtc(group.first_event_at, group.last_event_at)}
+      </p>
+    </>
   );
 }

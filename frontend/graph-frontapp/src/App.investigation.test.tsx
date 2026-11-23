@@ -82,10 +82,9 @@ afterEach(() => {
 it('показывает карточку фермы с текстом и слагаемыми риска по шаблону', async () => {
   renderScreen(`/?group=${farm.item.id}`);
   await screen.findByRole('complementary', { name: 'Карточка расследования' });
-  const intro = await card().findByRole('region', { name: 'Риск высокий: 75' });
+  const intro = await card().findByLabelText('Риск высокий: 75');
   expect(intro).toBeVisible();
   expect(card().getByText('161 000 ₽')).toBeVisible();
-  expect(card().getByRole('heading', { name: 'Что произошло' })).toBeVisible();
   const summary = card().getByText(
     'С одного устройства заходили в личный кабинет разные клиенты (всего 3).'
   );
@@ -103,22 +102,24 @@ it('показывает карточку фермы с текстом и сла
   expect(remainder).toBeVisible();
   fireEvent.click(control);
   expect(remainder).not.toBeVisible();
-  const table = within(card().getByRole('table', { name: 'Обоснование риска' }));
+  const table = within(card().getByRole('table', { name: 'Из чего риск' }));
   expect(table.getAllByRole('row').map((row) => row.textContent)).toEqual([
-    'ПризнакБаллы',
-    'Тип схемы «ферма»+50',
-    'Скорость: 28 мин от первого до последнего события+15',
-    'Клиентов на одном устройстве: 3+0',
-    'Есть общий счёт для вывода денег+10',
+    'Схема «ферма»+50',
+    'Скорость+15',
+    'Клиентов на устройстве+0',
+    'Общий счёт для вывода+10',
   ]);
   expect(card().getByText('4')).toBeVisible();
+  expect(card().getByText('28 мин')).toBeVisible();
+  expect(card().getByText('события 12.11.26, 10:01–10:29 UTC')).toBeVisible();
   expect(card().queryByText('Новая')).not.toBeInTheDocument();
   expect(within(currentGroup()).getByText('Новая')).toBeVisible();
 
   openAddress();
-  expect(await card().findByRole('region', { name: 'Риск средний: 70' })).toBeVisible();
+  expect(await card().findByLabelText('Риск средний: 70')).toBeVisible();
   expect(card().getByText('210 000 ₽')).toBeVisible();
-  expect(card().queryByRole('heading', { name: 'Что произошло' })).not.toBeInTheDocument();
+  expect(card().queryByText(/С одного устройства заходили/)).not.toBeInTheDocument();
+  expect(card().queryByRole('table', { name: 'Из чего риск' })).not.toBeInTheDocument();
 });
 
 it('объясняет риск фермы без общего счёта и считает уникальных клиентов', async () => {
@@ -138,7 +139,7 @@ it('объясняет риск фермы без общего счёта и с�
   );
   renderScreen(`/?group=${farm.item.id}`);
   await screen.findByRole('complementary', { name: 'Карточка расследования' });
-  expect(await card().findByRole('region', { name: 'Риск средний: 65' })).toBeVisible();
+  expect(await card().findByLabelText('Риск средний: 65')).toBeVisible();
   expect(card().getByText('161 001 ₽')).toBeVisible();
   const summary = card().getByText(
     'С одного устройства заходили в личный кабинет разные клиенты (всего 3).'
@@ -151,7 +152,7 @@ it('объясняет риск фермы без общего счёта и с�
       'Общего счёта для вывода не видно, но несколько клиентов на одном устройстве — уже признак фермы: возможно, счетами управляет один человек.'
     )
   ).toBeVisible();
-  expect(card().getByRole('row', { name: 'Общего счёта для вывода денег нет +0' })).toBeVisible();
+  expect(card().getByRole('row', { name: 'Общий счёт для вывода +0' })).toBeVisible();
 });
 
 it('сообщает об ошибке карточки в её панели и позволяет открыть другую группу', async () => {
@@ -163,7 +164,7 @@ it('сообщает об ошибке карточки в её панели и 
   );
   expect(screen.getByRole('main')).toBeVisible();
   openAddress();
-  expect(await card().findByRole('region', { name: 'Риск средний: 70' })).toBeVisible();
+  expect(await card().findByLabelText('Риск средний: 70')).toBeVisible();
 });
 
 it('показывает русское сообщение и позволяет повторно загрузить карточку', async () => {
@@ -174,7 +175,7 @@ it('показывает русское сообщение и позволяет
     'Не удалось загрузить карточку группы'
   );
   fireEvent.click(card().getByRole('button', { name: /^Повторить/ }));
-  expect(await card().findByRole('region', { name: 'Риск высокий: 75' })).toBeVisible();
+  expect(await card().findByLabelText('Риск высокий: 75')).toBeVisible();
 });
 
 it('показывает отсутствие карточки без кнопки повтора', async () => {
@@ -188,16 +189,12 @@ it('показывает отсутствие карточки без кнопк
 it('после опроса списка обновляет открытую карточку и сохраняет введённый комментарий', async () => {
   startDemoClock();
   renderScreen(evolvingGroupUrl);
-  await waitForScreen(() =>
-    expect(card().getByRole('region', { name: 'Риск высокий: 80' })).toBeVisible()
-  );
+  await waitForScreen(() => expect(card().getByLabelText('Риск высокий: 80')).toBeVisible());
   fireEvent.change(comment(), { target: { value: decisionComment } });
 
   await nextDemoStep();
   expect(within(currentGroup()).getByLabelText('Риск высокий: 90')).toBeVisible();
-  await waitForScreen(() =>
-    expect(card().getByRole('region', { name: 'Риск высокий: 90' })).toBeVisible()
-  );
+  await waitForScreen(() => expect(card().getByLabelText('Риск высокий: 90')).toBeVisible());
   expect(card().getByText('223 ₽')).toBeVisible();
   expect(comment()).toHaveValue(decisionComment);
 });
@@ -218,9 +215,7 @@ it('сохраняет риск, оборот и время события ре�
 
   view.unmount();
   renderScreen(evolvingGroupUrl);
-  await waitForScreen(() =>
-    expect(card().getByRole('region', { name: 'Риск высокий: 80' })).toBeVisible()
-  );
+  await waitForScreen(() => expect(card().getByLabelText('Риск высокий: 80')).toBeVisible());
   expect(card().getByText('123 ₽')).toBeVisible();
   expect(card().getByText('Подтверждена')).toBeVisible();
   const { data } = await apiClient.GET('/api/v1/groups/{group_id}', {
@@ -283,7 +278,7 @@ it.each([
     expect(loadedGroups().getAllByRole('listitem')).toHaveLength(29);
 
     openAddress();
-    expect(await card().findByRole('region', { name: 'Риск средний: 70' })).toBeVisible();
+    expect(await card().findByLabelText('Риск средний: 70')).toBeVisible();
     await waitFor(() => expect(listResponses).toBeGreaterThanOrEqual(listResponsesBeforeSave + 4), {
       timeout: 5500,
     });
@@ -331,11 +326,11 @@ it('сбрасывает черновик при переходе и восст�
   const farmLink = await openFarm();
   fireEvent.change(comment(), { target: { value: 'Черновик фермы' } });
   openAddress();
-  expect(await card().findByRole('region', { name: 'Риск средний: 70' })).toBeVisible();
+  expect(await card().findByLabelText('Риск средний: 70')).toBeVisible();
   expect(comment()).toHaveValue('');
 
   fireEvent.click(farmLink);
-  expect(await card().findByRole('region', { name: 'Риск высокий: 75' })).toBeVisible();
+  expect(await card().findByLabelText('Риск высокий: 75')).toBeVisible();
   expect(comment()).toHaveValue('');
   fireEvent.change(comment(), { target: { value: decisionComment } });
   await waitFor(() => expect(approve()).toBeEnabled());
@@ -343,7 +338,7 @@ it('сбрасывает черновик при переходе и восст�
   expect(await card().findByRole('status')).toHaveTextContent('Сохранение решения…');
 
   openAddress();
-  expect(await card().findByRole('region', { name: 'Риск средний: 70' })).toBeVisible();
+  expect(await card().findByLabelText('Риск средний: 70')).toBeVisible();
   expect(comment()).toBeEnabled();
   fireEvent.click(farmLink);
   expect(await card().findByRole('status')).toHaveTextContent('Сохранение решения…');
@@ -370,9 +365,7 @@ it('после очистки кэша мутаций сохраняет ком�
   );
 
   openAddress();
-  await waitForScreen(() =>
-    expect(card().getByRole('region', { name: 'Риск средний: 70' })).toBeVisible()
-  );
+  await waitForScreen(() => expect(card().getByLabelText('Риск средний: 70')).toBeVisible());
   fireEvent.click(farmLink);
   await waitForScreen(() => expect(comment()).toHaveValue(decisionComment));
   await advance(5 * 60 * 1000 + 1);
@@ -396,9 +389,7 @@ it('обновляет открытую карточку и граф, пока �
     })
   );
   renderScreen(evolvingGroupUrl);
-  await waitForScreen(() =>
-    expect(card().getByRole('region', { name: 'Риск высокий: 80' })).toBeVisible()
-  );
+  await waitForScreen(() => expect(card().getByLabelText('Риск высокий: 80')).toBeVisible());
   fireEvent.change(comment(), { target: { value: decisionComment } });
   fireEvent.click(screen.getByRole('button', { name: 'Показать ещё' }));
   await waitForScreen(() => expect(screen.getByText('Не удалось загрузить ещё')).toBeVisible());
@@ -407,9 +398,7 @@ it('обновляет открытую карточку и граф, пока �
 
   vi.setSystemTime(Date.now() + 10000);
   await advance(3000);
-  await waitForScreen(() =>
-    expect(card().getByRole('region', { name: 'Риск высокий: 90' })).toBeVisible()
-  );
+  await waitForScreen(() => expect(card().getByLabelText('Риск высокий: 90')).toBeVisible());
   expect(within(currentGroup()).getByLabelText('Риск высокий: 80')).toBeVisible();
   await waitForScreen(() => expect(graphRequests).toBeGreaterThan(requestsBeforeUpdate));
   expect(comment()).toHaveValue(decisionComment);
@@ -452,9 +441,7 @@ it('после опроса обновляет риск, оборот и ста�
 
   item = { ...item, risk_score: 76 };
   await advance(3000);
-  await waitForScreen(() =>
-    expect(card().getByRole('region', { name: 'Риск высокий: 76' })).toBeVisible()
-  );
+  await waitForScreen(() => expect(card().getByLabelText('Риск высокий: 76')).toBeVisible());
 
   failUpdate = true;
   item = { ...item, features: { ...item.features, total_amount: 17000000 } };

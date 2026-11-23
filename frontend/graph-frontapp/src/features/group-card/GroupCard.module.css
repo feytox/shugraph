@@ -1,14 +1,3 @@
-.metrics {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr) minmax(0, 1.3fr);
-  gap: var(--mantine-spacing-xs);
-}
-
-.metric {
-  overflow-wrap: anywhere;
-  font-variant-numeric: tabular-nums;
-}
-
 .summary {
   display: flex;
   align-items: flex-start;
@@ -33,4 +22,108 @@
 
 details[open] .chevron {
   transform: rotate(180deg);
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fact {
+  flex: 1 1 auto;
+  padding: 6px;
+  border-radius: 6px;
+  background: var(--mantine-color-gray-0);
+}
+
+.fact small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.3;
+  color: var(--mantine-color-gray-6);
+}
+
+.fact span {
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sectionTitle {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mantine-color-gray-6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.parts {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.parts td {
+  padding: 5px 0;
+  border-bottom: 1px solid var(--mantine-color-gray-1);
+}
+
+.parts td:last-child {
+  padding-left: 12px;
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.parts tr:last-child td {
+  border-bottom: 0;
+}
+
+.parts .zero td:last-child {
+  color: var(--mantine-color-gray-5);
+}
+
+.decision {
+  display: grid;
+  gap: 8px;
+}
+
+.decisionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.decisionHead .sectionTitle {
+  margin: 0;
+}
+
+.comment {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--mantine-color-gray-0);
+  font-size: var(--mantine-font-size-sm);
+  overflow-wrap: anywhere;
+}
+
+.decided {
+  justify-self: end;
+  font-size: 12px;
+  color: var(--mantine-color-gray-6);
+  font-variant-numeric: tabular-nums;
+}
+
+.dates {
+  margin: 0;
+  padding: 0 var(--mantine-spacing-md) 10px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--mantine-color-gray-6);
+  font-variant-numeric: tabular-nums;
 }

@@ -90,9 +90,7 @@ it('открывает граф и карточку группы со второ
   renderScreen(`/?group=${id}`);
 
   expect(await screen.findByRole('img', { name: 'Граф группы' })).toBeVisible();
-  expect(
-    await screen.findByRole('row', { name: 'Клиентов на одном устройстве: 5 +10' })
-  ).toBeVisible();
+  expect(await screen.findByRole('row', { name: 'Клиентов на устройстве +10' })).toBeVisible();
   expect(screen.queryByRole('link', { name: linkName })).not.toBeInTheDocument();
 });
 
