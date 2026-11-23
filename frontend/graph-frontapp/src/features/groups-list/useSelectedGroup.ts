@@ -30,6 +30,6 @@ export function useDefaultGroupSelection() {
 }
 
 export function useGroupSummary(groupId: string) {
-  const { data } = useGroups();
-  return data?.items.find((item) => item.id === groupId);
+  const { data, isError } = useGroups();
+  return { summary: data?.items.find((item) => item.id === groupId), listError: isError };
 }

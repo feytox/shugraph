@@ -1,0 +1,36 @@
+.metrics {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.7fr) minmax(0, 1.3fr);
+  gap: var(--mantine-spacing-xs);
+}
+
+.metric {
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--mantine-spacing-xs);
+  cursor: pointer;
+  list-style: none;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary:focus-visible {
+  outline: 2px solid var(--mantine-color-gray-7);
+  outline-offset: 3px;
+}
+
+.chevron {
+  flex: none;
+}
+
+details[open] .chevron {
+  transform: rotate(180deg);
+}

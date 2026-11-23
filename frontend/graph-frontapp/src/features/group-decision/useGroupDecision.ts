@@ -1,6 +1,8 @@
 import {
+  skipToken,
   useMutation,
   useMutationState,
+  useQuery,
   useQueryClient,
   type InfiniteData,
   type MutationState,
@@ -17,9 +19,17 @@ const saveError = 'Не удалось сохранить решение';
 
 class GroupChanged extends Error {}
 
+type FailedDecision = { comment: string; message: string };
+
 export function useGroupDecision(groupId: string) {
   const queryClient = useQueryClient();
   const mutationKey = ['group-decision', groupId];
+  const failedDecisionKey = [...mutationKey, 'failure'];
+  const { data: failedDecision } = useQuery<FailedDecision | null>({
+    queryKey: failedDecisionKey,
+    queryFn: skipToken,
+    gcTime: Infinity,
+  });
   const groupDecision = { mutationKey, exact: true };
   const detail = { queryKey: groupDetailKey(groupId) };
   const list = { queryKey: groupsListKey, exact: true };
@@ -51,6 +61,7 @@ export function useGroupDecision(groupId: string) {
       return data;
     },
     onSuccess: async (solution) => {
+      queryClient.setQueryData(failedDecisionKey, null);
       await Promise.all([queryClient.cancelQueries(detail), queryClient.cancelQueries(list)]);
       queryClient.setQueriesData<Group>(detail, (group) =>
         group ? { ...group, ...solution, is_frozen: true } : group
@@ -70,21 +81,23 @@ export function useGroupDecision(groupId: string) {
       );
       await refreshGroup();
     },
-    onError: async (error) => {
-      if (!(error instanceof GroupChanged)) return;
-      await refreshGroup();
+    onError: async (error, input) => {
+      queryClient.setQueryData(failedDecisionKey, {
+        comment: input.decision_comment,
+        message: error.message,
+      } satisfies FailedDecision);
+      if (error instanceof GroupChanged) await refreshGroup();
     },
   });
 
-  const submittedComment =
-    pending || latest?.status === 'error' ? latest?.variables?.decision_comment : undefined;
+  const submittedComment = pending ? latest.variables?.decision_comment : failedDecision?.comment;
 
   return {
     save(input: GroupSolutionInput) {
       if (!queryClient.isMutating(groupDecision)) mutation.mutate(input);
     },
     pending,
-    error: latest?.error?.message,
+    error: pending ? undefined : failedDecision?.message,
     submittedComment,
   };
 }

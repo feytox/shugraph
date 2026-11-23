@@ -35,10 +35,15 @@ function AnalystScreen() {
 }
 
 function SelectedGroup({ groupId }: { groupId: string }) {
-  const summary = useGroupSummary(groupId);
-  const details = useGroupDetails(groupId, summary);
+  const { summary, listError } = useGroupSummary(groupId);
+  const currentSummary = listError ? undefined : summary;
+  const details = useGroupDetails(groupId, currentSummary);
   const notFound = details.error instanceof GroupNotFound;
   const group = notFound ? undefined : (details.data ?? summary);
+  const detailStatus = details.data?.status;
+  const status = detailStatus && detailStatus !== 'new' ? detailStatus : (summary?.status ?? 'new');
+  const evidenceReady =
+    details.dataUpdatedAt > 0 && details.fetchStatus === 'idle' && !details.error;
 
   return (
     <>
@@ -47,7 +52,7 @@ function SelectedGroup({ groupId }: { groupId: string }) {
           <GroupGraph
             groupId={groupId}
             scheme={group.scheme}
-            lastEventAt={summary?.last_event_at ?? group.last_event_at}
+            lastEventAt={currentSummary?.last_event_at ?? group.last_event_at}
           />
         ) : (
           <GraphFrame>
@@ -62,11 +67,13 @@ function SelectedGroup({ groupId }: { groupId: string }) {
         )}
       </main>
       <SidePanel side="right" title="Карточка расследования" storageKey="investigation-panel">
-        <GroupCard
-          details={details}
-          listedStatus={summary?.status}
-          decision={(state) => <GroupDecision groupId={groupId} {...state} />}
-        />
+        <GroupCard details={details} status={status}>
+          <GroupDecision
+            groupId={groupId}
+            isOpen={status === 'new'}
+            evidenceReady={evidenceReady}
+          />
+        </GroupCard>
       </SidePanel>
     </>
   );

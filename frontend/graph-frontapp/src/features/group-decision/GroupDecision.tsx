@@ -33,13 +33,19 @@ export function GroupDecision({
       <Textarea
         label="Комментарий"
         required
+        withAsterisk={false}
         minRows={3}
         disabled={pending}
         value={comment}
         onChange={(event) => setDraft(event.currentTarget.value)}
       />
       <Group grow gap="xs">
-        <Button size="compact-sm" disabled={!canSubmit} onClick={() => submit('approved')}>
+        <Button
+          size="compact-sm"
+          color="dark"
+          disabled={!canSubmit}
+          onClick={() => submit('approved')}
+        >
           Подтвердить
         </Button>
         <Button
