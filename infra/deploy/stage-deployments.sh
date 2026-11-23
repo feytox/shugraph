@@ -3,9 +3,15 @@ set -euo pipefail
 
 FILTER=${1:+"select(.payload.pr == $1) |"}
 
-gh api --paginate "repos/{owner}/{repo}/deployments?environment=stage&per_page=100" \
-  --jq ".[] | $FILTER \"\(.id) \(.payload.pr)\"" |
-  while read -r id pr; do
-    state=$(gh api "repos/{owner}/{repo}/deployments/$id/statuses?per_page=1" --jq '.[0].state')
-    if [[ $state != inactive ]]; then echo "$id $state $pr"; fi
-  done
+gh api graphql --paginate -F owner='{owner}' -F name='{repo}' -f query='
+  query($owner: String!, $name: String!, $endCursor: String) {
+    repository(owner: $owner, name: $name) {
+      deployments(environments: ["stage"], first: 100, after: $endCursor) {
+        nodes { databaseId payload latestStatus { state } }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }' \
+  --jq ".data.repository.deployments.nodes[] | .payload |= (fromjson | fromjson) | $FILTER
+    select(.latestStatus.state != \"INACTIVE\") |
+    \"\(.databaseId) \(.latestStatus.state // \"null\" | ascii_downcase) \(.payload.pr)\""
