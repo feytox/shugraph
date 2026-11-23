@@ -65,16 +65,6 @@ jobs:
             exit 1
           fi
           live=$(infra/deploy/stage-deployments.sh "$pr" | awk '$2 == "success"')
-          if [[ -z $live ]]; then
-            stages=$(infra/deploy/stage-deployments.sh | awk '$2 == "success" {print $3}' | sort -un)
-            if (( $(wc -w <<< "$stages") >= MAX_STAGES )); then
-              echo "::error::Уже есть $MAX_STAGES stage-площадки, новую не создать. Удали ненужную: gh workflow run stage-delete.yml -f pr=<номер>"
-              for n in $stages; do
-                echo "PR #$n: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/$n" | tee -a "$GITHUB_STEP_SUMMARY"
-              done
-              exit 1
-            fi
-          fi
           {
             echo "pr=$pr"
             echo "namespace=stage-pr-$pr"
@@ -175,6 +165,7 @@ jobs:
       actions: write
       statuses: write
       deployments: write
+      pull-requests: read
     environment:
       name: vm
       deployment: false
@@ -193,6 +184,27 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+
+      - name: Check stage can be deployed
+        if: inputs.environment == 'stage'
+        env:
+          PR: ${{ needs.plan.outputs.pr }}
+        run: |
+          if [[ $(gh pr view "$PR" --json state --jq .state) != OPEN ]]; then
+            echo "::error::PR #$PR закрыт, площадку для него не создаю"
+            exit 1
+          fi
+          if [[ -n $(infra/deploy/stage-deployments.sh "$PR" | awk '$2 == "success"') ]]; then
+            exit 0
+          fi
+          stages=$(infra/deploy/stage-deployments.sh | awk '$2 == "success" {print $3}' | sort -un)
+          if (( $(wc -w <<< "$stages") >= MAX_STAGES )); then
+            echo "::error::Уже есть $MAX_STAGES stage-площадки, новую не создать. Удали ненужную: gh workflow run stage-delete.yml -f pr=<номер>"
+            for n in $stages; do
+              echo "PR #$n: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/pull/$n" | tee -a "$GITHUB_STEP_SUMMARY"
+            done
+            exit 1
+          fi
 
       - id: deployment
         name: Start deployment record
