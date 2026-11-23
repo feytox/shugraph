@@ -17,7 +17,7 @@
 }
 
 .row[aria-current='true'] {
-  background: var(--mantine-color-blue-0);
+  background: var(--mantine-color-gray-1);
 }
 
 .keepWidth {
