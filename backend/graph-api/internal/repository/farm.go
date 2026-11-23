@@ -44,6 +44,15 @@ func (p *PgFarmRepository) ListOpenGroupDevices(ctx context.Context, accountID s
 	return devices, nil
 }
 
+func (p *PgFarmRepository) GroupFacts(ctx context.Context, groupID uuid.UUID) (domain.FarmFacts, error) {
+	row, err := p.queries.GetFarmGroupFacts(ctx, groupID)
+	if err != nil {
+		return domain.FarmFacts{}, fmt.Errorf("get farm group facts: %w", err)
+	}
+
+	return domain.FarmFacts{ClientsCount: int(row.ClientsCount), HasCollector: row.HasCollector}, nil
+}
+
 func (p *PgFarmRepository) ListLogins(
 	ctx context.Context,
 	deviceID string,

@@ -36,6 +36,7 @@ type Groups struct {
 	Window                  time.Duration `env:"GROUP_WINDOW" envDefault:"24h"`
 	FarmMinClients          int           `env:"FARM_MIN_CLIENTS" envDefault:"3"`
 	FarmMinCollectorSenders int           `env:"FARM_MIN_COLLECTOR_SENDERS" envDefault:"2"`
+	Risk                    Risk
 }
 
 func (g Groups) Rules() domain.GroupRules {
@@ -45,6 +46,7 @@ func (g Groups) Rules() domain.GroupRules {
 			MinClients:          g.FarmMinClients,
 			MinCollectorSenders: g.FarmMinCollectorSenders,
 		},
+		Risk: g.Risk.Rules(),
 	}
 }
 
