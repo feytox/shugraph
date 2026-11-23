@@ -6,6 +6,7 @@ import { GraphLegend } from '@/features/group-graph/GraphLegend';
 import { toGraphElements } from '@/features/group-graph/graphElements';
 import { useCytoscapeGraph } from '@/features/group-graph/useCytoscapeGraph';
 import { useGroupGraph } from '@/features/group-graph/useGroupGraph';
+import { useThemeFont } from '@/features/group-graph/useThemeFont';
 import { ErrorNotice } from '@/shared/ErrorNotice';
 import classes from '@/features/group-graph/GroupGraph.module.css';
 
@@ -46,6 +47,7 @@ export function GroupGraph({ groupId, scheme, lastEventAt }: Props) {
   );
   const [drawn, setDrawn] = useState(fetched);
   if (graph.isSuccess && fetched !== drawn) setDrawn(fetched);
+  const fontLoading = useThemeFont().isPending;
 
   return (
     <GraphFrame
@@ -60,13 +62,23 @@ export function GroupGraph({ groupId, scheme, lastEventAt }: Props) {
         ) : undefined
       }
     >
-      {drawn ? <GraphCanvas scheme={scheme} elements={drawn} /> : <GraphStatus graph={graph} />}
+      {drawn && !fontLoading ? (
+        <GraphCanvas scheme={scheme} elements={drawn} />
+      ) : (
+        <GraphStatus graph={graph} waitingForFont={Boolean(drawn) && fontLoading} />
+      )}
     </GraphFrame>
   );
 }
 
-function GraphStatus({ graph }: { graph: GroupGraphQuery }) {
-  if (graph.isPending) {
+function GraphStatus({
+  graph,
+  waitingForFont,
+}: {
+  graph: GroupGraphQuery;
+  waitingForFont: boolean;
+}) {
+  if (graph.isPending || waitingForFont) {
     return (
       <Center h="100%">
         <Group role="status">
