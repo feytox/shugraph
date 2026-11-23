@@ -1,9 +1,9 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { MantineProvider } from '@mantine/core';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { DEFAULT_THEME, MantineProvider } from '@mantine/core';
+import { onlineManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import cytoscape, { type CytoscapeOptions, type ElementsDefinition } from 'cytoscape';
 import { http, HttpResponse } from 'msw';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest';
 import { server } from '@/mocks/server';
 import type { GroupItem } from '@/api/client';
 import { mockGroups } from '@/mocks/groupGraphs';
@@ -58,6 +58,45 @@ describe('GroupGraph', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Загрузка графа');
   });
 
+  it('пока шрифт темы не загружен, вместо графа показывает загрузку', async () => {
+    let fontLoaded = () => {};
+    const load = vi
+      .spyOn(document.fonts, 'load')
+      .mockImplementationOnce(() => new Promise((resolve) => (fontLoaded = () => resolve([]))));
+    renderGraph();
+    expect(await screen.findByText('устройство')).toBeVisible();
+    expect(load).toHaveBeenCalledWith(
+      expect.stringContaining(DEFAULT_THEME.fontFamily),
+      expect.stringMatching(/[а-я].*₽|₽.*[а-я]/)
+    );
+    expect(screen.getByRole('status')).toHaveTextContent('Загрузка графа');
+    expect(cytoscape).not.toHaveBeenCalled();
+
+    fontLoaded();
+    await waitFor(() => expect(cytoscape).toHaveBeenCalled());
+    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+
+  it('если шрифт не загрузился, рисует граф запасным', async () => {
+    vi.spyOn(document.fonts, 'load').mockRejectedValueOnce(new Error('font failed'));
+    renderGraph();
+    await waitFor(() => expect(cytoscape).toHaveBeenCalled());
+  });
+
+  it('без сети рисует граф из кэша, даже если шрифт раньше не загрузился', async () => {
+    vi.spyOn(document.fonts, 'load').mockRejectedValueOnce(new Error('font failed'));
+    const client = new QueryClient();
+    const firstOpen = render(graphFor('farm', farm.item.last_event_at, client));
+    await waitFor(() => expect(cytoscape).toHaveBeenCalled());
+    firstOpen.unmount();
+    vi.mocked(cytoscape).mockClear();
+
+    onlineManager.setOnline(false);
+    onTestFinished(() => onlineManager.setOnline(true));
+    render(graphFor('farm', farm.item.last_event_at, client));
+    await waitFor(() => expect(cytoscape).toHaveBeenCalled());
+  });
+
   it('рисует граф запрошенной группы и раскладывает его по схеме', async () => {
     renderGraph();
     await waitFor(() => expect(cytoscape).toHaveBeenCalled());
@@ -108,6 +147,21 @@ describe('GroupGraph', () => {
     renderGraph();
     expect(await screen.findByText('Граф группы не найден')).toBeVisible();
     expect(cytoscape).not.toHaveBeenCalled();
+  });
+
+  it('не прячет ответ сервера за загрузкой шрифта', async () => {
+    const load = vi.spyOn(document.fonts, 'load').mockImplementation(() => new Promise(() => {}));
+    onTestFinished(() => load.mockRestore());
+    server.use(http.get(graphUrl, () => new HttpResponse(null, { status: 404 })));
+    const notFound = renderGraph();
+    expect(await screen.findByText('Граф группы не найден')).toBeVisible();
+    expect(screen.queryByText('Загрузка графа…')).not.toBeInTheDocument();
+    notFound.unmount();
+
+    server.use(http.get(graphUrl, () => new HttpResponse(null, { status: 500 })));
+    renderGraph();
+    expect(await screen.findByText('Не удалось загрузить граф')).toBeVisible();
+    expect(screen.queryByText('Загрузка графа…')).not.toBeInTheDocument();
   });
 
   it('при ошибке обновления оставляет последний граф и сообщает об этом', async () => {

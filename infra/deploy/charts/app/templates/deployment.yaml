@@ -17,6 +17,9 @@ spec:
         {{- include "app.labels" . | nindent 8 }}
         app.kubernetes.io/component: server
     spec:
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
       containers:
         - name: {{ .Release.Name }}
