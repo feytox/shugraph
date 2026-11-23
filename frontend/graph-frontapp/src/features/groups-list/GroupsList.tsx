@@ -33,7 +33,8 @@ function StatusBadge({ status }: { status: GroupItem['status'] }) {
     <Badge
       color={statusColors[status]}
       variant="light"
-      size="sm"
+      size="md"
+      fz="xs"
       tt="none"
       className={classes.keepWidth}
     >
