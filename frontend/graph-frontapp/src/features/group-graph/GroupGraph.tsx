@@ -81,7 +81,7 @@ function GraphStatus({
   if (graph.isPending || waitingForFont) {
     return (
       <Center h="100%">
-        <Group role="status">
+        <Group role="status" className={classes.delayedLoader}>
           <Loader size="sm" />
           <Text>Загрузка графа…</Text>
         </Group>

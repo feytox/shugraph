@@ -62,3 +62,16 @@
   border-top-style: dashed;
   border-top-color: var(--mantine-color-gray-4);
 }
+
+.delayedLoader {
+  --loader-delay: 250ms;
+
+  opacity: 0;
+  animation: reveal 0s linear var(--loader-delay) forwards;
+}
+
+@keyframes reveal {
+  to {
+    opacity: 1;
+  }
+}
