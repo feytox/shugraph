@@ -694,7 +694,11 @@ h1, h2, h3, p, dl, dd { margin: 0; }
   border: 0;
   padding: 0;
   border-radius: 7px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
 }
+.node.dragging { cursor: grabbing; z-index: 2; }
 .node.dim { opacity: 0.24; }
 
 .shape {
@@ -976,6 +980,7 @@ let hoveredNode = null;
 let focusedNode = null;
 let zoom = 1;
 let graphNodes = [];
+const customPositions = new Map();
 let currentUserLabel = 'Аналитик #042';
 let authBusy = false;
 
@@ -1588,6 +1593,7 @@ function renderMode() {
 
 function renderNodes() {
   selectedNode = hoveredNode = focusedNode = null;
+  customPositions.clear();
   $('nodes').replaceChildren();
   graphNodes = chosen.graph.nodes.map((node) => {
     const button = document.createElement('button');
@@ -1601,11 +1607,66 @@ function renderNodes() {
     label.className = 'node-label';
     label.textContent = node.entity_id;
     button.append(shape, label);
+    let drag = null;
+    let suppressClick = false;
+    const onPointerMove = (event) => {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      const dx = event.clientX - drag.startClientX;
+      const dy = event.clientY - drag.startClientY;
+      if (!drag.moved && Math.hypot(dx, dy) <= 4) return;
+      if (!drag.moved) {
+        drag.moved = true;
+        button.classList.add('dragging');
+      }
+      const { clientWidth: width, clientHeight: height } = surface;
+      if (!width || !height) return;
+      const nextX = Math.max(20, Math.min(width - 20, drag.startX + dx));
+      const nextY = Math.max(20, Math.min(height - 28, drag.startY + dy));
+      customPositions.set(node.id, {
+        x: 0.5 + (nextX / width - 0.5) / zoom,
+        y: 0.5 + (nextY / height - 0.5) / zoom,
+      });
+      drawGraph();
+    };
+    const finishDrag = (event) => {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', finishDrag);
+      window.removeEventListener('pointercancel', finishDrag);
+      if (drag.moved) {
+        suppressClick = true;
+        setTimeout(() => { suppressClick = false; }, 0);
+      }
+      button.classList.remove('dragging');
+      drag = null;
+    };
     button.onpointerenter = () => { hoveredNode = node.id; drawGraph(); };
     button.onpointerleave = () => { hoveredNode = null; drawGraph(); };
     button.onfocus = () => { focusedNode = node.id; drawGraph(); };
     button.onblur = () => { focusedNode = null; drawGraph(); };
-    button.onclick = () => { selectedNode = selectedNode === node.id ? null : node.id; drawGraph(); };
+    button.onpointerdown = (event) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      event.preventDefault();
+      drag = {
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startX: parseFloat(button.style.left) || 0,
+        startY: parseFloat(button.style.top) || 0,
+        moved: false,
+      };
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', finishDrag);
+      window.addEventListener('pointercancel', finishDrag);
+    };
+    button.onclick = () => {
+      if (suppressClick) {
+        suppressClick = false;
+        return;
+      }
+      selectedNode = selectedNode === node.id ? null : node.id;
+      drawGraph();
+    };
     $('nodes').append(button);
     return { ...node, button };
   });
@@ -1661,6 +1722,10 @@ function positions(width, height) {
         place(client, narrow ? 0.75 : along, narrow ? along : 0.72);
       }
     });
+  }
+  for (const node of graphNodes) {
+    const custom = customPositions.get(node.id);
+    if (custom) place(node, custom.x, custom.y);
   }
   return result;
 }
