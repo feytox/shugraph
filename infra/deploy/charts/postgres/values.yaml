@@ -1,4 +1,5 @@
 image: postgres:18-alpine
+priorityClassName: ""
 
 passwords:
   - POSTGRES_PASSWORD

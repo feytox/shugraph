@@ -1,23 +1,38 @@
 environments:
   prod:
     values:
-      - environments/prod.yaml
+      - &common
+        namespace: {{ requiredEnv "NAMESPACE" }}
+        host: {{ requiredEnv "HOST" }}
+      - priorityClassName: prod
+  stage:
+    values:
+      - *common
+      - priorityClassName: ""
 ---
 helmDefaults:
   wait: true
   timeout: 300
 
 releases:
+  - name: quota
+    namespace: {{ .Values.namespace }}
+    chart: ./charts/quota
+    installed: {{ eq .Environment.Name "stage" }}
+
   - name: postgres
     namespace: {{ .Values.namespace }}
     chart: ./charts/postgres
+    values:
+      - priorityClassName: {{ .Values.priorityClassName }}
 
   - name: graph-api
     namespace: {{ .Values.namespace }}
     chart: ./charts/app
     needs: [postgres]
     values:
-      - image:
+      - priorityClassName: {{ .Values.priorityClassName }}
+        image:
           repository: {{ requiredEnv "IMAGE_REGISTRY" }}/graph-api
           tag: {{ requiredEnv "IMAGE_TAG" }}
         args: [serve]
@@ -26,6 +41,7 @@ releases:
           enabled: true
         route:
           pathPrefix: /api
+          hostnames: [{{ .Values.host }}]
         secretEnv:
           DB_PASSWORD: {secret: postgres, key: GRAPH_API_DB_PASSWORD}
         env:
@@ -39,7 +55,8 @@ releases:
     chart: ./charts/app
     needs: [postgres]
     values:
-      - image:
+      - priorityClassName: {{ .Values.priorityClassName }}
+        image:
           repository: {{ requiredEnv "IMAGE_REGISTRY" }}/graph-admin-api
           tag: {{ requiredEnv "IMAGE_TAG" }}
         args: [serve]
@@ -48,6 +65,7 @@ releases:
           enabled: true
         route:
           pathPrefix: /admin-api
+          hostnames: [{{ .Values.host }}]
         secretEnv:
           DB_PASSWORD: {secret: postgres, key: GRAPH_ADMIN_API_DB_PASSWORD}
         env:
@@ -61,7 +79,8 @@ releases:
     namespace: {{ .Values.namespace }}
     chart: ./charts/app
     values:
-      - image:
+      - priorityClassName: {{ .Values.priorityClassName }}
+        image:
           repository: {{ requiredEnv "IMAGE_REGISTRY" }}/graph-frontapp
           tag: {{ requiredEnv "IMAGE_TAG" }}
         probes:
@@ -76,3 +95,4 @@ releases:
             memory: 64Mi
         route:
           pathPrefix: /
+          hostnames: [{{ .Values.host }}]

@@ -8,9 +8,9 @@ WHERE NOT is_frozen
   AND last_event_at < sqlc.arg(stale_before);
 
 -- name: InsertGroup :exec
-INSERT INTO groups (id, scheme, risk_score, risk_parts, first_event_at, last_event_at, accounts_count, total_amount)
+INSERT INTO groups (id, scheme, risk_score, risk_parts, risk_level, first_event_at, last_event_at, accounts_count, total_amount)
 VALUES (
-    sqlc.arg(id), sqlc.arg(scheme), sqlc.arg(risk_score), sqlc.arg(risk_parts),
+    sqlc.arg(id), sqlc.arg(scheme), sqlc.arg(risk_score), sqlc.arg(risk_parts), sqlc.arg(risk_level),
     sqlc.arg(first_event_at), sqlc.arg(last_event_at), sqlc.arg(accounts_count), sqlc.arg(total_amount)
 );
 
@@ -45,5 +45,6 @@ RETURNING g.first_event_at, g.last_event_at, g.accounts_count, g.total_amount;
 -- name: UpdateGroupRisk :exec
 UPDATE groups
 SET risk_score = sqlc.arg(risk_score),
-    risk_parts = sqlc.arg(risk_parts)
+    risk_parts = sqlc.arg(risk_parts),
+    risk_level = sqlc.arg(risk_level)
 WHERE id = sqlc.arg(group_id);

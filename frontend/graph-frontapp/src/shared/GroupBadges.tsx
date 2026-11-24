@@ -9,7 +9,6 @@ export function RiskBadge({ level, score }: { level: GroupItem['risk_level']; sc
       color={riskColors[level]}
       variant="filled"
       size="lg"
-      fw={800}
       className={classes.keepWidth}
       aria-label={`Риск ${riskLabels[level].toLowerCase()}: ${score}`}
     >
@@ -23,7 +22,8 @@ export function StatusBadge({ status }: { status: GroupItem['status'] }) {
     <Badge
       color={statusColors[status]}
       variant="light"
-      size="sm"
+      size="md"
+      fz="xs"
       tt="none"
       className={classes.keepWidth}
     >

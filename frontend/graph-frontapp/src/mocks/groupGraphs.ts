@@ -59,7 +59,7 @@ function buildGraph(groupId: string, { owners, logins, transfers }: Events): Gro
       ),
     ],
     ownerships: accounts.map((account) => ({
-      id: `ownership:${owners[account]}:${account}`,
+      id: `ownership:${account}`,
       source: `client:${owners[account]}`,
       target: `account:${account}`,
     })),

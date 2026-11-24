@@ -43,6 +43,34 @@ func (q *Queries) FindOpenFarmGroups(ctx context.Context, deviceID string) ([]uu
 	return items, nil
 }
 
+const getFarmGroupFacts = `-- name: GetFarmGroupFacts :one
+SELECT (
+           SELECT count(DISTINCT a.client_id)
+           FROM group_events ge
+           JOIN login_events l ON l.event_id = ge.event_id
+           JOIN accounts a ON a.id = l.account_id
+           WHERE ge.group_id = $1
+       )::int AS clients_count,
+       EXISTS (
+           SELECT 1
+           FROM group_events ge
+           JOIN transfers t ON t.event_id = ge.event_id
+           WHERE ge.group_id = $1
+       ) AS has_collector
+`
+
+type GetFarmGroupFactsRow struct {
+	ClientsCount int32 `db:"clients_count"`
+	HasCollector bool  `db:"has_collector"`
+}
+
+func (q *Queries) GetFarmGroupFacts(ctx context.Context, groupID uuid.UUID) (GetFarmGroupFactsRow, error) {
+	row := q.db.QueryRow(ctx, getFarmGroupFacts, groupID)
+	var i GetFarmGroupFactsRow
+	err := row.Scan(&i.ClientsCount, &i.HasCollector)
+	return i, err
+}
+
 const listFarmLogins = `-- name: ListFarmLogins :many
 SELECT e.event_id, e.occurred_at, l.account_id, a.client_id
 FROM login_events l

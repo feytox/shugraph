@@ -10,6 +10,7 @@ import {
   useSelectedGroupId,
 } from '@/features/groups-list/useSelectedGroup';
 import { SidePanel } from '@/shared/SidePanel';
+import { theme } from '@/theme';
 import classes from '@/App.module.css';
 
 function AnalystScreen() {
@@ -81,7 +82,7 @@ function SelectedGroup({ groupId }: { groupId: string }) {
 
 export function App() {
   return (
-    <MantineProvider>
+    <MantineProvider theme={theme}>
       <AnalystScreen />
     </MantineProvider>
   );

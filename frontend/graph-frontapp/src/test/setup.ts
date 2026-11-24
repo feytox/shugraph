@@ -17,6 +17,11 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 });
 
+Object.defineProperty(document, 'fonts', {
+  configurable: true,
+  value: { load: async () => [] },
+});
+
 global.ResizeObserver = class ResizeObserver {
   observe() {}
   unobserve() {}

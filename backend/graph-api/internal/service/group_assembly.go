@@ -24,6 +24,7 @@ type farmRepository interface {
 	ListOpenGroupDevices(ctx context.Context, accountID string) ([]string, error)
 	ListLogins(ctx context.Context, deviceID string, window domain.TimeWindow) ([]domain.FarmLogin, error)
 	ListTransfers(ctx context.Context, fromAccountIDs []string, window domain.TimeWindow) ([]domain.FarmTransfer, error)
+	GroupFacts(ctx context.Context, groupID uuid.UUID) (domain.FarmFacts, error)
 }
 
 type groupAssembly struct {
@@ -103,7 +104,12 @@ func (a groupAssembly) assembleFarm(ctx context.Context, deviceID string, eventA
 		return err
 	}
 
-	return a.groups.UpdateRisk(ctx, groupID, domain.FarmRisk(stats))
+	facts, err := a.farms.GroupFacts(ctx, groupID)
+	if err != nil {
+		return err
+	}
+
+	return a.groups.UpdateRisk(ctx, groupID, a.rules.Risk.ScoreFarm(stats, facts))
 }
 
 func (a groupAssembly) ensureFarmGroup(ctx context.Context, deviceID string, eventAt time.Time) (uuid.UUID, error) {
@@ -113,13 +119,14 @@ func (a groupAssembly) ensureFarmGroup(ctx context.Context, deviceID string, eve
 	}
 
 	stats := domain.GroupStats{FirstEventAt: eventAt, LastEventAt: eventAt}
-	risk := domain.FarmRisk(stats)
+	risk := a.rules.Risk.ScoreFarm(stats, domain.FarmFacts{})
 
 	group := domain.Group{
 		ID:           uuid.New(),
 		Scheme:       domain.GroupSchemeFarm,
 		RiskScore:    risk.Score,
 		RiskParts:    risk.Parts,
+		RiskLevel:    risk.Level,
 		FirstEventAt: stats.FirstEventAt,
 		LastEventAt:  stats.LastEventAt,
 	}

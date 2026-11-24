@@ -48,3 +48,18 @@ WHERE t.from_account_id = ANY (sqlc.arg(from_account_ids)::text[])
         AND g.scheme = 'farm'
         AND g.is_frozen
   );
+
+-- name: GetFarmGroupFacts :one
+SELECT (
+           SELECT count(DISTINCT a.client_id)
+           FROM group_events ge
+           JOIN login_events l ON l.event_id = ge.event_id
+           JOIN accounts a ON a.id = l.account_id
+           WHERE ge.group_id = sqlc.arg(group_id)
+       )::int AS clients_count,
+       EXISTS (
+           SELECT 1
+           FROM group_events ge
+           JOIN transfers t ON t.event_id = ge.event_id
+           WHERE ge.group_id = sqlc.arg(group_id)
+       ) AS has_collector;
