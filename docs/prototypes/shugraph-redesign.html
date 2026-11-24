@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>shugraph · Подозрительные группы</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&display=swap');
+
+:root {
+  color-scheme: dark;
+  --page: #111214; --panel: #1a1c20; --canvas: #141619; --field: #25282d;
+  --hover: #2e3238; --line: #353941; --ink: #f6f6f3; --muted: #a6acb7;
+  --yellow: #ffdd2d; --active: #2d291b; --outline: #ffdd2d; --dot: #333842;
+  --account: #ffdd64; --device: #bcabff; --address: #69ddd3; --client: #a4b2c7;
+  --transfer: #e4c150; --login: #8a9fba; --owner: #697788;
+  --new: #b6ceff; --approved: #ffb3a9; --declined: #a9e4bc;
+  --mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+}
+[data-theme='light'] {
+  color-scheme: light;
+  --page: #eff1f4; --panel: #fff; --canvas: #f8f9fb; --field: #eef1f5;
+  --hover: #e7ebf0; --line: #dce0e7; --ink: #171b23; --muted: #536071;
+  --active: #fff9d8; --outline: #9b7400; --dot: #d9dfe8;
+  --account: #8c6100; --device: #6645ab; --address: #146d68; --client: #526780;
+  --transfer: #856000; --login: #576f8b; --owner: #74849a;
+  --new: #2855a4; --approved: #a43b32; --declined: #24603d;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.4 'Golos Text', system-ui, sans-serif; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, .field:focus-within { outline: 2px solid var(--outline); outline-offset: 2px; }
+h1, h2, p, dl, dd { margin: 0; }
+.shell { max-width: 1700px; margin: auto; padding: 0 24px 24px; }
+.top { min-height: 76px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.brand, .top-controls, .group-top, .group-meta, .graph-top, .legend, .graph-controls { display: flex; align-items: center; gap: 10px; }
+.brand { gap: 9px; }
+.wordmark { display: inline-flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--yellow); color: #17180d; border-radius: 10px; font-size: 20px; font-weight: 800; letter-spacing: -.06em; }
+.pixels { display: grid; grid-template-columns: repeat(4, 3px); grid-auto-rows: 3px; gap: 2px; }
+.pixels i { background: currentColor; }
+.pixels i:nth-child(3n+1), .pixels i:nth-child(6), .pixels i:nth-child(15) { visibility: hidden; }
+.control, .primary { border: 1px solid transparent; border-radius: 12px; background: var(--field); padding: 9px 13px; font-weight: 600; }
+.control:hover { background: var(--hover); }
+.primary { background: var(--yellow); color: #17180d; }
+.primary:hover { background: #f0cb14; }
+.toggle { display: flex; padding: 3px; gap: 2px; border-radius: 12px; background: var(--field); }
+.toggle button { padding: 6px 11px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); }
+.toggle button:hover { color: var(--ink); }
+.toggle button[aria-pressed='true'] { background: var(--panel); color: var(--ink); box-shadow: 0 1px 4px #0002; }
+.layout { display: grid; grid-template-columns: minmax(288px, 328px) minmax(0, 1fr); min-height: calc(100svh - 100px); gap: 16px; }
+.layout.collapsed { grid-template-columns: minmax(0, 1fr); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 20px; min-width: 0; }
+.sidebar { padding: 19px 15px 15px; align-self: start; }
+.sidebar h1 { font-size: 20px; letter-spacing: -.04em; margin: 0 2px 14px; }
+.filters { display: grid; gap: 8px; margin-bottom: 13px; }
+.field { display: grid; background: var(--field); padding: 6px 12px; border-radius: 12px; min-width: 0; }
+.field:hover { background: var(--hover); }
+.field span { font-size: 11px; color: var(--muted); }
+.field input, .field select { background: transparent; border: 0; width: 100%; padding: 2px 0; min-height: 23px; outline: 0; }
+.field input::placeholder { color: var(--muted); }
+.field option { background: var(--panel); }
+.groups { display: grid; gap: 8px; }
+.group { text-align: left; border: 1px solid var(--line); border-radius: 13px; padding: 10px 11px; background: var(--canvas); display: grid; width: 100%; gap: 6px; }
+.group:hover { background: var(--field); }
+.group[aria-pressed='true'] { background: var(--active); border-color: var(--outline); }
+.group-top { justify-content: space-between; }
+.group-top strong { font-size: 15px; }
+.status { display: inline-block; width: max-content; padding: 2px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; color: var(--status); background: color-mix(in srgb, var(--status) 13%, transparent); }
+.status.new { --status: var(--new); }
+.status.approved { --status: var(--approved); }
+.status.declined { --status: var(--declined); }
+.risk { display: flex; align-items: center; gap: 9px; font: 12px var(--mono); }
+.risk i { width: 7px; height: 7px; display: block; background: var(--line); }
+.risk i.filled { background: var(--account); }
+.risk-track { display: flex; gap: 3px; }
+.group-meta { justify-content: space-between; gap: 4px; color: var(--muted); font-size: 11px; }
+.group-meta span:nth-child(n+2) { font-family: var(--mono); white-space: nowrap; }
+.more { width: 100%; margin-top: 10px; }
+.empty-list { color: var(--muted); padding: 16px 4px; }
+.main { display: grid; grid-template-rows: auto 1fr; gap: 12px; }
+.group-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: 16px 19px; gap: 12px; }
+.heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; margin-bottom: 12px; }
+.heading h2 { font-size: clamp(24px, 3vw, 34px); line-height: 1; letter-spacing: -.055em; }
+.metrics { display: flex; flex-wrap: wrap; gap: 7px; }
+.metric { min-width: 67px; padding: 5px 9px; border-radius: 9px; background: var(--field); }
+.metric dt, .meter-label, .utc { color: var(--muted); font-size: 11px; }
+.meter-label { display: block; line-height: 1.2; }
+.metric dd { font: 600 13px/1.4 var(--mono); white-space: nowrap; }
+.meter { text-align: center; width: 96px; }
+.meter-track { position: relative; width: 92px; height: 46px; margin: 0 auto 5px; overflow: hidden; }
+.meter-track::before { content: ''; display: block; width: 92px; height: 92px; border-radius: 50%; background: conic-gradient(from 270deg, var(--account) var(--angle), var(--line) 0); mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px)); }
+.meter-track strong { position: absolute; inset: auto 0 0; font: 700 26px/1 var(--mono); }
+.graph-panel { display: grid; grid-template-rows: auto minmax(350px, 1fr) auto; overflow: hidden; }
+.graph-top { justify-content: space-between; padding: 11px 15px; }
+.graph-top h2 { font-size: 15px; }
+.graph-controls { gap: 5px; }
+.graph-controls button { min-width: 32px; padding: 4px 8px; }
+.surface { position: relative; overflow: hidden; min-height: 480px; isolation: isolate; background: radial-gradient(circle, var(--dot) 1px, transparent 1.25px) 0 0 / 16px 16px, var(--canvas); border-block: 1px solid var(--line); }
+#scene, #edges, #nodes { position: absolute; inset: 0; width: 100%; height: 100%; }
+#nodes { pointer-events: none; }
+.node { position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; pointer-events: auto; background: none; border: 0; padding: 0; border-radius: 7px; }
+.node.dim { opacity: .24; }
+.shape { display: inline-block; width: 30px; height: 30px; background: repeating-conic-gradient(currentColor 0 25%, color-mix(in srgb, currentColor 39%, var(--canvas)) 0 50%) 0 0 / 4px 4px; }
+.account { color: var(--account); border-radius: 50%; }
+.device { color: var(--device); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.network_address { color: var(--address); clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%); }
+.client { color: var(--client); border-radius: 4px; }
+.node[data-kind='client'] .shape { width: 21px; height: 21px; }
+.node-label { position: absolute; top: calc(100% + 4px); white-space: nowrap; color: var(--ink); background: var(--canvas); border-radius: 4px; padding: 1px 3px; font: 11px var(--mono); }
+.node[aria-pressed='true'] { outline: 2px solid var(--outline); outline-offset: 3px; }
+.graph-state { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 10px; text-align: center; padding: 20px; }
+.graph-state p { color: var(--muted); }
+.legend { flex-wrap: wrap; padding: 12px 15px; gap: 7px 14px; color: var(--muted); font-size: 11px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.legend .shape { width: 11px; height: 11px; }
+.legend .line { width: 17px; border-top: 2px solid var(--owner); }
+.legend .login { border-top: 2px dashed var(--login); }
+.legend .transfer { border-top: 2px dotted var(--transfer); }
+.utc { margin-left: auto; }
+@media (max-width: 800px) {
+  .shell { padding: 0 12px 12px; }
+  .layout { grid-template-columns: minmax(240px, 270px) minmax(0, 1fr); gap: 10px; }
+  .group-header { padding: 13px; }
+  .metric { padding: 5px 7px; }
+}
+@media (max-width: 670px) {
+  .top { gap: 7px; flex-wrap: wrap; padding: 10px 0; }
+  .top-controls { flex-wrap: wrap; gap: 5px; }
+  .layout { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .group-meta { flex-wrap: wrap; }
+  .graph-panel { grid-template-rows: auto minmax(415px, 1fr) auto; }
+  .surface { min-height: 415px; }
+  .utc { margin-left: 0; }
+}
+@media (max-width: 470px) {
+  .group-top { display: grid; justify-content: start; gap: 3px; }
+}
+@media (max-width: 380px) {
+  .groups { grid-template-columns: 1fr; }
+  .meter { width: 82px; }
+  .meter-track { transform: scale(.86); transform-origin: left bottom; }
+}
+</style>
+<div class="shell">
+  <header class="top">
+    <div class="brand">
+      <span class="wordmark"><span class="pixels" aria-hidden="true"></span>shugraph</span>
+      <button id="sidebar-toggle" class="control" type="button" aria-label="Свернуть список групп" aria-expanded="true" aria-controls="sidebar">☰</button>
+    </div>
+    <div class="top-controls">
+      <div class="toggle" role="group" aria-label="Тема">
+        <button type="button" data-theme-choice="dark" aria-pressed="true">Тёмная</button>
+        <button type="button" data-theme-choice="light" aria-pressed="false">Светлая</button>
+      </div>
+      <label class="field"><span>Состояние прототипа</span><select id="mode"><option value="graph">Граф</option><option value="loading">Загрузка</option><option value="error">Ошибка</option><option value="empty">Нет графа</option></select></label>
+    </div>
+  </header>
+  <div class="layout">
+    <aside class="panel sidebar" id="sidebar" aria-labelledby="groups-heading">
+      <h1 id="groups-heading">Подозрительные группы</h1>
+      <div class="filters">
+        <label class="field"><span>Поиск групп</span><input id="search" type="search" placeholder="Название схемы или статус"></label>
+        <label class="field"><span>Схема</span><select id="scheme"><option value="">Все схемы</option><option value="farm">Ферма</option><option value="address">Адрес</option><option value="chain">Цепочка</option><option value="ring">Кольцо</option></select></label>
+      </div>
+      <div class="groups" id="groups" aria-label="Группы"></div>
+      <p class="empty-list" id="empty-list" role="status" hidden>По этому запросу групп нет.</p>
+      <button class="control more" id="more" type="button">Показать ещё</button>
+    </aside>
+    <main class="main">
+      <section class="panel group-header" aria-labelledby="scheme-title">
+        <div><div class="heading"><h2 id="scheme-title"></h2><span id="status"></span></div><dl class="metrics" id="metrics"></dl></div>
+        <div class="meter"><div class="meter-track" id="meter"><strong id="risk-score"></strong></div><span class="meter-label">Балл риска из 100</span></div>
+      </section>
+      <section class="panel graph-panel" aria-labelledby="graph-title">
+        <header class="graph-top"><h2 id="graph-title">Граф связей</h2><div class="graph-controls" id="graph-controls" aria-label="Масштаб графа">
+          <button class="control" type="button" id="zoom-out" aria-label="Уменьшить масштаб">−</button>
+          <button class="control" type="button" id="zoom-in" aria-label="Увеличить масштаб">+</button>
+          <button class="control" type="button" id="zoom-reset" aria-label="Вписать граф в экран">Вписать</button>
+        </div></header>
+        <div class="surface" id="surface">
+          <div id="scene"><canvas id="edges" aria-hidden="true"></canvas><div id="nodes" role="group" aria-label="Узлы графа"></div></div>
+          <div class="graph-state" id="graph-state" role="status" hidden></div>
+        </div>
+        <footer class="legend" aria-label="Легенда графа">
+          <span><i class="shape client"></i>Клиент</span><span><i class="shape account"></i>Счёт</span><span><i class="shape device"></i>Устройство</span><span><i class="shape network_address"></i>Сетевой адрес</span>
+          <span><i class="line"></i>Владение</span><span><i class="line transfer"></i>Перевод</span><span><i class="line login"></i>Вход</span><span class="utc">Время в UTC</span>
+        </footer>
+      </section>
+    </main>
+  </div>
+</div>
+<script type="application/json" id="demo-data">[
+  {"item":{"scheme":"farm","status":"new","risk_score":75,"last_event_at":"2026-11-12T10:29:00Z","features":{"accounts_count":4,"span_minutes":28,"total_amount":16100000}},"graph":{"nodes":[{"id":"client:cli-ravil","type":"client","entity_id":"cli-ravil"},{"id":"client:cli-sasha","type":"client","entity_id":"cli-sasha"},{"id":"client:cli-dima","type":"client","entity_id":"cli-dima"},{"id":"client:cli-organizer","type":"client","entity_id":"cli-organizer"},{"id":"account:acc-ravil","type":"account","entity_id":"acc-ravil"},{"id":"account:acc-sasha","type":"account","entity_id":"acc-sasha"},{"id":"account:acc-dima","type":"account","entity_id":"acc-dima"},{"id":"account:acc-collector","type":"account","entity_id":"acc-collector"},{"id":"device:dev-common","type":"device","entity_id":"dev-common"},{"id":"network_address:198.51.100.21","type":"network_address","entity_id":"198.51.100.21"},{"id":"network_address:198.51.100.22","type":"network_address","entity_id":"198.51.100.22"},{"id":"network_address:198.51.100.23","type":"network_address","entity_id":"198.51.100.23"}],"ownerships":[{"source":"client:cli-ravil","target":"account:acc-ravil"},{"source":"client:cli-sasha","target":"account:acc-sasha"},{"source":"client:cli-dima","target":"account:acc-dima"},{"source":"client:cli-organizer","target":"account:acc-collector"}],"logins":[{"source":"account:acc-ravil","target":"device:dev-common"},{"source":"account:acc-ravil","target":"network_address:198.51.100.21"},{"source":"account:acc-sasha","target":"device:dev-common"},{"source":"account:acc-sasha","target":"network_address:198.51.100.22"},{"source":"account:acc-dima","target":"device:dev-common"},{"source":"account:acc-dima","target":"network_address:198.51.100.23"}],"transfers":[{"source":"account:acc-ravil","target":"account:acc-collector","amount":5200000,"occurred_at":"2026-11-12T10:20:00Z"},{"source":"account:acc-sasha","target":"account:acc-collector","amount":4200000,"occurred_at":"2026-11-12T10:24:00Z"},{"source":"account:acc-dima","target":"account:acc-collector","amount":6700000,"occurred_at":"2026-11-12T10:29:00Z"}]}},
+  {"item":{"scheme":"address","status":"new","risk_score":70,"last_event_at":"2026-10-28T13:58:00Z","features":{"accounts_count":6,"span_minutes":58,"total_amount":21000000}},"graph":{"nodes":[{"id":"client:cli-a-1","type":"client","entity_id":"cli-a-1"},{"id":"client:cli-a-2","type":"client","entity_id":"cli-a-2"},{"id":"client:cli-a-3","type":"client","entity_id":"cli-a-3"},{"id":"client:cli-a-4","type":"client","entity_id":"cli-a-4"},{"id":"client:cli-a-5","type":"client","entity_id":"cli-a-5"},{"id":"client:cli-a-6","type":"client","entity_id":"cli-a-6"},{"id":"account:a-1","type":"account","entity_id":"a-1"},{"id":"account:a-2","type":"account","entity_id":"a-2"},{"id":"account:a-3","type":"account","entity_id":"a-3"},{"id":"account:a-4","type":"account","entity_id":"a-4"},{"id":"account:a-5","type":"account","entity_id":"a-5"},{"id":"account:a-6","type":"account","entity_id":"a-6"},{"id":"device:pc-01","type":"device","entity_id":"pc-01"},{"id":"device:pc-02","type":"device","entity_id":"pc-02"},{"id":"device:phone-9c","type":"device","entity_id":"phone-9c"},{"id":"network_address:178.4.2.10","type":"network_address","entity_id":"178.4.2.10"}],"ownerships":[{"source":"client:cli-a-1","target":"account:a-1"},{"source":"client:cli-a-2","target":"account:a-2"},{"source":"client:cli-a-3","target":"account:a-3"},{"source":"client:cli-a-4","target":"account:a-4"},{"source":"client:cli-a-5","target":"account:a-5"},{"source":"client:cli-a-6","target":"account:a-6"}],"logins":[{"source":"account:a-1","target":"device:pc-01"},{"source":"account:a-1","target":"network_address:178.4.2.10"},{"source":"account:a-2","target":"device:pc-01"},{"source":"account:a-2","target":"network_address:178.4.2.10"},{"source":"account:a-3","target":"device:pc-02"},{"source":"account:a-3","target":"network_address:178.4.2.10"},{"source":"account:a-4","target":"device:phone-9c"},{"source":"account:a-4","target":"network_address:178.4.2.10"},{"source":"account:a-5","target":"device:phone-9c"},{"source":"account:a-5","target":"network_address:178.4.2.10"}],"transfers":[{"source":"account:a-1","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-28T13:30:00Z"},{"source":"account:a-2","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-28T13:38:00Z"},{"source":"account:a-3","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-28T13:44:00Z"},{"source":"account:a-4","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-28T13:51:00Z"},{"source":"account:a-5","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-28T13:58:00Z"}]}},
+  {"item":{"scheme":"chain","status":"approved","risk_score":90,"last_event_at":"2026-10-28T11:27:00Z","features":{"accounts_count":5,"span_minutes":25,"total_amount":197000000}},"graph":{"nodes":[{"id":"client:cli-c-1","type":"client","entity_id":"cli-c-1"},{"id":"client:cli-c-2","type":"client","entity_id":"cli-c-2"},{"id":"client:cli-c-3","type":"client","entity_id":"cli-c-3"},{"id":"client:cli-c-4","type":"client","entity_id":"cli-c-4"},{"id":"client:cli-c-5","type":"client","entity_id":"cli-c-5"},{"id":"account:c-1","type":"account","entity_id":"c-1"},{"id":"account:c-2","type":"account","entity_id":"c-2"},{"id":"account:c-3","type":"account","entity_id":"c-3"},{"id":"account:c-4","type":"account","entity_id":"c-4"},{"id":"account:c-5","type":"account","entity_id":"c-5"}],"ownerships":[{"source":"client:cli-c-1","target":"account:c-1"},{"source":"client:cli-c-2","target":"account:c-2"},{"source":"client:cli-c-3","target":"account:c-3"},{"source":"client:cli-c-4","target":"account:c-4"},{"source":"client:cli-c-5","target":"account:c-5"}],"logins":[],"transfers":[{"source":"account:c-1","target":"account:c-2","amount":50000000,"occurred_at":"2026-10-28T11:02:00Z"},{"source":"account:c-2","target":"account:c-3","amount":49500000,"occurred_at":"2026-10-28T11:09:00Z"},{"source":"account:c-3","target":"account:c-4","amount":49000000,"occurred_at":"2026-10-28T11:18:00Z"},{"source":"account:c-4","target":"account:c-5","amount":48500000,"occurred_at":"2026-10-28T11:27:00Z"}]}},
+  {"item":{"scheme":"ring","status":"declined","risk_score":95,"last_event_at":"2026-10-28T09:24:00Z","features":{"accounts_count":4,"span_minutes":14,"total_amount":237000000}},"graph":{"nodes":[{"id":"client:cli-r-1","type":"client","entity_id":"cli-r-1"},{"id":"client:cli-r-2","type":"client","entity_id":"cli-r-2"},{"id":"client:cli-r-3","type":"client","entity_id":"cli-r-3"},{"id":"client:cli-r-4","type":"client","entity_id":"cli-r-4"},{"id":"account:r-1","type":"account","entity_id":"r-1"},{"id":"account:r-2","type":"account","entity_id":"r-2"},{"id":"account:r-3","type":"account","entity_id":"r-3"},{"id":"account:r-4","type":"account","entity_id":"r-4"}],"ownerships":[{"source":"client:cli-r-1","target":"account:r-1"},{"source":"client:cli-r-2","target":"account:r-2"},{"source":"client:cli-r-3","target":"account:r-3"},{"source":"client:cli-r-4","target":"account:r-4"}],"logins":[],"transfers":[{"source":"account:r-1","target":"account:r-2","amount":30000000,"occurred_at":"2026-10-28T09:10:00Z"},{"source":"account:r-2","target":"account:r-3","amount":29800000,"occurred_at":"2026-10-28T09:12:00Z"},{"source":"account:r-3","target":"account:r-4","amount":29600000,"occurred_at":"2026-10-28T09:14:00Z"},{"source":"account:r-4","target":"account:r-1","amount":29400000,"occurred_at":"2026-10-28T09:16:00Z"},{"source":"account:r-1","target":"account:r-2","amount":30000000,"occurred_at":"2026-10-28T09:18:00Z"},{"source":"account:r-2","target":"account:r-3","amount":29700000,"occurred_at":"2026-10-28T09:20:00Z"},{"source":"account:r-3","target":"account:r-4","amount":29500000,"occurred_at":"2026-10-28T09:22:00Z"},{"source":"account:r-4","target":"account:r-1","amount":29000000,"occurred_at":"2026-10-28T09:24:00Z"}]}},
+  {"item":{"scheme":"farm","status":"approved","risk_score":75,"last_event_at":"2026-11-05T10:29:00.000Z","features":{"accounts_count":4,"span_minutes":28,"total_amount":16100000}},"graph":{"nodes":[{"id":"client:cli-ravil","type":"client","entity_id":"cli-ravil"},{"id":"client:cli-sasha","type":"client","entity_id":"cli-sasha"},{"id":"client:cli-dima","type":"client","entity_id":"cli-dima"},{"id":"client:cli-organizer","type":"client","entity_id":"cli-organizer"},{"id":"account:acc-ravil","type":"account","entity_id":"acc-ravil"},{"id":"account:acc-sasha","type":"account","entity_id":"acc-sasha"},{"id":"account:acc-dima","type":"account","entity_id":"acc-dima"},{"id":"account:acc-collector","type":"account","entity_id":"acc-collector"},{"id":"device:dev-common","type":"device","entity_id":"dev-common"},{"id":"network_address:198.51.100.21","type":"network_address","entity_id":"198.51.100.21"},{"id":"network_address:198.51.100.22","type":"network_address","entity_id":"198.51.100.22"},{"id":"network_address:198.51.100.23","type":"network_address","entity_id":"198.51.100.23"}],"ownerships":[{"source":"client:cli-ravil","target":"account:acc-ravil"},{"source":"client:cli-sasha","target":"account:acc-sasha"},{"source":"client:cli-dima","target":"account:acc-dima"},{"source":"client:cli-organizer","target":"account:acc-collector"}],"logins":[{"source":"account:acc-ravil","target":"device:dev-common"},{"source":"account:acc-ravil","target":"network_address:198.51.100.21"},{"source":"account:acc-sasha","target":"device:dev-common"},{"source":"account:acc-sasha","target":"network_address:198.51.100.22"},{"source":"account:acc-dima","target":"device:dev-common"},{"source":"account:acc-dima","target":"network_address:198.51.100.23"}],"transfers":[{"source":"account:acc-ravil","target":"account:acc-collector","amount":5200000,"occurred_at":"2026-11-05T10:20:00.000Z"},{"source":"account:acc-sasha","target":"account:acc-collector","amount":4200000,"occurred_at":"2026-11-05T10:24:00.000Z"},{"source":"account:acc-dima","target":"account:acc-collector","amount":6700000,"occurred_at":"2026-11-05T10:29:00.000Z"}]}},
+  {"item":{"scheme":"address","status":"declined","risk_score":70,"last_event_at":"2026-10-21T13:58:00.000Z","features":{"accounts_count":6,"span_minutes":58,"total_amount":21000000}},"graph":{"nodes":[{"id":"client:cli-a-1","type":"client","entity_id":"cli-a-1"},{"id":"client:cli-a-2","type":"client","entity_id":"cli-a-2"},{"id":"client:cli-a-3","type":"client","entity_id":"cli-a-3"},{"id":"client:cli-a-4","type":"client","entity_id":"cli-a-4"},{"id":"client:cli-a-5","type":"client","entity_id":"cli-a-5"},{"id":"client:cli-a-6","type":"client","entity_id":"cli-a-6"},{"id":"account:a-1","type":"account","entity_id":"a-1"},{"id":"account:a-2","type":"account","entity_id":"a-2"},{"id":"account:a-3","type":"account","entity_id":"a-3"},{"id":"account:a-4","type":"account","entity_id":"a-4"},{"id":"account:a-5","type":"account","entity_id":"a-5"},{"id":"account:a-6","type":"account","entity_id":"a-6"},{"id":"device:pc-01","type":"device","entity_id":"pc-01"},{"id":"device:pc-02","type":"device","entity_id":"pc-02"},{"id":"device:phone-9c","type":"device","entity_id":"phone-9c"},{"id":"network_address:178.4.2.10","type":"network_address","entity_id":"178.4.2.10"}],"ownerships":[{"source":"client:cli-a-1","target":"account:a-1"},{"source":"client:cli-a-2","target":"account:a-2"},{"source":"client:cli-a-3","target":"account:a-3"},{"source":"client:cli-a-4","target":"account:a-4"},{"source":"client:cli-a-5","target":"account:a-5"},{"source":"client:cli-a-6","target":"account:a-6"}],"logins":[{"source":"account:a-1","target":"device:pc-01"},{"source":"account:a-1","target":"network_address:178.4.2.10"},{"source":"account:a-2","target":"device:pc-01"},{"source":"account:a-2","target":"network_address:178.4.2.10"},{"source":"account:a-3","target":"device:pc-02"},{"source":"account:a-3","target":"network_address:178.4.2.10"},{"source":"account:a-4","target":"device:phone-9c"},{"source":"account:a-4","target":"network_address:178.4.2.10"},{"source":"account:a-5","target":"device:phone-9c"},{"source":"account:a-5","target":"network_address:178.4.2.10"}],"transfers":[{"source":"account:a-1","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-21T13:30:00.000Z"},{"source":"account:a-2","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-21T13:38:00.000Z"},{"source":"account:a-3","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-21T13:44:00.000Z"},{"source":"account:a-4","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-21T13:51:00.000Z"},{"source":"account:a-5","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-21T13:58:00.000Z"}]}}
+]</script>
+<script>
+const $ = (id) => document.getElementById(id);
+const demo = JSON.parse($('demo-data').textContent);
+const schemes = { farm: 'Ферма', address: 'Адрес', chain: 'Цепочка', ring: 'Кольцо' };
+const statuses = { new: 'Новая', approved: 'Подтверждена', declined: 'Отклонена' };
+const kinds = { client: 'Клиент', account: 'Счёт', device: 'Устройство', network_address: 'Сетевой адрес' };
+const number = new Intl.NumberFormat('ru-RU');
+const dayMonth = new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+const time = (value) => value.slice(11, 16);
+const lastEvent = (value) => `${dayMonth.format(new Date(value))} · ${time(value)}`;
+const money = (value) => `${number.format(value / 100)} ₽`;
+const accountsLabel = (n) => `${n} ${n === 1 ? 'счёт' : n < 5 ? 'счёта' : 'счетов'}`;
+let chosen = demo[0];
+let visibleCount = 4;
+let selectedNode = null;
+let hoveredNode = null;
+let focusedNode = null;
+let zoom = 1;
+let graphNodes = [];
+const surface = $('surface');
+const canvas = $('edges');
+const context = canvas.getContext('2d');
+
+document.querySelector('.pixels').innerHTML = '<i></i>'.repeat(16);
+
+function renderGroups(retainFocus) {
+  const query = $('search').value.trim().toLocaleLowerCase('ru');
+  const scheme = $('scheme').value;
+  const matches = demo.filter(({ item }) => (!scheme || scheme === item.scheme) &&
+    `${schemes[item.scheme]} ${statuses[item.status]}`.toLocaleLowerCase('ru').includes(query));
+  $('groups').replaceChildren();
+  for (const group of matches.slice(0, visibleCount)) {
+    const { item } = group;
+    const button = document.createElement('button');
+    button.className = 'group';
+    button.type = 'button';
+    button.setAttribute('aria-pressed', group === chosen);
+    const segments = Array.from({ length: 10 }, (_, index) => `<i class="${index < Math.round(item.risk_score / 10) ? 'filled' : ''}"></i>`).join('');
+    button.innerHTML = `<span class="group-top"><strong>${schemes[item.scheme]}</strong><span class="status ${item.status}">${statuses[item.status]}</span></span>
+      <span class="risk"><span aria-label="Балл риска ${item.risk_score} из 100">${item.risk_score}</span><span class="risk-track" aria-hidden="true">${segments}</span></span>
+      <span class="group-meta"><span>${accountsLabel(item.features.accounts_count)}</span><span>${money(item.features.total_amount)}</span><span>${lastEvent(item.last_event_at)}</span></span>`;
+    button.addEventListener('click', () => {
+      chosen = group;
+      zoom = 1;
+      renderGroups(true);
+      renderGroup();
+    });
+    $('groups').append(button);
+    if (retainFocus && group === chosen) button.focus();
+  }
+  $('more').hidden = matches.length <= visibleCount;
+  $('empty-list').hidden = matches.length > 0;
+}
+
+function renderGroup() {
+  const { item } = chosen;
+  $('scheme-title').textContent = schemes[item.scheme];
+  $('status').className = `status ${item.status}`;
+  $('status').textContent = statuses[item.status];
+  $('risk-score').textContent = item.risk_score;
+  $('meter').style.setProperty('--angle', `${item.risk_score * 1.8}deg`);
+  const metrics = [
+    ['Счета', item.features.accounts_count], ['Сумма', money(item.features.total_amount)],
+    ['Окно', `${item.features.span_minutes} мин`], ['Последнее, UTC', lastEvent(item.last_event_at)],
+  ];
+  $('metrics').innerHTML = metrics.map(([label, value]) => `<div class="metric"><dt>${label}</dt><dd>${value}</dd></div>`).join('');
+  renderMode();
+}
+
+function renderMode() {
+  const mode = $('mode').value;
+  const isGraph = mode === 'graph';
+  $('scene').hidden = !isGraph;
+  $('graph-controls').hidden = !isGraph;
+  const state = $('graph-state');
+  state.hidden = isGraph;
+  state.replaceChildren();
+  if (isGraph) {
+    renderNodes();
+    return;
+  }
+  const messages = { loading: ['Загружаем граф'], error: ['Граф не загрузился', 'Попробуйте загрузить его ещё раз.'], empty: ['Граф пока недоступен', 'Для этой группы нет данных о связях.'] };
+  const [title, description] = messages[mode];
+  const heading = document.createElement('strong');
+  heading.textContent = title;
+  state.append(heading);
+  if (description) {
+    const paragraph = document.createElement('p');
+    paragraph.textContent = description;
+    state.append(paragraph);
+  }
+  if (mode === 'error') {
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'primary';
+    retry.textContent = 'Повторить';
+    retry.onclick = () => { $('mode').value = 'graph'; renderMode(); $('mode').focus(); };
+    state.append(retry);
+  }
+}
+
+function renderNodes() {
+  selectedNode = hoveredNode = focusedNode = null;
+  $('nodes').replaceChildren();
+  graphNodes = chosen.graph.nodes.map((node) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'node';
+    button.dataset.kind = node.type;
+    button.setAttribute('aria-label', `${kinds[node.type]} ${node.entity_id}`);
+    const shape = document.createElement('span');
+    shape.className = `shape ${node.type}`;
+    const label = document.createElement('span');
+    label.className = 'node-label';
+    label.textContent = node.entity_id;
+    button.append(shape, label);
+    button.onpointerenter = () => { hoveredNode = node.id; drawGraph(); };
+    button.onpointerleave = () => { hoveredNode = null; drawGraph(); };
+    button.onfocus = () => { focusedNode = node.id; drawGraph(); };
+    button.onblur = () => { focusedNode = null; drawGraph(); };
+    button.onclick = () => { selectedNode = selectedNode === node.id ? null : node.id; drawGraph(); };
+    $('nodes').append(button);
+    return { ...node, button };
+  });
+  drawGraph();
+}
+
+function positions(width, height) {
+  const result = new Map();
+  const { item, graph } = chosen;
+  const byType = (type) => graphNodes.filter((node) => node.type === type);
+  const accounts = byType('account');
+  const sharedLogin = item.scheme === 'farm' || item.scheme === 'address';
+  const narrow = width < 570;
+  const spread = (index, count, min, max) => count === 1 ? (min + max) / 2 : min + (max - min) * index / (count - 1);
+  const place = (node, x, y) => result.set(node.id, {
+    x: width / 2 + (x - .5) * width * zoom,
+    y: height / 2 + (y - .5) * height * zoom,
+  });
+
+  if (sharedLogin) {
+    const senders = accounts.slice(0, -1);
+    accounts.forEach((node, i) => {
+      const collector = i === accounts.length - 1;
+      if (narrow) place(node, collector ? .75 : .38, collector ? .5 : spread(i, senders.length, .14, .76));
+      else place(node, collector ? .83 : .42, collector ? .48 : spread(i, senders.length, .12, .82));
+    });
+    for (const kind of ['device', 'network_address']) {
+      const nodes = byType(kind);
+      nodes.forEach((node, i) => {
+        if (narrow) place(node, kind === 'device' ? .13 : .14, spread(i, nodes.length, kind === 'device' ? .09 : .56, kind === 'device' ? .40 : .83));
+        else place(node, kind === 'device' ? .23 : .10, spread(i, nodes.length, .16, .76));
+      });
+    }
+    graph.ownerships.forEach(({ source, target }, i) => {
+      const node = graphNodes.find(({ id }) => id === source);
+      const point = result.get(target);
+      const accountX = .5 + (point.x / width - .5) / zoom;
+      const accountY = .5 + (point.y / height - .5) / zoom;
+      if (narrow) place(node, i === accounts.length - 1 ? .85 : accountX + .10, accountY + .08);
+      else place(node, accountX + (i === accounts.length - 1 ? .07 : .10), accountY + .07);
+    });
+  } else {
+    accounts.forEach((node, i) => {
+      const ring = item.scheme === 'ring';
+      const client = graphNodes.find(({ id }) => id === graph.ownerships.find(({ target }) => target === node.id).source);
+      if (ring) {
+        const angle = -Math.PI / 4 + i * Math.PI / 2;
+        place(node, .5 + Math.cos(angle) * .32, .45 + Math.sin(angle) * .32);
+        place(client, .5 + Math.cos(angle) * .47, .45 + Math.sin(angle) * .49);
+      } else {
+        const along = spread(i, accounts.length, .13, .87);
+        place(node, narrow ? .38 : along, narrow ? along : .47);
+        place(client, narrow ? .75 : along, narrow ? along : .72);
+      }
+    });
+  }
+  return result;
+}
+
+function drawGraph() {
+  if ($('scene').hidden || !graphNodes.length) return;
+  const { clientWidth: width, clientHeight: height } = surface;
+  if (!width || !height) return;
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = width * ratio;
+  canvas.height = height * ratio;
+  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  const coordinates = positions(width, height);
+  const { ownerships, logins, transfers } = chosen.graph;
+  const active = hoveredNode || focusedNode || selectedNode;
+  const neighbors = new Set([active]);
+  const css = getComputedStyle(surface);
+  const colors = Object.fromEntries(['owner', 'login', 'transfer', 'canvas'].map((key) => [key, css.getPropertyValue(`--${key}`).trim()]));
+  for (const [kind, edges] of [['owner', ownerships], ['login', logins], ['transfer', transfers]]) {
+    const totals = new Map();
+    const seen = new Map();
+    for (const edge of edges) {
+      const key = `${edge.source}/${edge.target}`;
+      totals.set(key, (totals.get(key) || 0) + 1);
+    }
+    for (const edge of edges) {
+      const key = `${edge.source}/${edge.target}`;
+      const index = seen.get(key) || 0;
+      seen.set(key, index + 1);
+      const related = !active || edge.source === active || edge.target === active;
+      if (related) { neighbors.add(edge.source); neighbors.add(edge.target); }
+      context.globalAlpha = related ? 1 : .16;
+      drawEdge(kind, edge, coordinates, colors, (index - (totals.get(key) - 1) / 2) * 40, width);
+    }
+  }
+  for (const { id, button } of graphNodes) {
+    const { x, y } = coordinates.get(id);
+    button.style.left = `${x}px`;
+    button.style.top = `${y}px`;
+    button.hidden = x < 16 || x > width - 16 || y < 16 || y > height - 16;
+    button.classList.toggle('dim', Boolean(active) && !neighbors.has(id));
+    button.setAttribute('aria-pressed', selectedNode === id);
+  }
+}
+
+function drawEdge(kind, edge, coordinates, colors, bend, width) {
+  const a = coordinates.get(edge.source);
+  const b = coordinates.get(edge.target);
+  const angle = Math.atan2(b.y - a.y, b.x - a.x);
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const x = b.x - cos * 17;
+  const y = b.y - sin * 17;
+  const midX = (a.x + x) / 2 - sin * bend;
+  const midY = (a.y + y) / 2 + cos * bend;
+  const transfers = kind === 'transfer';
+  context.strokeStyle = colors[kind];
+  context.lineWidth = transfers ? 1.6 : 1.1;
+  context.setLineDash(transfers ? [2, 3] : kind === 'login' ? [6, 4] : []);
+  context.beginPath();
+  context.moveTo(a.x, a.y);
+  context.quadraticCurveTo(midX, midY, x, y);
+  context.stroke();
+  if (!transfers) return;
+
+  const tip = Math.atan2(y - midY, x - midX);
+  context.setLineDash([]);
+  context.beginPath();
+  context.moveTo(x - 7 * Math.cos(tip - .48), y - 7 * Math.sin(tip - .48));
+  context.lineTo(x, y);
+  context.lineTo(x - 7 * Math.cos(tip + .48), y - 7 * Math.sin(tip + .48));
+  context.stroke();
+  const label = `${money(edge.amount)} · ${time(edge.occurred_at)}`;
+  context.font = `${width < 570 ? 9 : 11}px Consolas, monospace`;
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  const sharedLogin = chosen.item.scheme === 'farm' || chosen.item.scheme === 'address';
+  const labelAt = width < 570 && sharedLogin && b.y >= a.y ? .64 : .5;
+  const from = 1 - labelAt;
+  const labelX = from ** 2 * a.x + 2 * from * labelAt * midX + labelAt ** 2 * x;
+  const labelY = from ** 2 * a.y + 2 * from * labelAt * midY + labelAt ** 2 * y - (bend ? 0 : 12);
+  const labelWidth = context.measureText(label).width + 8;
+  context.fillStyle = colors.canvas;
+  context.fillRect(labelX - labelWidth / 2, labelY - 7, labelWidth, 14);
+  context.fillStyle = colors.transfer;
+  context.fillText(label, labelX, labelY);
+}
+
+for (const button of document.querySelectorAll('[data-theme-choice]')) {
+  button.onclick = () => {
+    document.documentElement.dataset.theme = button.dataset.themeChoice;
+    document.querySelectorAll('[data-theme-choice]').forEach((choice) => choice.setAttribute('aria-pressed', choice === button));
+    drawGraph();
+  };
+}
+$('sidebar-toggle').onclick = (event) => {
+  const collapsed = $('sidebar').hidden = !$('sidebar').hidden;
+  document.querySelector('.layout').classList.toggle('collapsed', collapsed);
+  event.currentTarget.setAttribute('aria-expanded', !collapsed);
+  event.currentTarget.setAttribute('aria-label', collapsed ? 'Развернуть список групп' : 'Свернуть список групп');
+};
+$('search').oninput = $('scheme').onchange = () => { visibleCount = 4; renderGroups(); };
+$('more').onclick = () => {
+  const firstAdded = visibleCount;
+  visibleCount += 4;
+  renderGroups();
+  $('groups').children[firstAdded]?.focus();
+};
+$('mode').onchange = renderMode;
+function setZoom(value) {
+  zoom = Math.max(.7, Math.min(1.4, value));
+  drawGraph();
+}
+$('zoom-out').onclick = () => setZoom(zoom - .15);
+$('zoom-in').onclick = () => setZoom(zoom + .15);
+$('zoom-reset').onclick = () => setZoom(1);
+surface.addEventListener('click', (event) => {
+  if (event.target === surface || event.target === canvas) { selectedNode = null; drawGraph(); }
+});
+surface.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') { selectedNode = null; drawGraph(); }
+});
+new ResizeObserver(drawGraph).observe(surface);
+renderGroups();
+renderGroup();
+</script>
+</html>
