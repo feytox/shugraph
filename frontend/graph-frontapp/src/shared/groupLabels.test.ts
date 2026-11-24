@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { accountsLabel } from '@/features/groups-list/groupLabels';
+import { accountsLabel } from '@/shared/groupLabels';
 
 describe('accountsLabel', () => {
   it.each([

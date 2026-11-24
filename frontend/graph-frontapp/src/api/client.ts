@@ -20,6 +20,9 @@ export type ErrorModel = components['schemas']['ErrorModel'];
 export type ProblemDetails = ErrorModel;
 
 export type GroupItem = components['schemas']['GroupItem'];
+export type Group = components['schemas']['Group'];
 export type GroupListResponse = components['schemas']['GroupListOutputBody'];
+export type GroupSolutionInput = components['schemas']['GroupSolutionInputBody'];
+export type GroupSolutionResponse = components['schemas']['GroupSolutionOutputBody'];
 export type GroupGraph = components['schemas']['GroupGraph'];
 export type GraphNode = components['schemas']['GraphNode'];

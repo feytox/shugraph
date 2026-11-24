@@ -1,6 +1,7 @@
 import '@testing-library/jest-dom/vitest';
 import { beforeAll, afterEach, afterAll } from 'vitest';
 import { server } from '@/mocks/server';
+import { createHandlers } from '@/mocks/handlers';
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -31,6 +32,6 @@ beforeAll(() => {
   server.listen({ onUnhandledFrame: 'error' });
 });
 afterEach(() => {
-  server.resetHandlers();
+  server.resetHandlers(...createHandlers());
 });
 afterAll(() => server.close());

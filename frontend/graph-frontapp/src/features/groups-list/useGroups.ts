@@ -1,7 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { apiClient } from '@/api/client';
-
-const pollIntervalMs = 3000;
+import { groupsListKey, groupsPollIntervalMs } from '@/shared/groupQueries';
 
 type GroupsQueryState = {
   status: string;
@@ -14,7 +13,7 @@ function failedOnNextPage(state: GroupsQueryState) {
 
 export function useGroups() {
   return useInfiniteQuery({
-    queryKey: ['groups'],
+    queryKey: groupsListKey,
     initialPageParam: undefined as string | undefined,
     queryFn: async ({ pageParam, signal }) => {
       const { data, response } = await apiClient.GET('/api/v1/groups', {
@@ -33,9 +32,9 @@ export function useGroups() {
       ],
     }),
     retry: false,
-    staleTime: pollIntervalMs,
+    staleTime: groupsPollIntervalMs,
     refetchInterval: ({ state }) =>
-      state.data && !failedOnNextPage(state) ? pollIntervalMs : false,
+      state.data && !failedOnNextPage(state) ? groupsPollIntervalMs : false,
     refetchOnWindowFocus: ({ state }) => (failedOnNextPage(state) ? false : 'always'),
   });
 }
