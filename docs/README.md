@@ -28,3 +28,4 @@ RFC:
 Планы спринтов:
 
 - [plans/sprint-2.md](plans/sprint-2.md) - план спринта 2
+- [plans/test-plan-scheme-1.md](plans/test-plan-scheme-1.md) - тест-план схемы 1: prod, E2E, UI и security

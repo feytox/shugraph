@@ -1,0 +1,21 @@
+{
+  "name": "@shugraph/test",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "playwright test",
+    "test:api": "playwright test --project=api",
+    "test:e2e": "playwright test --project=e2e",
+    "test:visual": "playwright test --project=visual-chromium --project=visual-firefox --project=visual-webkit",
+    "test:security": "playwright test --project=security",
+    "test:list": "playwright test --list",
+    "typecheck": "tsc --noEmit",
+    "report": "playwright show-report",
+    "install:browsers": "playwright install chromium firefox webkit"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "@types/node": "^24.0.0",
+    "typescript": "~5.9.3"
+  }
+}
