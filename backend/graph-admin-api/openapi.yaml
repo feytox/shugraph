@@ -141,6 +141,7 @@ paths:
         - Notes
   /admin-api/v1/scenarios:
     get:
+      description: Return the available scenario IDs. Use an ID from this list to run a scenario.
       operationId: list-scenarios
       responses:
         "200":
@@ -157,23 +158,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorModel"
           description: Internal Server Error
-      summary: List a scenarios
+      summary: List scenarios
       tags:
         - Scenarios
   /admin-api/v1/scenarios/{scenario_id}/run:
     post:
+      description: Find the scenario ID using List scenarios. A 202 Accepted response means the scenario was accepted for background playback. Check graph-api to see the results.
       operationId: run-scenario
       parameters:
-        - in: path
+        - description: Scenario ID from List scenarios (for example, device_farm).
+          in: path
           name: scenario_id
           required: true
           schema:
+            description: Scenario ID from List scenarios (for example, device_farm).
+            examples:
+              - device_farm
             type: string
-        - explode: false
+        - description: Delay in seconds before sending each event. Set to 0 to send events without waiting.
+          explode: false
           in: query
           name: delay_s
           schema:
             default: 1
+            description: Delay in seconds before sending each event. Set to 0 to send events without waiting.
             format: int64
             maximum: 5
             minimum: 0

@@ -27,6 +27,7 @@ func registerScenarios(api huma.API, h *scenarioHandlers) {
 	huma.Register(api, huma.Operation{
 		OperationID:   "run-scenario",
 		Summary:       "Run a scenario in graph-api",
+		Description:   "Find the scenario ID using List scenarios. A 202 Accepted response means the scenario was accepted for background playback. Check graph-api to see the results.",
 		Method:        http.MethodPost,
 		Path:          "/admin-api/v1/scenarios/{scenario_id}/run",
 		Tags:          []string{scenarioTag},
@@ -36,7 +37,8 @@ func registerScenarios(api huma.API, h *scenarioHandlers) {
 
 	huma.Register(api, huma.Operation{
 		OperationID:   "list-scenarios",
-		Summary:       "List a scenarios",
+		Summary:       "List scenarios",
+		Description:   "Return the available scenario IDs. Use an ID from this list to run a scenario.",
 		Method:        http.MethodGet,
 		Path:          "/admin-api/v1/scenarios",
 		Tags:          []string{scenarioTag},
@@ -46,8 +48,8 @@ func registerScenarios(api huma.API, h *scenarioHandlers) {
 }
 
 type RunScenarioInput struct {
-	ScenarioID   string `path:"scenario_id"`
-	DelaySeconds int    `query:"delay_s" minimum:"0" default:"1" maximum:"5"`
+	ScenarioID   string `path:"scenario_id" doc:"Scenario ID from List scenarios (for example, device_farm)." example:"device_farm"`
+	DelaySeconds int    `query:"delay_s" minimum:"0" default:"1" maximum:"5" doc:"Delay in seconds before sending each event. Set to 0 to send events without waiting."`
 }
 
 type ListScenarioOutput struct {

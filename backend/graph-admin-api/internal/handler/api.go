@@ -43,6 +43,9 @@ func OpenAPISpec() ([]byte, error) {
 func registerAPI(router chi.Router, deps Deps) huma.API {
 	config := huma.DefaultConfig(apiTitle, apiVersion)
 	config.CreateHooks = nil
+	config.DocsPath = "/admin-api/docs"
+	config.OpenAPIPath = "/admin-api/openapi"
+	config.DocsRenderer = huma.DocsRendererSwaggerUI
 
 	api := humachi.New(router, config)
 	registerHealth(api, &healthHandlers{database: deps.Database, log: deps.Log})

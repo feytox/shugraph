@@ -8,7 +8,20 @@ import (
 
 	"github.com/feytox/shugraph/backend/graph-admin-api/internal/domain"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
+
+func TestScenarioSwagger(t *testing.T) {
+	docs := serve(t, Deps{}, http.MethodGet, "/admin-api/docs", "")
+	require.Equal(t, http.StatusOK, docs.Code)
+	assert.Contains(t, docs.Body.String(), "SwaggerUIBundle")
+	assert.Contains(t, docs.Body.String(), "/admin-api/openapi.json")
+
+	spec := serve(t, Deps{}, http.MethodGet, "/admin-api/openapi.json", "")
+	require.Equal(t, http.StatusOK, spec.Code)
+	assert.Contains(t, spec.Body.String(), `"/admin-api/v1/scenarios"`)
+	assert.Contains(t, spec.Body.String(), `"/admin-api/v1/scenarios/{scenario_id}/run"`)
+}
 
 type scenarioServiceMock struct {
 	ScenarioService
