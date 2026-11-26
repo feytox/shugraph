@@ -1,0 +1,2059 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T-Bank × ShuGraph · Вход и рабочее место аналитика</title>
+<style>
+@import url('https://www.cdn-tinkoff.ru/frontend-libraries/npm/react-kit-font/2.0.0/fonts.css');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  color-scheme: dark;
+  --page: #0b0c0e;
+  --panel: #131519;
+  --canvas: #0f1114;
+  --field: #191c22;
+  --hover: #22262e;
+  --line: #272c36;
+  --line-strong: #39404f;
+  --ink: #f5f6f8;
+  --muted: #9098a6;
+
+  --yellow: #ffdd2d;
+  --yellow-hover: #f0cd16;
+  --yellow-ink: #16171a;
+  --yellow-soft: rgba(255, 221, 45, 0.14);
+  --active: #252010;
+  --outline: #ffdd2d;
+  --dot: #262b34;
+
+  --dither-paper: #0b0c0e;
+  --dither-far: #2a2513;
+  --dither-mid: #5a4e1e;
+  --dither-ink: #ffdd2d;
+
+  --account: #ffdd2d;
+  --device: #b6a6ff;
+  --address: #54ddd0;
+  --client: #9fb0c7;
+  --transfer: #ffdd2d;
+  --login: #8399b8;
+  --owner: #5f6c7e;
+  --new: #8db8ff;
+  --approved: #ff9c90;
+  --declined: #7ce4a8;
+  --danger: #ff6b63;
+  --danger-soft: rgba(255, 107, 99, 0.12);
+
+  --heading: 'T-Sans', 'dsHeading', 'dsHeading Fallback', system-ui, -apple-system, sans-serif;
+  --sans: 'dsText', 'Neue Haas Unica W1G', 'dsText Fallback', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --page: #f6f7f8;
+  --panel: #ffffff;
+  --canvas: #fafbfc;
+  --field: #f0f2f5;
+  --hover: #e6e9ef;
+  --line: #dfe3eb;
+  --line-strong: #c6cdd9;
+  --ink: #191c21;
+  --muted: #5c6778;
+
+  --yellow: #ffdd2d;
+  --yellow-hover: #f2cf18;
+  --yellow-ink: #191c21;
+  --yellow-soft: rgba(255, 221, 45, 0.35);
+  --active: #fff8d6;
+  --outline: #191c21;
+  --dot: #d6dce6;
+
+  --dither-paper: #f6f7f8;
+  --dither-far: #cdd4e0;
+  --dither-mid: #8e98a8;
+  --dither-ink: #ffd000;
+
+  --account: #997000;
+  --device: #6442ad;
+  --address: #116e68;
+  --client: #4f637c;
+  --transfer: #8f6800;
+  --login: #2c3543;
+  --owner: #454f5e;
+  --new: #2556a8;
+  --approved: #ab3b31;
+  --declined: #1f663f;
+  --danger: #c7322a;
+  --danger-soft: rgba(199, 50, 42, 0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font: 14px/1.45 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+.field:focus-within {
+  outline: 2px solid var(--outline);
+  outline-offset: 2px;
+}
+
+h1, h2, h3, p, dl, dd { margin: 0; }
+
+/* ---------- Brand Lockup: T-Bank x ShuGraph Label ---------- */
+
+.cobrand {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 3px;
+  gap: 0;
+}
+
+.cobrand-tbank {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px 5px 7px;
+  border-radius: 7px;
+  background: var(--yellow);
+  color: var(--yellow-ink);
+  font-family: var(--heading);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+}
+
+.t-shield {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  background: var(--yellow-ink);
+  color: var(--yellow);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.cobrand-sep {
+  padding: 0 8px;
+  font: 500 13px/1 var(--mono);
+  color: var(--muted);
+  user-select: none;
+}
+
+.cobrand-shu {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 10px 5px 2px;
+  font-family: var(--heading);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--ink);
+}
+
+.pixels {
+  display: grid;
+  grid-template-columns: repeat(3, 3px);
+  grid-auto-rows: 3px;
+  gap: 1.5px;
+}
+.pixels i { background: var(--yellow); display: block; }
+[data-theme='light'] .pixels i { background: var(--ink); }
+.pixels i:nth-child(2),
+.pixels i:nth-child(4),
+.pixels i:nth-child(9) { opacity: 0.25; }
+
+/* ---------- Clean Controls ---------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--field);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.btn:enabled:hover {
+  background: var(--hover);
+  border-color: var(--line-strong);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.btn-primary {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--yellow-ink);
+}
+
+.btn-primary:enabled:hover {
+  background: var(--yellow-hover);
+  border-color: var(--yellow-hover);
+}
+
+.toggle {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 9px;
+  background: var(--field);
+  border: 1px solid var(--line);
+}
+
+.toggle button {
+  height: 28px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.toggle button:hover { color: var(--ink); }
+.toggle button[aria-pressed='true'] {
+  background: var(--panel);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.16);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  min-width: 0;
+}
+
+/* ---------- ENTRY / LOGIN SCREEN ---------- */
+
+.auth-view {
+  position: relative;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  padding: 20px 24px 32px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.dither-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  z-index: -1;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+[data-theme='light'] .dither-canvas {
+  opacity: 0.9;
+}
+
+.auth-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  max-width: 1320px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.auth-center {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 28px;
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 16px 0 32px;
+}
+
+.hero-brand {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+  gap: 10px;
+}
+
+.hero-wordmark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px 14px;
+  font-family: var(--heading);
+  font-size: clamp(34px, 5.4vw, 56px);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+}
+
+.hero-t-badge {
+  width: clamp(36px, 4.6vw, 48px);
+  height: clamp(36px, 4.6vw, 48px);
+  border-radius: 12px;
+  background: var(--yellow);
+  color: var(--yellow-ink);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.hero-t-badge svg {
+  width: 54%;
+  height: 54%;
+}
+
+.hero-x {
+  color: var(--yellow);
+  font-weight: 500;
+}
+
+[data-theme='light'] .hero-x {
+  color: var(--muted);
+}
+
+.hero-sub {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+/* Compact Auth Card */
+.auth-card {
+  width: 100%;
+  max-width: 392px;
+  padding: 24px;
+  border-radius: 16px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+}
+
+.auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.input-box {
+  display: grid;
+  gap: 6px;
+}
+
+.input-label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  height: 42px;
+  border-radius: 10px;
+  background: var(--field);
+  border: 1px solid var(--line);
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.input-wrap:hover {
+  border-color: var(--line-strong);
+}
+
+.input-wrap:focus-within {
+  border-color: var(--yellow);
+  background: var(--canvas);
+}
+
+[data-theme='light'] .input-wrap:focus-within {
+  border-color: var(--ink);
+}
+
+.input-wrap input {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  outline: none;
+  font-size: 14px;
+}
+
+.input-wrap input::placeholder { color: var(--muted); opacity: 0.75; }
+
+.peek-btn {
+  border: 0;
+  background: transparent;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.peek-btn:hover { color: var(--ink); background: var(--hover); }
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  user-select: none;
+  width: fit-content;
+}
+
+.check input {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--line-strong);
+  background: var(--field);
+  display: grid;
+  place-items: center;
+  margin: 0;
+  cursor: pointer;
+}
+
+.check input:checked {
+  background: var(--yellow);
+  border-color: var(--yellow);
+}
+
+.check input:checked::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  background: var(--yellow-ink);
+  clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+}
+
+.auth-error {
+  padding: 10px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--danger);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 13px;
+}
+
+.auth-loader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 9px;
+  background: var(--canvas);
+  border: 1px solid var(--line-strong);
+  font: 500 12px/1.2 var(--mono);
+  color: var(--muted);
+}
+
+.auth-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.loader-dither {
+  width: 120px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid var(--line);
+  image-rendering: pixelated;
+  background: var(--panel);
+}
+
+/* ---------- WORKSPACE ---------- */
+
+.shell {
+  --control-height: 44px;
+  --control-radius: 12px;
+  --control-press: var(--line-strong);
+  --action-hover: #fcc521;
+  --action-press: #fab619;
+  max-width: 1700px;
+  margin: auto;
+  padding: 0 24px 24px;
+}
+
+.shell .btn,
+.workspace-theme button {
+  height: auto;
+  min-height: var(--control-height);
+  padding: 8px 16px;
+  border: 0;
+  border-radius: var(--control-radius);
+  font: 500 14px/20px var(--sans);
+  touch-action: manipulation;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.shell .btn:enabled:active { background: var(--control-press); }
+.shell .btn-primary:enabled:hover { background: var(--action-hover); }
+.shell .btn-primary:enabled:active { background: var(--action-press); }
+.shell .btn-quiet { background: transparent; }
+.shell .btn-quiet:enabled:hover { background: var(--field); }
+.shell .btn-quiet:enabled:active { background: var(--hover); }
+.shell .btn-icon { min-width: var(--control-height); padding-inline: 0; font-size: 19px; }
+.shell .btn-icon svg { width: 20px; height: 20px; }
+
+.workspace-theme {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 14px;
+  background: var(--field);
+}
+.workspace-theme button { padding-inline: 12px; background: transparent; color: var(--muted); }
+.workspace-theme button:hover { background: var(--hover); color: var(--ink); }
+.workspace-theme button[aria-pressed='true'] { background: var(--panel); color: var(--ink); }
+.workspace-theme button:active { background: var(--control-press); }
+
+.top {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+
+.brand, .top-controls, .group-top, .group-meta, .graph-top, .legend, .graph-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.brand { gap: 9px; }
+
+.field {
+  display: grid;
+  background: var(--field);
+  padding: 6px 12px;
+  border-radius: var(--control-radius);
+  min-width: 0;
+}
+.field:hover { background: var(--hover); }
+.field span { font-size: 11px; color: var(--muted); }
+.field input, .field select {
+  background: transparent;
+  border: 0;
+  width: 100%;
+  padding: 1px 0;
+  min-height: 20px;
+  outline: 0;
+  font-size: 13px;
+}
+.field input::placeholder { color: var(--muted); }
+.field option { background: var(--panel); }
+
+.workspace-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding-inline: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+.user-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: var(--field);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+  font: 700 11px/1 var(--mono);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(288px, 328px) minmax(0, 1fr);
+  min-height: calc(100svh - 108px);
+  gap: 16px;
+}
+.layout.collapsed { grid-template-columns: minmax(0, 1fr); }
+
+.sidebar { padding: 18px 15px 15px; align-self: start; }
+.sidebar h1 { font-family: var(--heading); font-size: 19px; font-weight: 700; letter-spacing: -0.015em; margin: 0 2px 13px; }
+.filters { display: grid; gap: 8px; margin-bottom: 13px; }
+.groups { display: grid; }
+
+.group {
+  text-align: left;
+  border: 0;
+  border-radius: 0;
+  padding: 12px;
+  background: transparent;
+  box-shadow: inset 0 -1px var(--line);
+  display: grid;
+  width: 100%;
+  gap: 6px;
+  touch-action: manipulation;
+  transition: background-color 160ms ease;
+}
+.group:hover { background: var(--field); }
+.group[aria-pressed='true'] {
+  background: var(--active);
+  box-shadow: inset 3px 0 var(--yellow);
+  border-radius: 4px var(--control-radius) var(--control-radius) 4px;
+}
+.group:active { background: var(--hover); }
+.group:focus-visible { position: relative; z-index: 1; }
+.group-top { justify-content: space-between; }
+.group-top strong { font-family: var(--heading); font-size: 15px; font-weight: 700; }
+
+.status {
+  display: inline-block;
+  width: max-content;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--status);
+  background: color-mix(in srgb, var(--status) 14%, transparent);
+}
+.status.new { --status: var(--new); }
+.status.approved { --status: var(--approved); }
+.status.declined { --status: var(--declined); }
+
+.risk { display: flex; align-items: center; gap: 9px; font: 12px var(--mono); }
+.risk i { width: 7px; height: 7px; display: block; background: var(--line); }
+.risk i.filled { background: var(--account); }
+.risk-track { display: flex; gap: 3px; }
+
+.group-meta { justify-content: space-between; gap: 4px; color: var(--muted); font-size: 11px; }
+.group-meta span:nth-child(n+2) { font-family: var(--mono); white-space: nowrap; }
+.more { width: 100%; margin-top: 10px; }
+.empty-list { color: var(--muted); padding: 16px 4px; }
+
+.main { display: grid; grid-template-rows: auto auto 1fr; gap: 12px; min-width: 0; }
+.group-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  padding: 16px 19px;
+  gap: 12px;
+}
+.heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; margin-bottom: 12px; }
+.heading h2 { font-family: var(--heading); font-size: clamp(24px, 3vw, 34px); font-weight: 700; line-height: 1.08; letter-spacing: -0.02em; }
+.metrics { display: flex; flex-wrap: wrap; gap: 7px; }
+.metric { min-width: 67px; padding: 5px 9px; border-radius: 9px; background: var(--field); border: 1px solid var(--line); }
+.metric dt, .meter-label, .utc { color: var(--muted); font-size: 11px; }
+.meter-label { display: block; line-height: 1.2; }
+.metric dd { font: 600 13px/1.4 var(--mono); white-space: nowrap; }
+
+.meter { text-align: center; width: 96px; }
+.meter-track { position: relative; width: 92px; height: 46px; margin: 0 auto 5px; overflow: hidden; }
+.meter-track::before {
+  content: '';
+  display: block;
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  background: conic-gradient(from 270deg, var(--account) var(--angle), var(--line) 0);
+  mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 6px));
+}
+.meter-track strong { position: absolute; inset: auto 0 0; font: 700 26px/1 var(--mono); }
+
+.decision-by { flex-basis: 100%; color: var(--muted); overflow-wrap: anywhere; }
+.review summary {
+  min-height: 48px;
+  padding: 12px 16px;
+  border-radius: inherit;
+  cursor: pointer;
+  font: 700 15px/24px var(--heading);
+}
+.review summary:hover { background: var(--field); }
+.review summary:focus-visible, .review textarea:focus-visible {
+  outline: 2px solid var(--outline);
+  outline-offset: 2px;
+}
+.review-count { margin-inline-start: 8px; color: var(--muted); font: 400 13px/20px var(--sans); }
+.review-body { padding: 0 16px 16px; }
+.review-list { list-style: none; margin: 0 0 16px; padding: 0; }
+.review-entry { border-bottom: 1px solid var(--line); padding: 12px 0; overflow-wrap: anywhere; }
+.review-entry header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.review-entry time, .review-meta, .review-empty { color: var(--muted); font-size: 13px; }
+.review-entry p { margin-top: 4px; }
+.review-text { white-space: pre-wrap; }
+.review-entry .btn { margin-top: 8px; }
+.review-form { display: grid; gap: 8px; }
+.review-form textarea {
+  width: 100%;
+  min-height: 76px;
+  padding: 10px 12px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  background: var(--field);
+  font: inherit;
+  color: inherit;
+}
+.review-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.review-actions div { display: contents; }
+
+.graph-panel { display: grid; grid-template-rows: auto minmax(350px, 1fr) auto; overflow: hidden; }
+.graph-top { justify-content: space-between; padding: 11px 15px; }
+.graph-top h2 { font-family: var(--heading); font-size: 15px; font-weight: 700; }
+.graph-controls { gap: 8px; }
+
+.surface {
+  position: relative;
+  overflow: hidden;
+  min-height: 480px;
+  isolation: isolate;
+  background:
+    radial-gradient(circle, var(--dot) 1px, transparent 1.25px) 0 0 / 16px 16px,
+    var(--canvas);
+  border-block: 1px solid var(--line);
+}
+
+#scene, #edges, #nodes { position: absolute; inset: 0; width: 100%; height: 100%; }
+#nodes { pointer-events: none; }
+
+.node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  pointer-events: auto;
+  background: none;
+  border: 0;
+  padding: 0;
+  border-radius: 7px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.node.dragging { cursor: grabbing; z-index: 2; }
+.node.dim { opacity: 0.24; }
+
+.shape {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  background: repeating-conic-gradient(
+    currentColor 0 25%,
+    color-mix(in srgb, currentColor 38%, var(--canvas)) 0 50%
+  ) 0 0 / 4px 4px;
+}
+.account { color: var(--account); border-radius: 50%; }
+.device { color: var(--device); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.network_address { color: var(--address); clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%); }
+.client { color: var(--client); border-radius: 4px; }
+.node[data-kind='client'] .shape { width: 21px; height: 21px; }
+
+.node-label {
+  position: absolute;
+  top: calc(100% + 4px);
+  white-space: nowrap;
+  color: var(--ink);
+  background: var(--canvas);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 1px 4px;
+  font: 11px var(--mono);
+}
+.node[aria-pressed='true'] { outline: 2px solid var(--outline); outline-offset: 3px; }
+
+.graph-state {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+  padding: 20px;
+}
+.graph-state strong { font-family: var(--heading); font-size: 17px; font-weight: 700; }
+.graph-state p { color: var(--muted); }
+
+.legend { flex-wrap: wrap; padding: 12px 15px; gap: 7px 14px; color: var(--muted); font-size: 11px; }
+.legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.legend .shape { width: 11px; height: 11px; }
+.legend .line { width: 17px; border-top: 2px solid var(--owner); }
+.legend .login { border-top: 2px dashed var(--login); }
+.legend .transfer { border-top: 2px dotted var(--transfer); }
+.utc { margin-left: auto; }
+
+@media (max-width: 800px) {
+  .shell { padding: 0 12px 12px; }
+  .layout { grid-template-columns: minmax(240px, 270px) minmax(0, 1fr); gap: 10px; }
+  .group-header { padding: 13px; }
+  .metric { padding: 5px 7px; }
+}
+
+@media (max-width: 670px) {
+  .auth-view { padding: 14px; }
+  .auth-card { padding: 20px; }
+  .top { gap: 7px; flex-wrap: wrap; padding: 10px 0; }
+  .top-controls { flex-wrap: wrap; gap: 8px; }
+  .layout { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 8px; }
+  .group-meta { flex-wrap: wrap; }
+  .graph-panel { grid-template-rows: auto minmax(415px, 1fr) auto; }
+  .surface { min-height: 415px; }
+  .utc { margin-left: 0; }
+}
+
+@media (max-width: 470px) {
+  .graph-top { flex-wrap: wrap; }
+  .group-top { display: grid; justify-content: start; gap: 3px; }
+}
+
+@media (max-width: 380px) {
+  .groups { grid-template-columns: 1fr; }
+  .meter { width: 82px; }
+  .meter-track { transform: scale(0.86); transform-origin: left bottom; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell .btn, .workspace-theme button, .group { transition: none; }
+}
+</style>
+
+<!-- ==================== VIEW 1: ENTRY / LOGIN SCREEN ==================== -->
+<section class="auth-view" id="auth-view" aria-label="Вход в T-Bank × ShuGraph">
+  <canvas class="dither-canvas" id="hero-dither" aria-hidden="true"></canvas>
+
+  <header class="auth-topbar">
+    <div class="toggle" role="group" aria-label="Тема оформления">
+      <button type="button" data-theme-choice="dark" aria-pressed="true">Тёмная</button>
+      <button type="button" data-theme-choice="light" aria-pressed="false">Светлая</button>
+    </div>
+  </header>
+
+  <main class="auth-center">
+    <div class="hero-brand">
+      <h1 class="hero-wordmark">
+        <span class="hero-t-badge" aria-hidden="true">
+          <svg viewBox="0 0 14 14" fill="none">
+            <path d="M1.5 2H12.5V5H8.5V12H5.5V5H1.5V2Z" fill="currentColor"/>
+          </svg>
+        </span>
+        <span>T-Bank</span>
+        <span class="hero-x" aria-hidden="true">×</span>
+        <span>ShuGraph</span>
+      </h1>
+      <p class="hero-sub">Граф выявления мошеннических схем</p>
+    </div>
+
+    <div class="auth-card">
+      <form class="auth-form" id="auth-form" novalidate>
+        <div class="input-box">
+          <label class="input-label" for="auth-login">Логин</label>
+          <div class="input-wrap">
+            <input
+              id="auth-login"
+              name="login"
+              type="text"
+              autocomplete="username"
+              value="analyst@tbank.ru"
+              placeholder="analyst@tbank.ru"
+            >
+          </div>
+        </div>
+
+        <div class="input-box">
+          <label class="input-label" for="auth-secret">Пароль</label>
+          <div class="input-wrap">
+            <input
+              id="auth-secret"
+              name="secret"
+              type="password"
+              autocomplete="current-password"
+              value="shugraph-demo"
+              placeholder="Введите пароль"
+            >
+            <button type="button" class="peek-btn" id="toggle-secret" aria-label="Показать пароль">Показать</button>
+          </div>
+        </div>
+
+        <div class="auth-error" id="auth-error" role="alert" hidden></div>
+
+        <div class="auth-loader" id="auth-loader" role="status" hidden>
+          <span>Вход…</span>
+          <canvas id="auth-loader-canvas" class="loader-dither" width="120" height="16" aria-hidden="true"></canvas>
+        </div>
+
+        <div class="auth-actions">
+          <button type="submit" class="btn btn-primary" id="auth-submit">Войти</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</section>
+
+<!-- ==================== VIEW 2: ANALYST WORKSPACE ==================== -->
+<div class="shell" id="workspace-view" hidden>
+  <header class="top">
+    <div class="brand">
+      <div class="cobrand" aria-label="T-Bank и ShuGraph">
+        <span class="cobrand-tbank">
+          <span class="t-shield" aria-hidden="true">
+            <svg width="12" height="12" viewBox="0 0 14 14" fill="none">
+              <path d="M1.5 2H12.5V5H8.5V12H5.5V5H1.5V2Z" fill="currentColor"/>
+            </svg>
+          </span>
+          T-Bank
+        </span>
+        <span class="cobrand-sep" aria-hidden="true">×</span>
+        <span class="cobrand-shu">
+          <span class="pixels" aria-hidden="true"></span>
+          ShuGraph
+        </span>
+      </div>
+      <button id="sidebar-toggle" class="btn btn-icon btn-quiet" type="button" aria-label="Свернуть список групп" aria-expanded="true" aria-controls="sidebar">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <rect x="2.75" y="3.75" width="14.5" height="12.5" rx="2"/>
+          <path d="M8 4v12"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="top-controls">
+      <div class="workspace-theme" role="group" aria-label="Тема">
+        <button type="button" data-theme-choice="dark" aria-pressed="true">Тёмная</button>
+        <button type="button" data-theme-choice="light" aria-pressed="false">Светлая</button>
+      </div>
+      <label class="field">
+        <span>Состояние прототипа</span>
+        <select id="mode">
+          <option value="graph">Граф</option>
+          <option value="loading">Загрузка</option>
+          <option value="error">Ошибка</option>
+          <option value="empty">Нет графа</option>
+        </select>
+      </label>
+      <div class="workspace-user" aria-label="Текущий пользователь">
+        <span class="user-avatar" id="user-avatar">А</span>
+        <span id="user-display">Аналитик #042</span>
+      </div>
+      <button type="button" class="btn btn-quiet" id="logout-btn">Выйти</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="panel sidebar" id="sidebar" aria-labelledby="groups-heading">
+      <h1 id="groups-heading">Подозрительные группы</h1>
+      <div class="filters">
+        <label class="field"><span>Поиск групп</span><input id="search" type="search" placeholder="Название схемы или статус"></label>
+        <label class="field"><span>Схема</span><select id="scheme"><option value="">Все схемы</option><option value="farm">Ферма</option><option value="address">Адрес</option><option value="chain">Цепочка</option><option value="ring">Кольцо</option></select></label>
+      </div>
+      <div class="groups" id="groups" aria-label="Группы"></div>
+      <p class="empty-list" id="empty-list" role="status" hidden>По этому запросу групп нет.</p>
+      <button class="btn more" id="more" type="button">Показать ещё</button>
+    </aside>
+
+    <main class="main">
+      <section class="panel group-header" aria-labelledby="scheme-title">
+        <div>
+          <div class="heading"><h2 id="scheme-title"></h2><span id="status"></span><span class="decision-by" id="decision-by" hidden></span></div>
+          <dl class="metrics" id="metrics"></dl>
+        </div>
+        <div class="meter">
+          <div class="meter-track" id="meter"><strong id="risk-score"></strong></div>
+          <span class="meter-label">Балл риска из 100</span>
+        </div>
+      </section>
+
+      <details class="panel review" id="review">
+        <summary>История расследования <span class="review-count" id="review-count"></span></summary>
+        <div class="review-body">
+          <p class="review-empty" id="review-empty">По этой группе пока нет записей.</p>
+          <ol class="review-list" id="review-list" aria-label="Записи расследования"></ol>
+          <form class="review-form" id="review-form">
+            <label for="review-text">Комментарий</label>
+            <textarea id="review-text" name="comment" maxlength="1000" required></textarea>
+            <div class="review-actions">
+              <button class="btn" type="submit">Добавить комментарий</button>
+              <div id="decision-actions">
+                <button class="btn btn-primary" type="submit" value="approved">Подтвердить группу</button>
+                <button class="btn btn-quiet" type="submit" value="declined">Отклонить группу</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </details>
+
+      <section class="panel graph-panel" aria-labelledby="graph-title">
+        <header class="graph-top">
+          <h2 id="graph-title">Граф связей</h2>
+          <div class="graph-controls" id="graph-controls" role="group" aria-label="Масштаб графа">
+            <button class="btn btn-icon" type="button" id="zoom-out" aria-label="Уменьшить масштаб">−</button>
+            <button class="btn btn-icon" type="button" id="zoom-in" aria-label="Увеличить масштаб">+</button>
+            <button class="btn btn-quiet" type="button" id="zoom-reset" aria-label="Вписать граф в экран">Вписать</button>
+          </div>
+        </header>
+        <div class="surface" id="surface">
+          <div id="scene">
+            <canvas id="edges" aria-hidden="true"></canvas>
+            <div id="nodes" role="group" aria-label="Узлы графа"></div>
+          </div>
+          <div class="graph-state" id="graph-state" role="status" hidden></div>
+        </div>
+        <footer class="legend" aria-label="Легенда графа">
+          <span><i class="shape client"></i>Клиент</span>
+          <span><i class="shape account"></i>Счёт</span>
+          <span><i class="shape device"></i>Устройство</span>
+          <span><i class="shape network_address"></i>Сетевой адрес</span>
+          <span><i class="line"></i>Владение</span>
+          <span><i class="line transfer"></i>Перевод</span>
+          <span><i class="line login"></i>Вход</span>
+          <span class="utc">Время в UTC</span>
+        </footer>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script type="application/json" id="demo-data">[
+  {"item":{"scheme":"farm","status":"new","risk_score":75,"last_event_at":"2026-11-12T10:29:00Z","features":{"accounts_count":4,"span_minutes":28,"total_amount":16100000}},"graph":{"nodes":[{"id":"client:cli-ravil","type":"client","entity_id":"cli-ravil"},{"id":"client:cli-sasha","type":"client","entity_id":"cli-sasha"},{"id":"client:cli-dima","type":"client","entity_id":"cli-dima"},{"id":"client:cli-organizer","type":"client","entity_id":"cli-organizer"},{"id":"account:acc-ravil","type":"account","entity_id":"acc-ravil"},{"id":"account:acc-sasha","type":"account","entity_id":"acc-sasha"},{"id":"account:acc-dima","type":"account","entity_id":"acc-dima"},{"id":"account:acc-collector","type":"account","entity_id":"acc-collector"},{"id":"device:dev-common","type":"device","entity_id":"dev-common"},{"id":"network_address:198.51.100.21","type":"network_address","entity_id":"198.51.100.21"},{"id":"network_address:198.51.100.22","type":"network_address","entity_id":"198.51.100.22"},{"id":"network_address:198.51.100.23","type":"network_address","entity_id":"198.51.100.23"}],"ownerships":[{"source":"client:cli-ravil","target":"account:acc-ravil"},{"source":"client:cli-sasha","target":"account:acc-sasha"},{"source":"client:cli-dima","target":"account:acc-dima"},{"source":"client:cli-organizer","target":"account:acc-collector"}],"logins":[{"source":"account:acc-ravil","target":"device:dev-common"},{"source":"account:acc-ravil","target":"network_address:198.51.100.21"},{"source":"account:acc-sasha","target":"device:dev-common"},{"source":"account:acc-sasha","target":"network_address:198.51.100.22"},{"source":"account:acc-dima","target":"device:dev-common"},{"source":"account:acc-dima","target":"network_address:198.51.100.23"}],"transfers":[{"source":"account:acc-ravil","target":"account:acc-collector","amount":5200000,"occurred_at":"2026-11-12T10:20:00Z"},{"source":"account:acc-sasha","target":"account:acc-collector","amount":4200000,"occurred_at":"2026-11-12T10:24:00Z"},{"source":"account:acc-dima","target":"account:acc-collector","amount":6700000,"occurred_at":"2026-11-12T10:29:00Z"}]}},
+  {"item":{"scheme":"address","status":"new","risk_score":70,"last_event_at":"2026-10-28T13:58:00Z","features":{"accounts_count":6,"span_minutes":58,"total_amount":21000000}},"graph":{"nodes":[{"id":"client:cli-a-1","type":"client","entity_id":"cli-a-1"},{"id":"client:cli-a-2","type":"client","entity_id":"cli-a-2"},{"id":"client:cli-a-3","type":"client","entity_id":"cli-a-3"},{"id":"client:cli-a-4","type":"client","entity_id":"cli-a-4"},{"id":"client:cli-a-5","type":"client","entity_id":"cli-a-5"},{"id":"client:cli-a-6","type":"client","entity_id":"cli-a-6"},{"id":"account:a-1","type":"account","entity_id":"a-1"},{"id":"account:a-2","type":"account","entity_id":"a-2"},{"id":"account:a-3","type":"account","entity_id":"a-3"},{"id":"account:a-4","type":"account","entity_id":"a-4"},{"id":"account:a-5","type":"account","entity_id":"a-5"},{"id":"account:a-6","type":"account","entity_id":"a-6"},{"id":"device:pc-01","type":"device","entity_id":"pc-01"},{"id":"device:pc-02","type":"device","entity_id":"pc-02"},{"id":"device:phone-9c","type":"device","entity_id":"phone-9c"},{"id":"network_address:178.4.2.10","type":"network_address","entity_id":"178.4.2.10"}],"ownerships":[{"source":"client:cli-a-1","target":"account:a-1"},{"source":"client:cli-a-2","target":"account:a-2"},{"source":"client:cli-a-3","target":"account:a-3"},{"source":"client:cli-a-4","target":"account:a-4"},{"source":"client:cli-a-5","target":"account:a-5"},{"source":"client:cli-a-6","target":"account:a-6"}],"logins":[{"source":"account:a-1","target":"device:pc-01"},{"source":"account:a-1","target":"network_address:178.4.2.10"},{"source":"account:a-2","target":"device:pc-01"},{"source":"account:a-2","target":"network_address:178.4.2.10"},{"source":"account:a-3","target":"device:pc-02"},{"source":"account:a-3","target":"network_address:178.4.2.10"},{"source":"account:a-4","target":"device:phone-9c"},{"source":"account:a-4","target":"network_address:178.4.2.10"},{"source":"account:a-5","target":"device:phone-9c"},{"source":"account:a-5","target":"network_address:178.4.2.10"}],"transfers":[{"source":"account:a-1","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-28T13:30:00Z"},{"source":"account:a-2","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-28T13:38:00Z"},{"source":"account:a-3","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-28T13:44:00Z"},{"source":"account:a-4","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-28T13:51:00Z"},{"source":"account:a-5","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-28T13:58:00Z"}]}},
+  {"item":{"scheme":"chain","status":"approved","risk_score":90,"last_event_at":"2026-10-28T11:27:00Z","features":{"accounts_count":5,"span_minutes":25,"total_amount":197000000}},"graph":{"nodes":[{"id":"client:cli-c-1","type":"client","entity_id":"cli-c-1"},{"id":"client:cli-c-2","type":"client","entity_id":"cli-c-2"},{"id":"client:cli-c-3","type":"client","entity_id":"cli-c-3"},{"id":"client:cli-c-4","type":"client","entity_id":"cli-c-4"},{"id":"client:cli-c-5","type":"client","entity_id":"cli-c-5"},{"id":"account:c-1","type":"account","entity_id":"c-1"},{"id":"account:c-2","type":"account","entity_id":"c-2"},{"id":"account:c-3","type":"account","entity_id":"c-3"},{"id":"account:c-4","type":"account","entity_id":"c-4"},{"id":"account:c-5","type":"account","entity_id":"c-5"}],"ownerships":[{"source":"client:cli-c-1","target":"account:c-1"},{"source":"client:cli-c-2","target":"account:c-2"},{"source":"client:cli-c-3","target":"account:c-3"},{"source":"client:cli-c-4","target":"account:c-4"},{"source":"client:cli-c-5","target":"account:c-5"}],"logins":[],"transfers":[{"source":"account:c-1","target":"account:c-2","amount":50000000,"occurred_at":"2026-10-28T11:02:00Z"},{"source":"account:c-2","target":"account:c-3","amount":49500000,"occurred_at":"2026-10-28T11:09:00Z"},{"source":"account:c-3","target":"account:c-4","amount":49000000,"occurred_at":"2026-10-28T11:18:00Z"},{"source":"account:c-4","target":"account:c-5","amount":48500000,"occurred_at":"2026-10-28T11:27:00Z"}]}},
+  {"item":{"scheme":"ring","status":"declined","risk_score":95,"last_event_at":"2026-10-28T09:24:00Z","features":{"accounts_count":4,"span_minutes":14,"total_amount":237000000}},"graph":{"nodes":[{"id":"client:cli-r-1","type":"client","entity_id":"cli-r-1"},{"id":"client:cli-r-2","type":"client","entity_id":"cli-r-2"},{"id":"client:cli-r-3","type":"client","entity_id":"cli-r-3"},{"id":"client:cli-r-4","type":"client","entity_id":"cli-r-4"},{"id":"account:r-1","type":"account","entity_id":"r-1"},{"id":"account:r-2","type":"account","entity_id":"r-2"},{"id":"account:r-3","type":"account","entity_id":"r-3"},{"id":"account:r-4","type":"account","entity_id":"r-4"}],"ownerships":[{"source":"client:cli-r-1","target":"account:r-1"},{"source":"client:cli-r-2","target":"account:r-2"},{"source":"client:cli-r-3","target":"account:r-3"},{"source":"client:cli-r-4","target":"account:r-4"}],"logins":[],"transfers":[{"source":"account:r-1","target":"account:r-2","amount":30000000,"occurred_at":"2026-10-28T09:10:00Z"},{"source":"account:r-2","target":"account:r-3","amount":29800000,"occurred_at":"2026-10-28T09:12:00Z"},{"source":"account:r-3","target":"account:r-4","amount":29600000,"occurred_at":"2026-10-28T09:14:00Z"},{"source":"account:r-4","target":"account:r-1","amount":29400000,"occurred_at":"2026-10-28T09:16:00Z"},{"source":"account:r-1","target":"account:r-2","amount":30000000,"occurred_at":"2026-10-28T09:18:00Z"},{"source":"account:r-2","target":"account:r-3","amount":29700000,"occurred_at":"2026-10-28T09:20:00Z"},{"source":"account:r-3","target":"account:r-4","amount":29500000,"occurred_at":"2026-10-28T09:22:00Z"},{"source":"account:r-4","target":"account:r-1","amount":29000000,"occurred_at":"2026-10-28T09:24:00Z"}]}},
+  {"item":{"scheme":"farm","status":"approved","risk_score":75,"last_event_at":"2026-11-05T10:29:00.000Z","features":{"accounts_count":4,"span_minutes":28,"total_amount":16100000}},"graph":{"nodes":[{"id":"client:cli-ravil","type":"client","entity_id":"cli-ravil"},{"id":"client:cli-sasha","type":"client","entity_id":"cli-sasha"},{"id":"client:cli-dima","type":"client","entity_id":"cli-dima"},{"id":"client:cli-organizer","type":"client","entity_id":"cli-organizer"},{"id":"account:acc-ravil","type":"account","entity_id":"acc-ravil"},{"id":"account:acc-sasha","type":"account","entity_id":"acc-sasha"},{"id":"account:acc-dima","type":"account","entity_id":"acc-dima"},{"id":"account:acc-collector","type":"account","entity_id":"acc-collector"},{"id":"device:dev-common","type":"device","entity_id":"dev-common"},{"id":"network_address:198.51.100.21","type":"network_address","entity_id":"198.51.100.21"},{"id":"network_address:198.51.100.22","type":"network_address","entity_id":"198.51.100.22"},{"id":"network_address:198.51.100.23","type":"network_address","entity_id":"198.51.100.23"}],"ownerships":[{"source":"client:cli-ravil","target":"account:acc-ravil"},{"source":"client:cli-sasha","target":"account:acc-sasha"},{"source":"client:cli-dima","target":"account:acc-dima"},{"source":"client:cli-organizer","target":"account:acc-collector"}],"logins":[{"source":"account:acc-ravil","target":"device:dev-common"},{"source":"account:acc-ravil","target":"network_address:198.51.100.21"},{"source":"account:acc-sasha","target":"device:dev-common"},{"source":"account:acc-sasha","target":"network_address:198.51.100.22"},{"source":"account:acc-dima","target":"device:dev-common"},{"source":"account:acc-dima","target":"network_address:198.51.100.23"}],"transfers":[{"source":"account:acc-ravil","target":"account:acc-collector","amount":5200000,"occurred_at":"2026-11-05T10:20:00.000Z"},{"source":"account:acc-sasha","target":"account:acc-collector","amount":4200000,"occurred_at":"2026-11-05T10:24:00.000Z"},{"source":"account:acc-dima","target":"account:acc-collector","amount":6700000,"occurred_at":"2026-11-05T10:29:00.000Z"}]}},
+  {"item":{"scheme":"address","status":"declined","risk_score":70,"last_event_at":"2026-10-21T13:58:00.000Z","features":{"accounts_count":6,"span_minutes":58,"total_amount":21000000}},"graph":{"nodes":[{"id":"client:cli-a-1","type":"client","entity_id":"cli-a-1"},{"id":"client:cli-a-2","type":"client","entity_id":"cli-a-2"},{"id":"client:cli-a-3","type":"client","entity_id":"cli-a-3"},{"id":"client:cli-a-4","type":"client","entity_id":"cli-a-4"},{"id":"client:cli-a-5","type":"client","entity_id":"cli-a-5"},{"id":"client:cli-a-6","type":"client","entity_id":"cli-a-6"},{"id":"account:a-1","type":"account","entity_id":"a-1"},{"id":"account:a-2","type":"account","entity_id":"a-2"},{"id":"account:a-3","type":"account","entity_id":"a-3"},{"id":"account:a-4","type":"account","entity_id":"a-4"},{"id":"account:a-5","type":"account","entity_id":"a-5"},{"id":"account:a-6","type":"account","entity_id":"a-6"},{"id":"device:pc-01","type":"device","entity_id":"pc-01"},{"id":"device:pc-02","type":"device","entity_id":"pc-02"},{"id":"device:phone-9c","type":"device","entity_id":"phone-9c"},{"id":"network_address:178.4.2.10","type":"network_address","entity_id":"178.4.2.10"}],"ownerships":[{"source":"client:cli-a-1","target":"account:a-1"},{"source":"client:cli-a-2","target":"account:a-2"},{"source":"client:cli-a-3","target":"account:a-3"},{"source":"client:cli-a-4","target":"account:a-4"},{"source":"client:cli-a-5","target":"account:a-5"},{"source":"client:cli-a-6","target":"account:a-6"}],"logins":[{"source":"account:a-1","target":"device:pc-01"},{"source":"account:a-1","target":"network_address:178.4.2.10"},{"source":"account:a-2","target":"device:pc-01"},{"source":"account:a-2","target":"network_address:178.4.2.10"},{"source":"account:a-3","target":"device:pc-02"},{"source":"account:a-3","target":"network_address:178.4.2.10"},{"source":"account:a-4","target":"device:phone-9c"},{"source":"account:a-4","target":"network_address:178.4.2.10"},{"source":"account:a-5","target":"device:phone-9c"},{"source":"account:a-5","target":"network_address:178.4.2.10"}],"transfers":[{"source":"account:a-1","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-21T13:30:00.000Z"},{"source":"account:a-2","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-21T13:38:00.000Z"},{"source":"account:a-3","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-21T13:44:00.000Z"},{"source":"account:a-4","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-21T13:51:00.000Z"},{"source":"account:a-5","target":"account:a-6","amount":4200000,"occurred_at":"2026-10-21T13:58:00.000Z"}]}}
+]</script>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const demo = JSON.parse($('demo-data').textContent);
+const schemes = { farm: 'Ферма', address: 'Адрес', chain: 'Цепочка', ring: 'Кольцо' };
+const statuses = { new: 'Новая', approved: 'Подтверждена', declined: 'Отклонена' };
+const reviewLabels = { comment: 'Комментарий', approved: 'Подтверждение группы', declined: 'Отклонение группы' };
+const kinds = { client: 'Клиент', account: 'Счёт', device: 'Устройство', network_address: 'Сетевой адрес' };
+const number = new Intl.NumberFormat('ru-RU');
+const dayMonth = new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+const reviewDate = new Intl.DateTimeFormat('ru-RU', {
+  dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC',
+});
+const time = (value) => value.slice(11, 16);
+const lastEvent = (value) => `${dayMonth.format(new Date(value))} · ${time(value)}`;
+const money = (value) => `${number.format(value / 100)} ₽`;
+const accountsLabel = (n) => `${n} ${n === 1 ? 'счёт' : n < 5 ? 'счёта' : 'счетов'}`;
+
+const demoDecisions = {
+  farm: ['Марина Волкова', '2026-11-05T11:04:00Z', 'Три счёта использовали одно устройство и перевели средства одному получателю.'],
+  address: ['Илья Смирнов', '2026-10-21T14:21:00Z', 'Общий сетевой адрес принадлежит офису компании. Переводы соответствуют обычному расписанию.'],
+  chain: ['Анна Петрова', '2026-10-28T12:02:00Z', 'Средства прошли через пять счетов за 25 минут с минимальным изменением суммы.'],
+  ring: ['Дмитрий Орлов', '2026-10-28T10:12:00Z', 'Переводы между счетами объясняются регулярной сверкой остатков.'],
+};
+for (const group of demo) {
+  group.activity = [];
+  if (group.item.status === 'new') continue;
+  const [author, date, text] = demoDecisions[group.item.scheme];
+  group.activity.push({ kind: group.item.status, author, date, text });
+}
+demo[0].activity.push(
+  { kind: 'comment', author: 'Илья Смирнов', date: '2026-11-12T10:48:00Z', text: 'Проверить, кто ещё входил с общего устройства.' },
+  {
+    kind: 'comment',
+    author: 'Анна Петрова',
+    date: '2026-11-12T10:36:00Z',
+    text: 'Три счёта отправили переводы одному получателю с интервалом в несколько минут.',
+    accepted: { author: 'Марина Волкова', date: '2026-11-12T10:42:00Z' },
+  },
+);
+
+let chosen = demo[0];
+let visibleCount = 4;
+let selectedNode = null;
+let hoveredNode = null;
+let focusedNode = null;
+let zoom = 1;
+let graphNodes = [];
+const customPositions = new Map();
+let currentUserLabel = 'Аналитик #042';
+let authBusy = false;
+
+const surface = $('surface');
+const canvas = $('edges');
+const context = canvas.getContext('2d');
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+document.querySelectorAll('.pixels').forEach((el) => { el.innerHTML = '<i></i>'.repeat(9); });
+
+/* ---------- Subtle dithercn Bayer 8x8 Ambient Field ---------- */
+
+const BAYER_4 = [
+  0, 8, 2, 10,
+  12, 4, 14, 6,
+  3, 11, 1, 9,
+  15, 7, 13, 5,
+];
+
+function bayer8(x, y) {
+  let m = 0;
+  let mask = 4;
+  const xi = x & 7;
+  const yi = y & 7;
+  for (let bit = 0; bit < 3; bit++) {
+    const xb = (xi >> bit) & 1;
+    const yb = (yi >> bit) & 1;
+    m += (((xb ^ yb) << 1) | yb) * mask;
+    mask >>= 2;
+  }
+  return (m + 0.5) / 64;
+}
+
+function bayer4(x, y) {
+  return (BAYER_4[((y & 3) << 2) | (x & 3)] + 0.5) / 16;
+}
+
+function parseHex(hex) {
+  const clean = hex.trim().replace('#', '');
+  const value = parseInt(clean.length === 3
+    ? clean.split('').map((c) => c + c).join('')
+    : clean, 16);
+  return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+}
+
+const heroCanvas = $('hero-dither');
+const heroCtx = heroCanvas.getContext('2d');
+let heroFrameId = null;
+let heroColors = null;
+
+function readDitherColors() {
+  const css = getComputedStyle(document.documentElement);
+  heroColors = {
+    paper: parseHex(css.getPropertyValue('--dither-paper') || '#0b0c0e'),
+    far: parseHex(css.getPropertyValue('--dither-far') || '#2a2513'),
+    mid: parseHex(css.getPropertyValue('--dither-mid') || '#5a4e1e'),
+    ink: parseHex(css.getPropertyValue('--dither-ink') || '#ffdd2d'),
+  };
+}
+
+const offCanvas = document.createElement('canvas');
+const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
+
+const Z_MIN = 0.72;
+const Z_MAX = 5.12;
+const Z_SPAN = Z_MAX - Z_MIN;
+
+const CLUSTER_TEMPLATES = [
+  // Farm hub
+  {
+    nodes: [
+      { dx: -0.14, dy: -0.02, dz: -0.12, kind: 'device', r: 6.2, hi: true },
+      { dx: -0.02, dy: -0.16, dz: 0.08, kind: 'account', r: 5.2 },
+      { dx: 0.02, dy: 0.02, dz: 0.14, kind: 'account', r: 5.5, hi: true },
+      { dx: -0.03, dy: 0.16, dz: -0.06, kind: 'account', r: 5.2 },
+      { dx: 0.17, dy: 0.01, dz: 0.10, kind: 'account', r: 6.6, hi: true },
+      { dx: 0.22, dy: 0.12, dz: -0.08, kind: 'client', r: 3.6 },
+    ],
+    edges: [[0, 1, 0], [0, 2, 0], [0, 3, 0], [1, 4, 1], [2, 4, 1], [3, 4, 1], [5, 4, 0]],
+  },
+  // Ring
+  {
+    nodes: [
+      { dx: -0.13, dy: -0.11, dz: 0.12, kind: 'account', r: 5.6, hi: true },
+      { dx: 0.12, dy: -0.13, dz: -0.10, kind: 'account', r: 5.2 },
+      { dx: 0.14, dy: 0.11, dz: 0.14, kind: 'account', r: 6.0, hi: true },
+      { dx: -0.10, dy: 0.13, dz: -0.12, kind: 'account', r: 5.2 },
+      { dx: -0.20, dy: -0.16, dz: 0.04, kind: 'client', r: 3.6 },
+      { dx: 0.21, dy: 0.16, dz: -0.05, kind: 'client', r: 3.6 },
+    ],
+    edges: [[0, 1, 1], [1, 2, 1], [2, 3, 1], [3, 0, 1], [4, 0, 0], [5, 2, 0]],
+  },
+  // Deep-axis Chain
+  {
+    nodes: [
+      { dx: -0.18, dy: 0.04, dz: -0.24, kind: 'network_address', r: 5.8 },
+      { dx: -0.06, dy: -0.08, dz: -0.06, kind: 'account', r: 5.4, hi: true },
+      { dx: 0.07, dy: 0.07, dz: 0.10, kind: 'account', r: 5.6 },
+      { dx: 0.19, dy: -0.05, dz: 0.24, kind: 'account', r: 6.4, hi: true },
+      { dx: -0.09, dy: 0.14, dz: -0.04, kind: 'client', r: 3.5 },
+      { dx: 0.21, dy: 0.08, dz: 0.20, kind: 'client', r: 3.5 },
+    ],
+    edges: [[0, 1, 0], [1, 2, 1], [2, 3, 1], [4, 1, 0], [5, 3, 0]],
+  },
+  // Shared address star
+  {
+    nodes: [
+      { dx: 0.0, dy: 0.0, dz: 0.0, kind: 'network_address', r: 6.4, hi: true },
+      { dx: -0.15, dy: -0.11, dz: -0.15, kind: 'account', r: 5.2 },
+      { dx: 0.14, dy: -0.12, dz: 0.14, kind: 'account', r: 5.8, hi: true },
+      { dx: -0.12, dy: 0.14, dz: 0.12, kind: 'device', r: 5.6 },
+      { dx: 0.15, dy: 0.12, dz: -0.14, kind: 'account', r: 5.2 },
+      { dx: 0.21, dy: -0.02, dz: 0.06, kind: 'client', r: 3.6 },
+    ],
+    edges: [[1, 0, 0], [2, 0, 0], [3, 0, 0], [1, 2, 1], [2, 4, 1], [5, 2, 0]],
+  },
+];
+
+// 30 clusters distributed across a deeper 3D tunnel + deep horizon core layers
+const GRAPH_CLUSTERS = Array.from({ length: 30 }, (_, i) => {
+  const isDeepCore = i % 4 === 3;
+  const angle = i * 2.399963 + 0.45;
+  const radius = isDeepCore ? 0.14 + (i % 4) * 0.08 : 0.42 + (i % 4) * 0.14;
+  return {
+    tpl: CLUSTER_TEMPLATES[i % CLUSTER_TEMPLATES.length],
+    wx: Math.cos(angle) * radius * 1.32,
+    wy: Math.sin(angle) * radius * 0.88,
+    z0: Z_MIN + (i / 30) * Z_SPAN,
+    isDeepCore,
+    scale: isDeepCore ? 1.12 : 1.05 + (i % 3) * 0.12,
+    spinPhase: i * 1.37,
+    yawDir: i % 2 === 0 ? 1 : -1,
+  };
+});
+
+// 36 micro-links flying continuously along Z-depth
+const DEPTH_FLIES = Array.from({ length: 36 }, (_, i) => {
+  const angle = i * 1.73 + 0.2;
+  const radius = 0.20 + ((i * 0.15) % 0.78);
+  return {
+    wx: Math.cos(angle) * radius * 1.35,
+    wy: Math.sin(angle) * radius * 0.92,
+    z0: Z_MIN + ((i * 0.29) % Z_SPAN),
+    len: 0.12 + (i % 4) * 0.04,
+    dzSpan: 0.20 + (i % 3) * 0.09,
+    ang: i * 0.85,
+  };
+});
+
+function smoothstep(edge0, edge1, x) {
+  const t = Math.max(0, Math.min(1, (x - edge0) / (edge1 - edge0)));
+  return t * t * (3 - 2 * t);
+}
+
+function drawShapePath(ctx, kind, x, y, r) {
+  ctx.beginPath();
+  if (kind === 'device') {
+    ctx.moveTo(x, y - r * 1.15);
+    ctx.lineTo(x + r * 1.15, y);
+    ctx.lineTo(x, y + r * 1.15);
+    ctx.lineTo(x - r * 1.15, y);
+    ctx.closePath();
+  } else if (kind === 'network_address') {
+    for (let i = 0; i < 6; i++) {
+      const a = (Math.PI / 3) * i;
+      const px = x + Math.cos(a) * r * 1.1;
+      const py = y + Math.sin(a) * r * 1.1;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+  } else if (kind === 'client') {
+    ctx.rect(x - r, y - r, r * 2, r * 2);
+  } else {
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+  }
+}
+
+function renderHeroDither(nowMs) {
+  if ($('auth-view').hidden || !heroCtx || !offCtx) return;
+  if (!heroColors) readDitherColors();
+  const rect = heroCanvas.parentElement.getBoundingClientRect();
+  const cell = 3;
+  const cols = Math.max(60, Math.floor(rect.width / cell));
+  const rows = Math.max(40, Math.floor(rect.height / cell));
+
+  if (heroCanvas.width !== cols || heroCanvas.height !== rows) {
+    heroCanvas.width = cols;
+    heroCanvas.height = rows;
+    offCanvas.width = cols;
+    offCanvas.height = rows;
+  }
+
+  const t = reducedMotion.matches ? 1.2 : nowMs * 0.00055;
+  offCtx.fillStyle = '#000';
+  offCtx.fillRect(0, 0, cols, rows);
+
+  const focal = cols * 0.62;
+  const halfW = cols * 0.5;
+  const halfH = rows * 0.5;
+
+  const projectWorld = (wx, wy, wz) => {
+    const persp = 1 / Math.max(0.35, wz);
+    return {
+      x: halfW + wx * focal * persp,
+      y: halfH + wy * focal * persp,
+      persp,
+      wz,
+    };
+  };
+
+  // Quiet factor near the central title and login card so typography stays clean
+  const centerQuietFor = (sx, sy, wz) => {
+    const dx = (sx - halfW) / (cols * 0.24);
+    const dy = (sy - halfH) / (rows * 0.34);
+    const d = Math.hypot(dx, dy);
+    const maxCenter = wz > 2.25 ? 0.58 : 1;
+    const minCenter = wz > 2.25 ? 0.10 : 0.14;
+    return Math.max(minCenter, Math.min(maxCenter, (d - 0.52) / 0.58));
+  };
+
+  // Compute live Z positions for clusters & sort back-to-front
+  const liveClusters = GRAPH_CLUSTERS.map((c, idx) => {
+    const zRaw = Z_MIN + ((((c.z0 - t * 0.24) - Z_MIN) % Z_SPAN + Z_SPAN) % Z_SPAN);
+    const wz = c.isDeepCore ? Math.max(2.30, zRaw * 0.72 + 1.65) : zRaw;
+    const fadeIn = smoothstep(Z_MAX, Z_MAX - 0.85, wz);
+    const fadeOut = c.isDeepCore ? 1 : smoothstep(Z_MIN, Z_MIN + 0.55, wz);
+    const depthAlpha = (c.isDeepCore ? 0.36 : Math.max(0.20, 1.05 - (wz - Z_MIN) / Z_SPAN * 0.82)) * fadeIn * fadeOut;
+
+    const yaw = t * 0.26 * c.yawDir + c.spinPhase;
+    const pitch = Math.sin(t * 0.22 + c.spinPhase) * 0.36;
+    const cyaw = Math.cos(yaw), syaw = Math.sin(yaw);
+    const cpitch = Math.cos(pitch), spitch = Math.sin(pitch);
+
+    const pts = c.tpl.nodes.map((n) => {
+      const lx = n.dx * c.scale;
+      const ly = n.dy * c.scale;
+      const lz = n.dz * c.scale;
+      const x1 = lx * cyaw + lz * syaw;
+      const z1 = -lx * syaw + lz * cyaw;
+      const y2 = ly * cpitch - z1 * spitch;
+      const z2 = ly * spitch + z1 * cpitch;
+      const p = projectWorld(c.wx + x1, c.wy + y2, wz + z2);
+      return { ...n, ...p };
+    });
+
+    return { ...c, idx, wz, depthAlpha, pts };
+  }).sort((a, b) => b.wz - a.wz);
+
+  // Faint long-range Z-corridor bridges connecting successive clusters deeper into Z
+  for (let i = 0; i < liveClusters.length - 1; i++) {
+    const a = liveClusters[i];
+    const b = liveClusters[i + 1];
+    if (Math.abs(a.wz - b.wz) > 1.35 || a.isDeepCore !== b.isDeepCore) continue;
+    const na = a.pts[0];
+    const nb = b.pts[0];
+    const bridgeAlpha = Math.min(a.depthAlpha, b.depthAlpha) * 0.22;
+    if (bridgeAlpha < 0.04) continue;
+    offCtx.strokeStyle = `rgba(255,255,255,${bridgeAlpha.toFixed(2)})`;
+    offCtx.lineWidth = 0.8;
+    offCtx.setLineDash([2, 4]);
+    offCtx.beginPath();
+    offCtx.moveTo(na.x, na.y);
+    offCtx.lineTo(nb.x, nb.y);
+    offCtx.stroke();
+  }
+  offCtx.setLineDash([]);
+
+  // Flying 3D micro-links receding along Z
+  const sortedFlies = DEPTH_FLIES.map((f, i) => {
+    const wz = Z_MIN + ((((f.z0 - t * 0.34) - Z_MIN) % Z_SPAN + Z_SPAN) % Z_SPAN);
+    const fade = smoothstep(Z_MAX, Z_MAX - 0.7, wz) * smoothstep(Z_MIN, Z_MIN + 0.5, wz);
+    const p1 = projectWorld(f.wx, f.wy, wz);
+    const p2 = projectWorld(
+      f.wx + Math.cos(f.ang + t * 0.2) * f.len,
+      f.wy + Math.sin(f.ang + t * 0.2) * f.len,
+      wz + f.dzSpan
+    );
+    return { i, wz, fade, p1, p2 };
+  }).sort((a, b) => b.wz - a.wz);
+
+  for (let k = 0; k < sortedFlies.length; k++) {
+    const { i, wz, fade, p1, p2 } = sortedFlies[k];
+    const q = centerQuietFor((p1.x + p2.x) * 0.5, (p1.y + p2.y) * 0.5, wz);
+    const alpha = Math.max(0.10, (0.62 - (wz - Z_MIN) * 0.13) * fade * q);
+    offCtx.strokeStyle = `rgba(255,255,255,${(alpha * 0.65).toFixed(2)})`;
+    offCtx.lineWidth = Math.max(0.7, 1.3 * p1.persp);
+    offCtx.beginPath();
+    offCtx.moveTo(p1.x, p1.y);
+    offCtx.lineTo(p2.x, p2.y);
+    offCtx.stroke();
+
+    offCtx.fillStyle = `rgba(255,255,255,${alpha.toFixed(2)})`;
+    drawShapePath(offCtx, i % 2 === 0 ? 'account' : 'device', p1.x, p1.y, 2.9 * p1.persp);
+    offCtx.fill();
+    drawShapePath(offCtx, 'client', p2.x, p2.y, 2.0 * p2.persp);
+    offCtx.fill();
+  }
+
+  // Draw all 3D graph clusters back-to-front
+  for (let f = 0; f < liveClusters.length; f++) {
+    const cluster = liveClusters[f];
+    const { pts, tpl, depthAlpha, wz, idx } = cluster;
+    if (depthAlpha < 0.04) continue;
+
+    for (let e = 0; e < tpl.edges.length; e++) {
+      const [si, ti, isTransfer] = tpl.edges[e];
+      const a = pts[si];
+      const b = pts[ti];
+      const q = Math.min(centerQuietFor(a.x, a.y, a.wz), centerQuietFor(b.x, b.y, b.wz));
+      const edgeLum = (isTransfer ? 0.54 : 0.32) * depthAlpha * q;
+      if (edgeLum < 0.03) continue;
+
+      offCtx.strokeStyle = `rgba(255,255,255,${edgeLum.toFixed(2)})`;
+      offCtx.lineWidth = Math.max(0.7, (isTransfer ? 1.6 : 1.0) * ((a.persp + b.persp) * 0.5));
+      offCtx.setLineDash(isTransfer ? [2.5, 2.5] : []);
+      offCtx.beginPath();
+      offCtx.moveTo(a.x, a.y);
+      offCtx.lineTo(b.x, b.y);
+      offCtx.stroke();
+
+      if (isTransfer && wz < 2.9) {
+        const u = (t * 0.55 + e * 0.29 + idx * 0.17) % 1;
+        const px = a.x + (b.x - a.x) * u;
+        const py = a.y + (b.y - a.y) * u;
+        const pPersp = a.persp + (b.persp - a.persp) * u;
+        offCtx.setLineDash([]);
+        offCtx.fillStyle = `rgba(255,255,255,${Math.min(1, 0.96 * depthAlpha * q).toFixed(2)})`;
+        offCtx.beginPath();
+        offCtx.arc(px, py, Math.max(1.2, 2.5 * pPersp), 0, Math.PI * 2);
+        offCtx.fill();
+      }
+    }
+    offCtx.setLineDash([]);
+
+    const sortedPts = [...pts].sort((a, b) => b.wz - a.wz);
+    for (let n = 0; n < sortedPts.length; n++) {
+      const node = sortedPts[n];
+      const rScaled = Math.max(1.3, node.r * node.persp);
+      const q = centerQuietFor(node.x, node.y, node.wz);
+
+      const nodeLum = Math.min(1, (node.hi ? 0.94 : 0.68) * depthAlpha * q);
+      offCtx.fillStyle = `rgba(255,255,255,${nodeLum.toFixed(2)})`;
+      drawShapePath(offCtx, node.kind, node.x, node.y, rScaled);
+      offCtx.fill();
+    }
+  }
+
+  // Quantize 3D graph scene through Bayer 8x8 matrix (3 depth-aware tones)
+  const src = offCtx.getImageData(0, 0, cols, rows).data;
+  const out = heroCtx.createImageData(cols, rows);
+  const dst = out.data;
+  const { paper, far, mid, ink } = heroColors;
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const idx = (y * cols + x) * 4;
+      const lum = src[idx] / 255;
+      let c = paper;
+      if (lum > 0.01 && lum > bayer8(x, y)) {
+        c = lum > 0.48 ? ink : lum > 0.22 ? mid : far;
+      }
+      dst[idx] = c[0];
+      dst[idx + 1] = c[1];
+      dst[idx + 2] = c[2];
+      dst[idx + 3] = 255;
+    }
+  }
+
+  heroCtx.putImageData(out, 0, 0);
+  if (!reducedMotion.matches && !$('auth-view').hidden) {
+    heroFrameId = requestAnimationFrame(renderHeroDither);
+  }
+}
+
+function startHeroDither() {
+  stopHeroDither();
+  readDitherColors();
+  heroFrameId = requestAnimationFrame(renderHeroDither);
+}
+
+function stopHeroDither() {
+  if (heroFrameId !== null) {
+    cancelAnimationFrame(heroFrameId);
+    heroFrameId = null;
+  }
+}
+
+function renderMiniDitherLoader(canvasEl, phase) {
+  if (!canvasEl) return;
+  const ctx = canvasEl.getContext('2d');
+  if (!ctx) return;
+  const w = canvasEl.width;
+  const h = canvasEl.height;
+  const css = getComputedStyle(document.documentElement);
+  const paper = parseHex(css.getPropertyValue('--panel') || '#131519');
+  const ink = parseHex(css.getPropertyValue('--yellow') || '#ffdd2d');
+  const image = ctx.createImageData(w, h);
+  const data = image.data;
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const scan = ((x / w) - ((phase * 0.7) % 1.4) + 1.4) % 1.4;
+      const band = Math.max(0, 1 - Math.abs(scan - 0.35) * 3.1);
+      const tone = 0.1 + band * 0.75;
+      const on = tone > bayer4(x >> 1, y >> 1);
+      const idx = (y * w + x) * 4;
+      const c = on ? ink : paper;
+      data[idx] = c[0];
+      data[idx + 1] = c[1];
+      data[idx + 2] = c[2];
+      data[idx + 3] = 255;
+    }
+  }
+  ctx.putImageData(image, 0, 0);
+}
+
+/* ---------- Auth / Entry Interactions ---------- */
+
+$('toggle-secret').onclick = () => {
+  const input = $('auth-secret');
+  const isHidden = input.type === 'password';
+  input.type = isHidden ? 'text' : 'password';
+  $('toggle-secret').textContent = isHidden ? 'Скрыть' : 'Показать';
+};
+
+function enterWorkspace(userLabel) {
+  if (authBusy) return;
+  authBusy = true;
+  currentUserLabel = userLabel;
+  $('auth-error').hidden = true;
+  $('auth-loader').hidden = false;
+  $('auth-submit').disabled = true;
+
+  let step = 0;
+  const loaderCanvas = $('auth-loader-canvas');
+  const tick = () => {
+    renderMiniDitherLoader(loaderCanvas, step * 0.15);
+    step += 1;
+    if (step < (reducedMotion.matches ? 2 : 6)) {
+      setTimeout(tick, 50);
+    } else {
+      authBusy = false;
+      $('auth-loader').hidden = true;
+      $('auth-submit').disabled = false;
+      $('auth-view').hidden = true;
+      $('workspace-view').hidden = false;
+      $('user-display').textContent = currentUserLabel;
+      $('user-avatar').textContent = currentUserLabel.trim().charAt(0).toUpperCase() || 'А';
+      stopHeroDither();
+      renderGroups();
+      renderGroup();
+      drawGraph();
+    }
+  };
+  tick();
+}
+
+$('auth-form').onsubmit = (event) => {
+  event.preventDefault();
+  const login = $('auth-login').value.trim();
+  const secret = $('auth-secret').value.trim();
+  if (!login || !secret) {
+    $('auth-error').textContent = !login
+      ? 'Укажите логин или корпоративную почту.'
+      : 'Введите пароль для входа.';
+    $('auth-error').hidden = false;
+    (!login ? $('auth-login') : $('auth-secret')).focus();
+    return;
+  }
+  const shortName = login.split('@')[0] || 'Аналитик';
+  enterWorkspace(shortName === 'analyst' ? 'Аналитик #042' : shortName);
+};
+
+$('logout-btn').onclick = () => {
+  $('workspace-view').hidden = true;
+  $('auth-view').hidden = false;
+  startHeroDither();
+  $('auth-login').focus();
+};
+
+/* ---------- Theme Switcher ---------- */
+
+function applyTheme(choice) {
+  document.documentElement.dataset.theme = choice;
+  document.querySelectorAll('[data-theme-choice]').forEach((btn) => {
+    btn.setAttribute('aria-pressed', String(btn.dataset.themeChoice === choice));
+  });
+  readDitherColors();
+  if (!$('auth-view').hidden && reducedMotion.matches) {
+    renderHeroDither(performance.now());
+  }
+  if (!$('workspace-view').hidden) {
+    drawGraph();
+  }
+}
+
+for (const button of document.querySelectorAll('[data-theme-choice]')) {
+  button.onclick = () => applyTheme(button.dataset.themeChoice);
+}
+
+/* ---------- Workspace Graph & Groups Logic ---------- */
+
+function renderGroups(retainFocus) {
+  const query = $('search').value.trim().toLocaleLowerCase('ru');
+  const scheme = $('scheme').value;
+  const matches = demo.filter(({ item }) => (!scheme || scheme === item.scheme) &&
+    `${schemes[item.scheme]} ${statuses[item.status]}`.toLocaleLowerCase('ru').includes(query));
+  $('groups').replaceChildren();
+  for (const group of matches.slice(0, visibleCount)) {
+    const { item } = group;
+    const button = document.createElement('button');
+    button.className = 'group';
+    button.type = 'button';
+    button.setAttribute('aria-pressed', String(group === chosen));
+    const segments = Array.from({ length: 10 }, (_, index) =>
+      `<i class="${index < Math.round(item.risk_score / 10) ? 'filled' : ''}"></i>`
+    ).join('');
+    button.innerHTML = `<span class="group-top"><strong>${schemes[item.scheme]}</strong><span class="status ${item.status}">${statuses[item.status]}</span></span>
+      <span class="risk"><span aria-label="Балл риска ${item.risk_score} из 100">${item.risk_score}</span><span class="risk-track" aria-hidden="true">${segments}</span></span>
+      <span class="group-meta"><span>${accountsLabel(item.features.accounts_count)}</span><span>${money(item.features.total_amount)}</span><span>${lastEvent(item.last_event_at)}</span></span>`;
+    button.addEventListener('click', () => {
+      chosen = group;
+      zoom = 1;
+      renderGroups(true);
+      renderGroup();
+    });
+    $('groups').append(button);
+    if (retainFocus && group === chosen) button.focus();
+  }
+  $('more').hidden = matches.length <= visibleCount;
+  $('empty-list').hidden = matches.length > 0;
+}
+
+function renderGroup() {
+  const { item } = chosen;
+  $('scheme-title').textContent = schemes[item.scheme];
+  $('risk-score').textContent = item.risk_score;
+  $('meter').style.setProperty('--angle', `${item.risk_score * 1.8}deg`);
+  const metrics = [
+    ['Счета', item.features.accounts_count],
+    ['Сумма', money(item.features.total_amount)],
+    ['Окно', `${item.features.span_minutes} мин`],
+    ['Последнее, UTC', lastEvent(item.last_event_at)],
+  ];
+  $('metrics').innerHTML = metrics.map(([label, value]) =>
+    `<div class="metric"><dt>${label}</dt><dd>${value}</dd></div>`
+  ).join('');
+  $('review-text').value = chosen.draft ?? '';
+  $('review-text').setCustomValidity('');
+  renderReview();
+  renderMode();
+}
+
+function activityTime(date) {
+  const element = document.createElement('time');
+  element.dateTime = date;
+  element.textContent = `${reviewDate.format(new Date(date))} UTC`;
+  return element;
+}
+
+function renderReview() {
+  const { item, activity } = chosen;
+  $('status').className = `status ${item.status}`;
+  $('status').textContent = statuses[item.status];
+  const decision = activity.find(({ kind }) => kind !== 'comment');
+  const decisionBy = $('decision-by');
+  decisionBy.hidden = !decision;
+  decisionBy.replaceChildren();
+  if (decision) decisionBy.append(`Решение: ${decision.author} · `, activityTime(decision.date));
+  $('decision-actions').hidden = item.status !== 'new';
+  $('review-count').textContent = activity.length ? String(activity.length) : '';
+  $('review-empty').hidden = activity.length > 0;
+
+  $('review-list').replaceChildren(...activity.map((entry) => {
+    const row = document.createElement('li');
+    row.className = 'review-entry';
+    const header = document.createElement('header');
+    const author = document.createElement('strong');
+    author.textContent = entry.author;
+    header.append(author, reviewLabels[entry.kind], activityTime(entry.date));
+    const text = document.createElement('p');
+    text.className = 'review-text';
+    text.textContent = entry.text;
+    row.append(header, text);
+
+    if (entry.accepted) {
+      const accepted = document.createElement('p');
+      accepted.className = 'review-meta';
+      accepted.tabIndex = -1;
+      accepted.append(`Комментарий принят: ${entry.accepted.author} · `, activityTime(entry.accepted.date));
+      row.append(accepted);
+    } else if (entry.kind === 'comment') {
+      const accept = document.createElement('button');
+      accept.className = 'btn btn-quiet';
+      accept.type = 'button';
+      accept.textContent = 'Принять комментарий';
+      accept.setAttribute('aria-label', `Принять комментарий автора ${entry.author}`);
+      accept.onclick = () => {
+        entry.accepted = { author: currentUserLabel, date: new Date().toISOString() };
+        renderReview();
+        $('review-list').children[activity.indexOf(entry)].querySelector('.review-meta').focus();
+      };
+      row.append(accept);
+    }
+    return row;
+  }));
+}
+
+$('review-text').oninput = (event) => {
+  chosen.draft = event.currentTarget.value;
+  event.currentTarget.setCustomValidity('');
+};
+
+$('review-form').onsubmit = (event) => {
+  event.preventDefault();
+  const input = $('review-text');
+  const text = input.value.trim();
+  if (!text) {
+    input.setCustomValidity('Введите комментарий.');
+    input.reportValidity();
+    return;
+  }
+  const kind = event.submitter?.value || 'comment';
+  if (kind !== 'comment' && chosen.item.status !== 'new') return;
+  chosen.activity.unshift({ kind, author: currentUserLabel, date: new Date().toISOString(), text });
+  if (kind !== 'comment') {
+    chosen.item.status = kind;
+    renderGroups();
+  }
+  chosen.draft = input.value = '';
+  renderReview();
+  input.focus();
+};
+
+let graphLoaderTimer = null;
+
+function renderMode() {
+  if (graphLoaderTimer) {
+    clearInterval(graphLoaderTimer);
+    graphLoaderTimer = null;
+  }
+  const mode = $('mode').value;
+  const isGraph = mode === 'graph';
+  $('scene').hidden = !isGraph;
+  $('graph-controls').hidden = !isGraph;
+  const state = $('graph-state');
+  state.hidden = isGraph;
+  state.replaceChildren();
+  if (isGraph) {
+    renderNodes();
+    return;
+  }
+  const messages = {
+    loading: ['Загружаем граф', 'Построение матрицы связей…'],
+    error: ['Граф не загрузился', 'Попробуйте загрузить его ещё раз.'],
+    empty: ['Граф пока недоступен', 'Для этой группы нет данных о связях.'],
+  };
+  const [title, description] = messages[mode];
+  if (mode === 'loading') {
+    const loaderCanvas = document.createElement('canvas');
+    loaderCanvas.className = 'loader-dither';
+    loaderCanvas.width = 160;
+    loaderCanvas.height = 20;
+    state.append(loaderCanvas);
+    let phase = 0;
+    renderMiniDitherLoader(loaderCanvas, phase);
+    if (!reducedMotion.matches) {
+      graphLoaderTimer = setInterval(() => {
+        phase += 0.16;
+        renderMiniDitherLoader(loaderCanvas, phase);
+      }, 60);
+    }
+  }
+  const heading = document.createElement('strong');
+  heading.textContent = title;
+  state.append(heading);
+  if (description) {
+    const paragraph = document.createElement('p');
+    paragraph.textContent = description;
+    state.append(paragraph);
+  }
+  if (mode === 'error') {
+    const retry = document.createElement('button');
+    retry.type = 'button';
+    retry.className = 'btn btn-primary';
+    retry.textContent = 'Повторить';
+    retry.onclick = () => { $('mode').value = 'graph'; renderMode(); $('mode').focus(); };
+    state.append(retry);
+  }
+}
+
+function renderNodes() {
+  selectedNode = hoveredNode = focusedNode = null;
+  customPositions.clear();
+  $('nodes').replaceChildren();
+  graphNodes = chosen.graph.nodes.map((node) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'node';
+    button.dataset.kind = node.type;
+    button.setAttribute('aria-label', `${kinds[node.type]} ${node.entity_id}`);
+    const shape = document.createElement('span');
+    shape.className = `shape ${node.type}`;
+    const label = document.createElement('span');
+    label.className = 'node-label';
+    label.textContent = node.entity_id;
+    button.append(shape, label);
+    let drag = null;
+    let suppressClick = false;
+    const onPointerMove = (event) => {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      const dx = event.clientX - drag.startClientX;
+      const dy = event.clientY - drag.startClientY;
+      if (!drag.moved && Math.hypot(dx, dy) <= 4) return;
+      if (!drag.moved) {
+        drag.moved = true;
+        button.classList.add('dragging');
+      }
+      const { clientWidth: width, clientHeight: height } = surface;
+      if (!width || !height) return;
+      const nextX = Math.max(20, Math.min(width - 20, drag.startX + dx));
+      const nextY = Math.max(20, Math.min(height - 28, drag.startY + dy));
+      customPositions.set(node.id, {
+        x: 0.5 + (nextX / width - 0.5) / zoom,
+        y: 0.5 + (nextY / height - 0.5) / zoom,
+      });
+      drawGraph();
+    };
+    const finishDrag = (event) => {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', finishDrag);
+      window.removeEventListener('pointercancel', finishDrag);
+      if (drag.moved) {
+        suppressClick = true;
+        setTimeout(() => { suppressClick = false; }, 0);
+      }
+      button.classList.remove('dragging');
+      drag = null;
+    };
+    button.onpointerenter = () => { hoveredNode = node.id; drawGraph(); };
+    button.onpointerleave = () => { hoveredNode = null; drawGraph(); };
+    button.onfocus = () => { focusedNode = node.id; drawGraph(); };
+    button.onblur = () => { focusedNode = null; drawGraph(); };
+    button.onpointerdown = (event) => {
+      if (event.pointerType === 'mouse' && event.button !== 0) return;
+      event.preventDefault();
+      drag = {
+        pointerId: event.pointerId,
+        startClientX: event.clientX,
+        startClientY: event.clientY,
+        startX: parseFloat(button.style.left) || 0,
+        startY: parseFloat(button.style.top) || 0,
+        moved: false,
+      };
+      window.addEventListener('pointermove', onPointerMove);
+      window.addEventListener('pointerup', finishDrag);
+      window.addEventListener('pointercancel', finishDrag);
+    };
+    button.onclick = () => {
+      if (suppressClick) {
+        suppressClick = false;
+        return;
+      }
+      selectedNode = selectedNode === node.id ? null : node.id;
+      drawGraph();
+    };
+    $('nodes').append(button);
+    return { ...node, button };
+  });
+  drawGraph();
+}
+
+function positions(width, height) {
+  const result = new Map();
+  const { item, graph } = chosen;
+  const byType = (type) => graphNodes.filter((node) => node.type === type);
+  const accounts = byType('account');
+  const sharedLogin = item.scheme === 'farm' || item.scheme === 'address';
+  const narrow = width < 570;
+  const spread = (index, count, min, max) => count === 1 ? (min + max) / 2 : min + (max - min) * index / (count - 1);
+  const place = (node, x, y) => result.set(node.id, {
+    x: width / 2 + (x - 0.5) * width * zoom,
+    y: height / 2 + (y - 0.5) * height * zoom,
+  });
+
+  if (sharedLogin) {
+    const senders = accounts.slice(0, -1);
+    accounts.forEach((node, i) => {
+      const collector = i === accounts.length - 1;
+      if (narrow) place(node, collector ? 0.75 : 0.38, collector ? 0.5 : spread(i, senders.length, 0.14, 0.76));
+      else place(node, collector ? 0.83 : 0.42, collector ? 0.48 : spread(i, senders.length, 0.12, 0.82));
+    });
+    for (const kind of ['device', 'network_address']) {
+      const nodes = byType(kind);
+      nodes.forEach((node, i) => {
+        if (narrow) place(node, kind === 'device' ? 0.13 : 0.14, spread(i, nodes.length, kind === 'device' ? 0.09 : 0.56, kind === 'device' ? 0.40 : 0.83));
+        else place(node, kind === 'device' ? 0.23 : 0.10, spread(i, nodes.length, 0.16, 0.76));
+      });
+    }
+    graph.ownerships.forEach(({ source, target }, i) => {
+      const node = graphNodes.find(({ id }) => id === source);
+      const point = result.get(target);
+      const accountX = 0.5 + (point.x / width - 0.5) / zoom;
+      const accountY = 0.5 + (point.y / height - 0.5) / zoom;
+      if (narrow) place(node, i === accounts.length - 1 ? 0.85 : accountX + 0.10, accountY + 0.08);
+      else place(node, accountX + (i === accounts.length - 1 ? 0.07 : 0.10), accountY + 0.07);
+    });
+  } else {
+    accounts.forEach((node, i) => {
+      const ring = item.scheme === 'ring';
+      const client = graphNodes.find(({ id }) => id === graph.ownerships.find(({ target }) => target === node.id).source);
+      if (ring) {
+        const angle = -Math.PI / 4 + i * Math.PI / 2;
+        place(node, 0.5 + Math.cos(angle) * 0.32, 0.45 + Math.sin(angle) * 0.32);
+        place(client, 0.5 + Math.cos(angle) * 0.47, 0.45 + Math.sin(angle) * 0.49);
+      } else {
+        const along = spread(i, accounts.length, 0.13, 0.87);
+        place(node, narrow ? 0.38 : along, narrow ? along : 0.47);
+        place(client, narrow ? 0.75 : along, narrow ? along : 0.72);
+      }
+    });
+  }
+  for (const node of graphNodes) {
+    const custom = customPositions.get(node.id);
+    if (custom) place(node, custom.x, custom.y);
+  }
+  return result;
+}
+
+function drawGraph() {
+  if ($('workspace-view').hidden || $('scene').hidden || !graphNodes.length) return;
+  const { clientWidth: width, clientHeight: height } = surface;
+  if (!width || !height) return;
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = width * ratio;
+  canvas.height = height * ratio;
+  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  const coordinates = positions(width, height);
+  const { ownerships, logins, transfers } = chosen.graph;
+  const active = hoveredNode || focusedNode || selectedNode;
+  const neighbors = new Set([active]);
+  const css = getComputedStyle(surface);
+  const colors = Object.fromEntries(['owner', 'login', 'transfer', 'canvas'].map((key) => [key, css.getPropertyValue(`--${key}`).trim()]));
+  const monoFont = css.getPropertyValue('--mono').trim() || 'Consolas, monospace';
+  for (const [kind, edges] of [['owner', ownerships], ['login', logins], ['transfer', transfers]]) {
+    const totals = new Map();
+    const seen = new Map();
+    for (const edge of edges) {
+      const key = `${edge.source}/${edge.target}`;
+      totals.set(key, (totals.get(key) || 0) + 1);
+    }
+    for (const edge of edges) {
+      const key = `${edge.source}/${edge.target}`;
+      const index = seen.get(key) || 0;
+      seen.set(key, index + 1);
+      const related = !active || edge.source === active || edge.target === active;
+      if (related) { neighbors.add(edge.source); neighbors.add(edge.target); }
+      context.globalAlpha = related ? 1 : 0.16;
+      drawEdge(kind, edge, coordinates, colors, (index - (totals.get(key) - 1) / 2) * 40, width, monoFont);
+    }
+  }
+  for (const { id, button } of graphNodes) {
+    const { x, y } = coordinates.get(id);
+    button.style.left = `${x}px`;
+    button.style.top = `${y}px`;
+    button.hidden = x < 16 || x > width - 16 || y < 16 || y > height - 16;
+    button.classList.toggle('dim', Boolean(active) && !neighbors.has(id));
+    button.setAttribute('aria-pressed', String(selectedNode === id));
+  }
+}
+
+function drawEdge(kind, edge, coordinates, colors, bend, width, monoFont) {
+  const a = coordinates.get(edge.source);
+  const b = coordinates.get(edge.target);
+  const angle = Math.atan2(b.y - a.y, b.x - a.x);
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  const x = b.x - cos * 17;
+  const y = b.y - sin * 17;
+  const midX = (a.x + x) / 2 - sin * bend;
+  const midY = (a.y + y) / 2 + cos * bend;
+  const transfers = kind === 'transfer';
+  context.strokeStyle = colors[kind];
+  context.lineWidth = transfers ? 1.6 : 1.1;
+  context.setLineDash(transfers ? [2, 3] : kind === 'login' ? [6, 4] : []);
+  context.beginPath();
+  context.moveTo(a.x, a.y);
+  context.quadraticCurveTo(midX, midY, x, y);
+  context.stroke();
+  if (!transfers) return;
+
+  const tip = Math.atan2(y - midY, x - midX);
+  context.setLineDash([]);
+  context.beginPath();
+  context.moveTo(x - 7 * Math.cos(tip - 0.48), y - 7 * Math.sin(tip - 0.48));
+  context.lineTo(x, y);
+  context.lineTo(x - 7 * Math.cos(tip + 0.48), y - 7 * Math.sin(tip + 0.48));
+  context.stroke();
+  const label = `${money(edge.amount)} · ${time(edge.occurred_at)}`;
+  context.font = `${width < 570 ? 9 : 11}px ${monoFont}`;
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  const sharedLogin = chosen.item.scheme === 'farm' || chosen.item.scheme === 'address';
+  const labelAt = width < 570 && sharedLogin && b.y >= a.y ? 0.64 : 0.5;
+  const from = 1 - labelAt;
+  const labelX = from ** 2 * a.x + 2 * from * labelAt * midX + labelAt ** 2 * x;
+  const labelY = from ** 2 * a.y + 2 * from * labelAt * midY + labelAt ** 2 * y - (bend ? 0 : 12);
+  const labelWidth = context.measureText(label).width + 8;
+  context.fillStyle = colors.canvas;
+  context.fillRect(labelX - labelWidth / 2, labelY - 7, labelWidth, 14);
+  context.fillStyle = colors.transfer;
+  context.fillText(label, labelX, labelY);
+}
+
+$('sidebar-toggle').onclick = (event) => {
+  const collapsed = $('sidebar').hidden = !$('sidebar').hidden;
+  document.querySelector('.layout').classList.toggle('collapsed', collapsed);
+  event.currentTarget.setAttribute('aria-expanded', String(!collapsed));
+  event.currentTarget.setAttribute('aria-label', collapsed ? 'Развернуть список групп' : 'Свернуть список групп');
+};
+$('search').oninput = $('scheme').onchange = () => { visibleCount = 4; renderGroups(); };
+$('more').onclick = () => {
+  const firstAdded = visibleCount;
+  visibleCount += 4;
+  renderGroups();
+  $('groups').children[firstAdded]?.focus();
+};
+$('mode').onchange = renderMode;
+
+function setZoom(value) {
+  zoom = Math.max(0.7, Math.min(1.4, value));
+  drawGraph();
+}
+$('zoom-out').onclick = () => setZoom(zoom - 0.15);
+$('zoom-in').onclick = () => setZoom(zoom + 0.15);
+$('zoom-reset').onclick = () => setZoom(1);
+
+surface.addEventListener('click', (event) => {
+  if (event.target === surface || event.target === canvas) { selectedNode = null; drawGraph(); }
+});
+surface.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') { selectedNode = null; drawGraph(); }
+});
+new ResizeObserver(drawGraph).observe(surface);
+document.fonts?.ready?.then(() => { if (!$('workspace-view').hidden) drawGraph(); });
+
+startHeroDither();
+</script>
+</html>
