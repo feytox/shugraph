@@ -4,7 +4,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>T-Bank × ShuGraph · Вход и рабочее место аналитика</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://www.cdn-tinkoff.ru/frontend-libraries/npm/react-kit-font/2.0.0/fonts.css');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
 :root {
   color-scheme: dark;
@@ -44,7 +45,8 @@
   --danger: #ff6b63;
   --danger-soft: rgba(255, 107, 99, 0.12);
 
-  --sans: 'Golos Text', system-ui, -apple-system, sans-serif;
+  --heading: 'T-Sans', 'dsHeading', 'dsHeading Fallback', system-ui, -apple-system, sans-serif;
+  --sans: 'dsText', 'Neue Haas Unica W1G', 'dsText Fallback', system-ui, -apple-system, sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
 }
 
@@ -131,9 +133,10 @@ h1, h2, h3, p, dl, dd { margin: 0; }
   border-radius: 7px;
   background: var(--yellow);
   color: var(--yellow-ink);
+  font-family: var(--heading);
   font-size: 14px;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   line-height: 1;
 }
 
@@ -160,9 +163,10 @@ h1, h2, h3, p, dl, dd { margin: 0; }
   align-items: center;
   gap: 7px;
   padding: 5px 10px 5px 2px;
+  font-family: var(--heading);
   font-size: 14px;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   line-height: 1;
   color: var(--ink);
 }
@@ -331,10 +335,11 @@ h1, h2, h3, p, dl, dd { margin: 0; }
   justify-content: center;
   flex-wrap: wrap;
   gap: 12px 14px;
+  font-family: var(--heading);
   font-size: clamp(34px, 5.4vw, 56px);
-  font-weight: 800;
-  letter-spacing: -0.045em;
-  line-height: 1.04;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
 }
 
 .hero-t-badge {
@@ -355,7 +360,7 @@ h1, h2, h3, p, dl, dd { margin: 0; }
 
 .hero-x {
   color: var(--yellow);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 [data-theme='light'] .hero-x {
@@ -589,7 +594,7 @@ h1, h2, h3, p, dl, dd { margin: 0; }
 .layout.collapsed { grid-template-columns: minmax(0, 1fr); }
 
 .sidebar { padding: 18px 15px 15px; align-self: start; }
-.sidebar h1 { font-size: 19px; letter-spacing: -0.04em; margin: 0 2px 13px; }
+.sidebar h1 { font-family: var(--heading); font-size: 19px; font-weight: 700; letter-spacing: -0.015em; margin: 0 2px 13px; }
 .filters { display: grid; gap: 8px; margin-bottom: 13px; }
 .groups { display: grid; gap: 8px; }
 
@@ -610,7 +615,7 @@ h1, h2, h3, p, dl, dd { margin: 0; }
   border-color: var(--outline);
 }
 .group-top { justify-content: space-between; }
-.group-top strong { font-size: 15px; }
+.group-top strong { font-family: var(--heading); font-size: 15px; font-weight: 700; }
 
 .status {
   display: inline-block;
@@ -645,7 +650,7 @@ h1, h2, h3, p, dl, dd { margin: 0; }
   gap: 12px;
 }
 .heading { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; margin-bottom: 12px; }
-.heading h2 { font-size: clamp(24px, 3vw, 34px); line-height: 1; letter-spacing: -0.055em; }
+.heading h2 { font-family: var(--heading); font-size: clamp(24px, 3vw, 34px); font-weight: 700; line-height: 1.08; letter-spacing: -0.02em; }
 .metrics { display: flex; flex-wrap: wrap; gap: 7px; }
 .metric { min-width: 67px; padding: 5px 9px; border-radius: 9px; background: var(--field); border: 1px solid var(--line); }
 .metric dt, .meter-label, .utc { color: var(--muted); font-size: 11px; }
@@ -667,7 +672,7 @@ h1, h2, h3, p, dl, dd { margin: 0; }
 
 .graph-panel { display: grid; grid-template-rows: auto minmax(350px, 1fr) auto; overflow: hidden; }
 .graph-top { justify-content: space-between; padding: 11px 15px; }
-.graph-top h2 { font-size: 15px; }
+.graph-top h2 { font-family: var(--heading); font-size: 15px; font-weight: 700; }
 .graph-controls { gap: 5px; }
 
 .surface {
@@ -739,6 +744,7 @@ h1, h2, h3, p, dl, dd { margin: 0; }
   text-align: center;
   padding: 20px;
 }
+.graph-state strong { font-family: var(--heading); font-size: 17px; font-weight: 700; }
 .graph-state p { color: var(--muted); }
 
 .legend { flex-wrap: wrap; padding: 12px 15px; gap: 7px 14px; color: var(--muted); font-size: 11px; }
@@ -1744,6 +1750,7 @@ function drawGraph() {
   const neighbors = new Set([active]);
   const css = getComputedStyle(surface);
   const colors = Object.fromEntries(['owner', 'login', 'transfer', 'canvas'].map((key) => [key, css.getPropertyValue(`--${key}`).trim()]));
+  const monoFont = css.getPropertyValue('--mono').trim() || 'Consolas, monospace';
   for (const [kind, edges] of [['owner', ownerships], ['login', logins], ['transfer', transfers]]) {
     const totals = new Map();
     const seen = new Map();
@@ -1758,7 +1765,7 @@ function drawGraph() {
       const related = !active || edge.source === active || edge.target === active;
       if (related) { neighbors.add(edge.source); neighbors.add(edge.target); }
       context.globalAlpha = related ? 1 : 0.16;
-      drawEdge(kind, edge, coordinates, colors, (index - (totals.get(key) - 1) / 2) * 40, width);
+      drawEdge(kind, edge, coordinates, colors, (index - (totals.get(key) - 1) / 2) * 40, width, monoFont);
     }
   }
   for (const { id, button } of graphNodes) {
@@ -1771,7 +1778,7 @@ function drawGraph() {
   }
 }
 
-function drawEdge(kind, edge, coordinates, colors, bend, width) {
+function drawEdge(kind, edge, coordinates, colors, bend, width, monoFont) {
   const a = coordinates.get(edge.source);
   const b = coordinates.get(edge.target);
   const angle = Math.atan2(b.y - a.y, b.x - a.x);
@@ -1799,7 +1806,7 @@ function drawEdge(kind, edge, coordinates, colors, bend, width) {
   context.lineTo(x - 7 * Math.cos(tip + 0.48), y - 7 * Math.sin(tip + 0.48));
   context.stroke();
   const label = `${money(edge.amount)} · ${time(edge.occurred_at)}`;
-  context.font = `${width < 570 ? 9 : 11}px Consolas, monospace`;
+  context.font = `${width < 570 ? 9 : 11}px ${monoFont}`;
   context.textAlign = 'center';
   context.textBaseline = 'middle';
   const sharedLogin = chosen.item.scheme === 'farm' || chosen.item.scheme === 'address';
@@ -1844,6 +1851,7 @@ surface.addEventListener('keydown', (event) => {
   if (event.key === 'Escape') { selectedNode = null; drawGraph(); }
 });
 new ResizeObserver(drawGraph).observe(surface);
+document.fonts?.ready?.then(() => { if (!$('workspace-view').hidden) drawGraph(); });
 
 startHeroDither();
 </script>
