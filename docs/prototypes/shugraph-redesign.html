@@ -202,7 +202,7 @@ h1, h2, h3, p, dl, dd { margin: 0; }
   transition: background-color 140ms ease, border-color 140ms ease;
 }
 
-.btn:hover {
+.btn:enabled:hover {
   background: var(--hover);
   border-color: var(--line-strong);
 }
@@ -218,25 +218,9 @@ h1, h2, h3, p, dl, dd { margin: 0; }
   color: var(--yellow-ink);
 }
 
-.btn-primary:hover {
+.btn-primary:enabled:hover {
   background: var(--yellow-hover);
   border-color: var(--yellow-hover);
-}
-
-.btn-secondary {
-  background: transparent;
-  border-color: var(--line-strong);
-}
-
-.btn-secondary:hover {
-  background: var(--field);
-}
-
-.btn-sm {
-  height: 34px;
-  padding: 0 12px;
-  border-radius: 8px;
-  font-size: 13px;
 }
 
 .toggle {
@@ -521,7 +505,49 @@ h1, h2, h3, p, dl, dd { margin: 0; }
 
 /* ---------- WORKSPACE ---------- */
 
-.shell { max-width: 1700px; margin: auto; padding: 0 24px 24px; }
+.shell {
+  --control-height: 44px;
+  --control-radius: 12px;
+  --control-press: var(--line-strong);
+  --action-hover: #fcc521;
+  --action-press: #fab619;
+  max-width: 1700px;
+  margin: auto;
+  padding: 0 24px 24px;
+}
+
+.shell .btn,
+.workspace-theme button {
+  height: auto;
+  min-height: var(--control-height);
+  padding: 8px 16px;
+  border: 0;
+  border-radius: var(--control-radius);
+  font: 500 14px/20px var(--sans);
+  touch-action: manipulation;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.shell .btn:enabled:active { background: var(--control-press); }
+.shell .btn-primary:enabled:hover { background: var(--action-hover); }
+.shell .btn-primary:enabled:active { background: var(--action-press); }
+.shell .btn-quiet { background: transparent; }
+.shell .btn-quiet:enabled:hover { background: var(--field); }
+.shell .btn-quiet:enabled:active { background: var(--hover); }
+.shell .btn-icon { min-width: var(--control-height); padding-inline: 0; font-size: 19px; }
+.shell .btn-icon svg { width: 20px; height: 20px; }
+
+.workspace-theme {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 14px;
+  background: var(--field);
+}
+.workspace-theme button { padding-inline: 12px; background: transparent; color: var(--muted); }
+.workspace-theme button:hover { background: var(--hover); color: var(--ink); }
+.workspace-theme button[aria-pressed='true'] { background: var(--panel); color: var(--ink); }
+.workspace-theme button:active { background: var(--control-press); }
 
 .top {
   min-height: 68px;
@@ -543,12 +569,11 @@ h1, h2, h3, p, dl, dd { margin: 0; }
 .field {
   display: grid;
   background: var(--field);
-  border: 1px solid var(--line);
-  padding: 5px 11px;
-  border-radius: 9px;
+  padding: 6px 12px;
+  border-radius: var(--control-radius);
   min-width: 0;
 }
-.field:hover { background: var(--hover); border-color: var(--line-strong); }
+.field:hover { background: var(--hover); }
 .field span { font-size: 11px; color: var(--muted); }
 .field input, .field select {
   background: transparent;
@@ -562,15 +587,11 @@ h1, h2, h3, p, dl, dd { margin: 0; }
 .field input::placeholder { color: var(--muted); }
 .field option { background: var(--panel); }
 
-.user-pill {
+.workspace-user {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 34px;
-  padding: 0 10px 0 6px;
-  border-radius: 8px;
-  border: 1px solid var(--line);
-  background: var(--panel);
+  padding-inline: 4px;
   font-size: 13px;
   font-weight: 500;
 }
@@ -578,8 +599,8 @@ h1, h2, h3, p, dl, dd { margin: 0; }
   width: 22px;
   height: 22px;
   border-radius: 6px;
-  background: var(--yellow);
-  color: var(--yellow-ink);
+  background: var(--field);
+  color: var(--ink);
   display: grid;
   place-items: center;
   font: 700 11px/1 var(--mono);
@@ -596,24 +617,29 @@ h1, h2, h3, p, dl, dd { margin: 0; }
 .sidebar { padding: 18px 15px 15px; align-self: start; }
 .sidebar h1 { font-family: var(--heading); font-size: 19px; font-weight: 700; letter-spacing: -0.015em; margin: 0 2px 13px; }
 .filters { display: grid; gap: 8px; margin-bottom: 13px; }
-.groups { display: grid; gap: 8px; }
+.groups { display: grid; }
 
 .group {
   text-align: left;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px 11px;
-  background: var(--canvas);
+  border: 0;
+  border-radius: 0;
+  padding: 12px;
+  background: transparent;
+  box-shadow: inset 0 -1px var(--line);
   display: grid;
   width: 100%;
   gap: 6px;
-  transition: background-color 120ms ease, border-color 120ms ease;
+  touch-action: manipulation;
+  transition: background-color 160ms ease;
 }
-.group:hover { background: var(--field); border-color: var(--line-strong); }
+.group:hover { background: var(--field); }
 .group[aria-pressed='true'] {
   background: var(--active);
-  border-color: var(--outline);
+  box-shadow: inset 3px 0 var(--yellow);
+  border-radius: 4px var(--control-radius) var(--control-radius) 4px;
 }
+.group:active { background: var(--hover); }
+.group:focus-visible { position: relative; z-index: 1; }
 .group-top { justify-content: space-between; }
 .group-top strong { font-family: var(--heading); font-size: 15px; font-weight: 700; }
 
@@ -641,7 +667,7 @@ h1, h2, h3, p, dl, dd { margin: 0; }
 .more { width: 100%; margin-top: 10px; }
 .empty-list { color: var(--muted); padding: 16px 4px; }
 
-.main { display: grid; grid-template-rows: auto 1fr; gap: 12px; }
+.main { display: grid; grid-template-rows: auto auto 1fr; gap: 12px; min-width: 0; }
 .group-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -670,10 +696,47 @@ h1, h2, h3, p, dl, dd { margin: 0; }
 }
 .meter-track strong { position: absolute; inset: auto 0 0; font: 700 26px/1 var(--mono); }
 
+.decision-by { flex-basis: 100%; color: var(--muted); overflow-wrap: anywhere; }
+.review summary {
+  min-height: 48px;
+  padding: 12px 16px;
+  border-radius: inherit;
+  cursor: pointer;
+  font: 700 15px/24px var(--heading);
+}
+.review summary:hover { background: var(--field); }
+.review summary:focus-visible, .review textarea:focus-visible {
+  outline: 2px solid var(--outline);
+  outline-offset: 2px;
+}
+.review-count { margin-inline-start: 8px; color: var(--muted); font: 400 13px/20px var(--sans); }
+.review-body { padding: 0 16px 16px; }
+.review-list { list-style: none; margin: 0 0 16px; padding: 0; }
+.review-entry { border-bottom: 1px solid var(--line); padding: 12px 0; overflow-wrap: anywhere; }
+.review-entry header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.review-entry time, .review-meta, .review-empty { color: var(--muted); font-size: 13px; }
+.review-entry p { margin-top: 4px; }
+.review-text { white-space: pre-wrap; }
+.review-entry .btn { margin-top: 8px; }
+.review-form { display: grid; gap: 8px; }
+.review-form textarea {
+  width: 100%;
+  min-height: 76px;
+  padding: 10px 12px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: var(--control-radius);
+  background: var(--field);
+  font: inherit;
+  color: inherit;
+}
+.review-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.review-actions div { display: contents; }
+
 .graph-panel { display: grid; grid-template-rows: auto minmax(350px, 1fr) auto; overflow: hidden; }
 .graph-top { justify-content: space-between; padding: 11px 15px; }
 .graph-top h2 { font-family: var(--heading); font-size: 15px; font-weight: 700; }
-.graph-controls { gap: 5px; }
+.graph-controls { gap: 8px; }
 
 .surface {
   position: relative;
@@ -766,9 +829,9 @@ h1, h2, h3, p, dl, dd { margin: 0; }
   .auth-view { padding: 14px; }
   .auth-card { padding: 20px; }
   .top { gap: 7px; flex-wrap: wrap; padding: 10px 0; }
-  .top-controls { flex-wrap: wrap; gap: 5px; }
+  .top-controls { flex-wrap: wrap; gap: 8px; }
   .layout { grid-template-columns: minmax(0, 1fr); min-height: 0; }
-  .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .groups { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 8px; }
   .group-meta { flex-wrap: wrap; }
   .graph-panel { grid-template-rows: auto minmax(415px, 1fr) auto; }
   .surface { min-height: 415px; }
@@ -776,6 +839,7 @@ h1, h2, h3, p, dl, dd { margin: 0; }
 }
 
 @media (max-width: 470px) {
+  .graph-top { flex-wrap: wrap; }
   .group-top { display: grid; justify-content: start; gap: 3px; }
 }
 
@@ -783,6 +847,10 @@ h1, h2, h3, p, dl, dd { margin: 0; }
   .groups { grid-template-columns: 1fr; }
   .meter { width: 82px; }
   .meter-track { transform: scale(0.86); transform-origin: left bottom; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shell .btn, .workspace-theme button, .group { transition: none; }
 }
 </style>
 
@@ -877,11 +945,16 @@ h1, h2, h3, p, dl, dd { margin: 0; }
           ShuGraph
         </span>
       </div>
-      <button id="sidebar-toggle" class="btn btn-sm" type="button" aria-label="Свернуть список групп" aria-expanded="true" aria-controls="sidebar">☰</button>
+      <button id="sidebar-toggle" class="btn btn-icon btn-quiet" type="button" aria-label="Свернуть список групп" aria-expanded="true" aria-controls="sidebar">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <rect x="2.75" y="3.75" width="14.5" height="12.5" rx="2"/>
+          <path d="M8 4v12"/>
+        </svg>
+      </button>
     </div>
 
     <div class="top-controls">
-      <div class="toggle" role="group" aria-label="Тема">
+      <div class="workspace-theme" role="group" aria-label="Тема">
         <button type="button" data-theme-choice="dark" aria-pressed="true">Тёмная</button>
         <button type="button" data-theme-choice="light" aria-pressed="false">Светлая</button>
       </div>
@@ -894,11 +967,11 @@ h1, h2, h3, p, dl, dd { margin: 0; }
           <option value="empty">Нет графа</option>
         </select>
       </label>
-      <div class="user-pill" aria-label="Текущий пользователь">
+      <div class="workspace-user" aria-label="Текущий пользователь">
         <span class="user-avatar" id="user-avatar">А</span>
         <span id="user-display">Аналитик #042</span>
       </div>
-      <button type="button" class="btn btn-sm btn-secondary" id="logout-btn">Выйти</button>
+      <button type="button" class="btn btn-quiet" id="logout-btn">Выйти</button>
     </div>
   </header>
 
@@ -911,13 +984,13 @@ h1, h2, h3, p, dl, dd { margin: 0; }
       </div>
       <div class="groups" id="groups" aria-label="Группы"></div>
       <p class="empty-list" id="empty-list" role="status" hidden>По этому запросу групп нет.</p>
-      <button class="btn btn-sm more" id="more" type="button">Показать ещё</button>
+      <button class="btn more" id="more" type="button">Показать ещё</button>
     </aside>
 
     <main class="main">
       <section class="panel group-header" aria-labelledby="scheme-title">
         <div>
-          <div class="heading"><h2 id="scheme-title"></h2><span id="status"></span></div>
+          <div class="heading"><h2 id="scheme-title"></h2><span id="status"></span><span class="decision-by" id="decision-by" hidden></span></div>
           <dl class="metrics" id="metrics"></dl>
         </div>
         <div class="meter">
@@ -926,13 +999,32 @@ h1, h2, h3, p, dl, dd { margin: 0; }
         </div>
       </section>
 
+      <details class="panel review" id="review">
+        <summary>История расследования <span class="review-count" id="review-count"></span></summary>
+        <div class="review-body">
+          <p class="review-empty" id="review-empty">По этой группе пока нет записей.</p>
+          <ol class="review-list" id="review-list" aria-label="Записи расследования"></ol>
+          <form class="review-form" id="review-form">
+            <label for="review-text">Комментарий</label>
+            <textarea id="review-text" name="comment" maxlength="1000" required></textarea>
+            <div class="review-actions">
+              <button class="btn" type="submit">Добавить комментарий</button>
+              <div id="decision-actions">
+                <button class="btn btn-primary" type="submit" value="approved">Подтвердить группу</button>
+                <button class="btn btn-quiet" type="submit" value="declined">Отклонить группу</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </details>
+
       <section class="panel graph-panel" aria-labelledby="graph-title">
         <header class="graph-top">
           <h2 id="graph-title">Граф связей</h2>
-          <div class="graph-controls" id="graph-controls" aria-label="Масштаб графа">
-            <button class="btn btn-sm" type="button" id="zoom-out" aria-label="Уменьшить масштаб">−</button>
-            <button class="btn btn-sm" type="button" id="zoom-in" aria-label="Увеличить масштаб">+</button>
-            <button class="btn btn-sm" type="button" id="zoom-reset" aria-label="Вписать граф в экран">Вписать</button>
+          <div class="graph-controls" id="graph-controls" role="group" aria-label="Масштаб графа">
+            <button class="btn btn-icon" type="button" id="zoom-out" aria-label="Уменьшить масштаб">−</button>
+            <button class="btn btn-icon" type="button" id="zoom-in" aria-label="Увеличить масштаб">+</button>
+            <button class="btn btn-quiet" type="button" id="zoom-reset" aria-label="Вписать граф в экран">Вписать</button>
           </div>
         </header>
         <div class="surface" id="surface">
@@ -971,13 +1063,40 @@ const $ = (id) => document.getElementById(id);
 const demo = JSON.parse($('demo-data').textContent);
 const schemes = { farm: 'Ферма', address: 'Адрес', chain: 'Цепочка', ring: 'Кольцо' };
 const statuses = { new: 'Новая', approved: 'Подтверждена', declined: 'Отклонена' };
+const reviewLabels = { comment: 'Комментарий', approved: 'Подтверждение группы', declined: 'Отклонение группы' };
 const kinds = { client: 'Клиент', account: 'Счёт', device: 'Устройство', network_address: 'Сетевой адрес' };
 const number = new Intl.NumberFormat('ru-RU');
 const dayMonth = new Intl.DateTimeFormat('ru-RU', { day: '2-digit', month: '2-digit', timeZone: 'UTC' });
+const reviewDate = new Intl.DateTimeFormat('ru-RU', {
+  dateStyle: 'short', timeStyle: 'short', timeZone: 'UTC',
+});
 const time = (value) => value.slice(11, 16);
 const lastEvent = (value) => `${dayMonth.format(new Date(value))} · ${time(value)}`;
 const money = (value) => `${number.format(value / 100)} ₽`;
 const accountsLabel = (n) => `${n} ${n === 1 ? 'счёт' : n < 5 ? 'счёта' : 'счетов'}`;
+
+const demoDecisions = {
+  farm: ['Марина Волкова', '2026-11-05T11:04:00Z', 'Три счёта использовали одно устройство и перевели средства одному получателю.'],
+  address: ['Илья Смирнов', '2026-10-21T14:21:00Z', 'Общий сетевой адрес принадлежит офису компании. Переводы соответствуют обычному расписанию.'],
+  chain: ['Анна Петрова', '2026-10-28T12:02:00Z', 'Средства прошли через пять счетов за 25 минут с минимальным изменением суммы.'],
+  ring: ['Дмитрий Орлов', '2026-10-28T10:12:00Z', 'Переводы между счетами объясняются регулярной сверкой остатков.'],
+};
+for (const group of demo) {
+  group.activity = [];
+  if (group.item.status === 'new') continue;
+  const [author, date, text] = demoDecisions[group.item.scheme];
+  group.activity.push({ kind: group.item.status, author, date, text });
+}
+demo[0].activity.push(
+  { kind: 'comment', author: 'Илья Смирнов', date: '2026-11-12T10:48:00Z', text: 'Проверить, кто ещё входил с общего устройства.' },
+  {
+    kind: 'comment',
+    author: 'Анна Петрова',
+    date: '2026-11-12T10:36:00Z',
+    text: 'Три счёта отправили переводы одному получателю с интервалом в несколько минут.',
+    accepted: { author: 'Марина Волкова', date: '2026-11-12T10:42:00Z' },
+  },
+);
 
 let chosen = demo[0];
 let visibleCount = 4;
@@ -1524,8 +1643,6 @@ function renderGroups(retainFocus) {
 function renderGroup() {
   const { item } = chosen;
   $('scheme-title').textContent = schemes[item.scheme];
-  $('status').className = `status ${item.status}`;
-  $('status').textContent = statuses[item.status];
   $('risk-score').textContent = item.risk_score;
   $('meter').style.setProperty('--angle', `${item.risk_score * 1.8}deg`);
   const metrics = [
@@ -1537,8 +1654,92 @@ function renderGroup() {
   $('metrics').innerHTML = metrics.map(([label, value]) =>
     `<div class="metric"><dt>${label}</dt><dd>${value}</dd></div>`
   ).join('');
+  $('review-text').value = chosen.draft ?? '';
+  $('review-text').setCustomValidity('');
+  renderReview();
   renderMode();
 }
+
+function activityTime(date) {
+  const element = document.createElement('time');
+  element.dateTime = date;
+  element.textContent = `${reviewDate.format(new Date(date))} UTC`;
+  return element;
+}
+
+function renderReview() {
+  const { item, activity } = chosen;
+  $('status').className = `status ${item.status}`;
+  $('status').textContent = statuses[item.status];
+  const decision = activity.find(({ kind }) => kind !== 'comment');
+  const decisionBy = $('decision-by');
+  decisionBy.hidden = !decision;
+  decisionBy.replaceChildren();
+  if (decision) decisionBy.append(`Решение: ${decision.author} · `, activityTime(decision.date));
+  $('decision-actions').hidden = item.status !== 'new';
+  $('review-count').textContent = activity.length ? String(activity.length) : '';
+  $('review-empty').hidden = activity.length > 0;
+
+  $('review-list').replaceChildren(...activity.map((entry) => {
+    const row = document.createElement('li');
+    row.className = 'review-entry';
+    const header = document.createElement('header');
+    const author = document.createElement('strong');
+    author.textContent = entry.author;
+    header.append(author, reviewLabels[entry.kind], activityTime(entry.date));
+    const text = document.createElement('p');
+    text.className = 'review-text';
+    text.textContent = entry.text;
+    row.append(header, text);
+
+    if (entry.accepted) {
+      const accepted = document.createElement('p');
+      accepted.className = 'review-meta';
+      accepted.tabIndex = -1;
+      accepted.append(`Комментарий принят: ${entry.accepted.author} · `, activityTime(entry.accepted.date));
+      row.append(accepted);
+    } else if (entry.kind === 'comment') {
+      const accept = document.createElement('button');
+      accept.className = 'btn btn-quiet';
+      accept.type = 'button';
+      accept.textContent = 'Принять комментарий';
+      accept.setAttribute('aria-label', `Принять комментарий автора ${entry.author}`);
+      accept.onclick = () => {
+        entry.accepted = { author: currentUserLabel, date: new Date().toISOString() };
+        renderReview();
+        $('review-list').children[activity.indexOf(entry)].querySelector('.review-meta').focus();
+      };
+      row.append(accept);
+    }
+    return row;
+  }));
+}
+
+$('review-text').oninput = (event) => {
+  chosen.draft = event.currentTarget.value;
+  event.currentTarget.setCustomValidity('');
+};
+
+$('review-form').onsubmit = (event) => {
+  event.preventDefault();
+  const input = $('review-text');
+  const text = input.value.trim();
+  if (!text) {
+    input.setCustomValidity('Введите комментарий.');
+    input.reportValidity();
+    return;
+  }
+  const kind = event.submitter?.value || 'comment';
+  if (kind !== 'comment' && chosen.item.status !== 'new') return;
+  chosen.activity.unshift({ kind, author: currentUserLabel, date: new Date().toISOString(), text });
+  if (kind !== 'comment') {
+    chosen.item.status = kind;
+    renderGroups();
+  }
+  chosen.draft = input.value = '';
+  renderReview();
+  input.focus();
+};
 
 let graphLoaderTimer = null;
 
@@ -1590,7 +1791,7 @@ function renderMode() {
   if (mode === 'error') {
     const retry = document.createElement('button');
     retry.type = 'button';
-    retry.className = 'btn btn-primary btn-sm';
+    retry.className = 'btn btn-primary';
     retry.textContent = 'Повторить';
     retry.onclick = () => { $('mode').value = 'graph'; renderMode(); $('mode').focus(); };
     state.append(retry);
