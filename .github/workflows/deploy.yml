@@ -17,6 +17,9 @@ on:
       graph-frontapp:
         type: boolean
         default: true
+      graph-admin-frontapp:
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -79,7 +82,8 @@ jobs:
           all=$(jq -nc '[
             {name: "graph-api", context: "backend/graph-api", dockerfile: "backend/graph-api/Dockerfile"},
             {name: "graph-admin-api", context: "backend/graph-admin-api", dockerfile: "backend/graph-admin-api/Dockerfile"},
-            {name: "graph-frontapp", context: "frontend", dockerfile: "frontend/graph-frontapp/Dockerfile"}
+            {name: "graph-frontapp", context: "frontend", dockerfile: "frontend/graph-frontapp/Dockerfile"},
+            {name: "graph-admin-frontapp", context: "frontend", dockerfile: "frontend/graph-admin-frontapp/Dockerfile"}
           ]')
           services=$(jq -c --argjson in "$INPUTS" --argjson new "$NEW" 'map(select($new or $in[.name] == true))' <<< "$all")
           if [[ $services == "[]" ]]; then

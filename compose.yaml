@@ -125,5 +125,19 @@ services:
         condition: service_healthy
     restart: unless-stopped
 
+  graph-admin-frontapp:
+    build:
+      context: ./frontend
+      dockerfile: graph-admin-frontapp/Dockerfile
+    image: shugraph-graph-admin-frontapp:local
+    ports:
+      - 127.0.0.1:${GRAPH_ADMIN_FRONTAPP_PORT:-3001}:8080
+    volumes:
+      - ./frontend/graph-admin-frontapp/nginx.compose.conf:/etc/nginx/admin-api-proxy/compose.conf:ro
+    depends_on:
+      graph-admin-api:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   postgres-data:

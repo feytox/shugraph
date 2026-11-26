@@ -1,0 +1,20 @@
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  padding: var(--mantine-spacing-md);
+}
+
+.row + .row {
+  border-block-start: 1px solid var(--mantine-color-gray-3);
+}
+
+.scenarioId {
+  padding: 0;
+  background: transparent;
+  font-size: var(--mantine-font-size-sm);
+  overflow-wrap: anywhere;
+}

@@ -96,3 +96,25 @@ releases:
         route:
           pathPrefix: /
           hostnames: [{{ .Values.host }}]
+
+  - name: graph-admin-frontapp
+    namespace: {{ .Values.namespace }}
+    chart: ./charts/app
+    values:
+      - priorityClassName: {{ .Values.priorityClassName }}
+        image:
+          repository: {{ requiredEnv "IMAGE_REGISTRY" }}/graph-admin-frontapp
+          tag: {{ requiredEnv "IMAGE_TAG" }}
+        probes:
+          liveness: /admin/
+          readiness: /admin/
+        resources:
+          requests:
+            cpu: 5m
+            memory: 16Mi
+          limits:
+            cpu: 200m
+            memory: 64Mi
+        route:
+          pathPrefix: /admin
+          hostnames: [{{ .Values.host }}]

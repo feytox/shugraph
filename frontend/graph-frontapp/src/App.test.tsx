@@ -58,9 +58,7 @@ it('объясняет пустой список и предлагает зап�
   );
   renderScreen();
   expect(
-    await screen.findByText(
-      'Подозрительных групп пока нет. Запустите сценарий через Swagger graph-admin-api'
-    )
+    await screen.findByText('Подозрительных групп пока нет. Запустите сценарий в админке ShuGraph.')
   ).toBeVisible();
   expect(screen.queryByRole('list', { name: 'Список групп' })).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /сценари/i })).not.toBeInTheDocument();

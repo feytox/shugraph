@@ -15,6 +15,7 @@ flowchart LR
     subgraph prod
         direction LR
         GW -- "/" --> RF["HTTPRoute"] --> SF["Service"] --> DF["Deployment<br/>graph-frontapp"]
+        GW -- "/admin" --> RAF["HTTPRoute"] --> SAF["Service"] --> DAF["Deployment<br/>graph-admin-frontapp"]
         GW -- "/api" --> RA["HTTPRoute"] --> SA["Service"] --> DA["Deployment<br/>graph-api"]
         GW -- "/admin-api" --> RAA["HTTPRoute"] --> SAA["Service"] --> DAA["Deployment<br/>graph-admin-api"]
         DAA -- "GRAPH_API_URL" --> SA
@@ -31,6 +32,8 @@ flowchart LR
 ```
 
 У каждого сервиса Service, Deployment и HTTPRoute называются как release.
+
+Страница запуска сценариев доступна по `/admin/` на домене площадки. Браузер обращается к `/admin-api/` на том же домене.
 
 ## Как выкатить
 

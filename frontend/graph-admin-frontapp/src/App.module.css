@@ -1,0 +1,9 @@
+.page {
+  min-height: 100dvh;
+  background: var(--mantine-color-gray-0);
+}
+
+.header {
+  background: var(--mantine-color-white);
+  border-block-end: 1px solid var(--mantine-color-gray-3);
+}

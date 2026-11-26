@@ -21,9 +21,7 @@ export function GroupsPanel() {
         (groups.data.items.length ? (
           <GroupsList items={groups.data.items} />
         ) : (
-          <Text px="md">
-            Подозрительных групп пока нет. Запустите сценарий через Swagger graph-admin-api
-          </Text>
+          <Text px="md">Подозрительных групп пока нет. Запустите сценарий в админке ShuGraph.</Text>
         ))}
       {groups.hasNextPage && <NextPageSlot groups={groups} />}
     </Stack>

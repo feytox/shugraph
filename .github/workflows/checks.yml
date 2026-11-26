@@ -50,6 +50,7 @@ jobs:
               - *checks
               - frontend/**
               - backend/graph-api/openapi.yaml
+              - backend/graph-admin-api/openapi.yaml
             workflows:
               - .github/**
 
