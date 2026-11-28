@@ -5,6 +5,7 @@ Summary: backend: очистка БД за период
 - Assignee: hereexe
 - Tags: backend
 - Parent: T-1
+- Depends on: GSD-47
 - Soft Deadline: 09.12
 
 ~~~

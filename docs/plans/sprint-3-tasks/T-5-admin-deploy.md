@@ -6,7 +6,7 @@ Summary: infra: деплой graph-admin-frontapp
 - Tags: infra
 - Parent: T-1
 - Required for: GSD-37
-- Soft Deadline: 09.12
+- Soft Deadline: 04.12
 
 ~~~
 ## Описание

@@ -6,7 +6,7 @@ Summary: Аналитика: проверка цели спринта на prod
 - Tags: analytics
 - Parent: T-1
 - Relates to: T-7, T-10, T-8, T-4
-- Soft Deadline: 18.12
+- Soft Deadline: 23.12
 
 ~~~
 ## Описание

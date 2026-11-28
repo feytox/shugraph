@@ -7,7 +7,7 @@ Summary: graph-api: подпись аналитика у решения
 - Parent: T-1
 - Relates to: T-4
 - Required for: T-9
-- Soft Deadline: 16.12
+- Soft Deadline: 09.12
 
 ~~~
 ## Описание
